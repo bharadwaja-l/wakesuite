@@ -315,8 +315,13 @@ await fetch(
 
 );
 
-let data=
-await response.json();
+let text =
+await response.text();
+
+console.log(text);
+
+let result =
+JSON.parse(text);
 
 
 let menus=
@@ -659,12 +664,14 @@ alert(
 else{
 
 alert(
-"Upload Failed"
+
+"Upload Failed\n\n"
+
++ result.message
+
 );
 
 }
-
-};
 
 
 reader.readAsDataURL(
