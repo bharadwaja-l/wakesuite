@@ -1,12 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WakeSuite</title>
+
+<style>
+body{
+font-family:Arial;
+padding:30px;
+}
+
+button{
+display:block;
+margin:10px 0;
+padding:12px;
+width:220px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>WakeSuite</h1>
+<h3>Modules</h3>
+
+<div id="menu">Loading...</div>
+
 <script>
 
 async function loadMenus(){
 
-let data =
+try{
+
+let response =
 await fetch(
 "https://script.google.com/macros/s/AKfycbzUMoC3QQAjUAQHC4kSKWsduPq4wU6O0ykdW--U-zONYDqDhM0hvwHpIWxAMC6PL-1x/exec"
-)
-.then(r=>r.json());
+);
+
+let data =
+await response.json();
+
+console.log(data);
 
 let html="";
 
@@ -24,10 +58,26 @@ html +=
 document
 .getElementById("menu")
 .innerHTML =
-html;
+html || "No menus found";
+
+}
+
+catch(err){
+
+document
+.getElementById("menu")
+.innerHTML =
+"ERROR: " + err;
+
+console.error(err);
+
+}
 
 }
 
 loadMenus();
 
 </script>
+
+</body>
+</html>
