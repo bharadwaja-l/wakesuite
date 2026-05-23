@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>WakeSuite</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:30px;
+}
+
+button{
+display:block;
+margin:10px;
+padding:12px;
+width:200px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>WakeSuite</h1>
+
+<h3>Modules</h3>
+
+<div id="menu"></div>
+
+<script>
+
+async function loadMenus(){
+
+let data =
+await fetch(
+"https://script.google.com/macros/s/AKfycbwB6rawevysWtH9nvVI06ddHVDqNBn8KSLvRHd8kHUhGbHpPpUeuqlBoJCnuAS9sJlQ/exec"
+)
+.then(r=>r.json());
+
+let html="";
+
+data.slice(1).forEach(x=>{
+
+if(x[1]=="TRUE"){
+
+html +=
+`<button>
+${x[0]}
+</button>`;
+
+}
+
+});
+
+document
+.getElementById("menu")
+.innerHTML =
+html;
+
+}
+
+loadMenus();
+
+</script>
+
+</body>
+
+</html>
