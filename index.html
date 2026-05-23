@@ -2,6 +2,7 @@
 <html>
 
 <head>
+
 <title>WakeSuite</title>
 
 <style>
@@ -12,11 +13,17 @@ padding:30px;
 }
 
 button{
-display:block;
-margin:10px 0;
+
+width:250px;
 padding:12px;
-width:220px;
-cursor:pointer;
+margin:5px;
+
+}
+
+.folder{
+
+margin-left:40px;
+
 }
 
 </style>
@@ -27,17 +34,15 @@ cursor:pointer;
 
 <h1>WakeSuite</h1>
 
-<h3>Modules</h3>
+<div id="content">
 
-<div id="menu">
 Loading...
+
 </div>
 
 <script>
 
-async function loadMenus(){
-
-try{
+async function loadData(){
 
 let response =
 await fetch(
@@ -47,43 +52,86 @@ await fetch(
 let data =
 await response.json();
 
-let html = "";
+let html="";
 
-data.slice(1).forEach(row=>{
+let menus =
+data.menus.slice(1);
 
-if(row[1]){
+let folders =
+data.folders.slice(1);
+
+menus.forEach(m=>{
+
+if(m[1]){
 
 html +=
-`<button>${row[0]}</button>`;
+`<button
+onclick="toggleFolder('${m[0]}')">
+
+${m[0]}
+
+</button>
+
+<div
+id="${m[0]}"
+style="display:none">
+
+`;
+
+folders.forEach(f=>{
+
+if(
+f[0]==m[0]
+&& f[2]
+){
+
+html +=
+`
+<div class='folder'>
+
+• ${f[1]}
+
+</div>
+`;
+
+}
+
+});
+
+html +=
+`</div>`;
 
 }
 
 });
 
 document
-.getElementById("menu")
+.getElementById(
+"content"
+)
 .innerHTML =
 html;
 
 }
 
-catch(error){
+function toggleFolder(id){
 
+let x =
 document
-.getElementById("menu")
-.innerHTML =
-"Error loading menus";
+.getElementById(id);
 
-console.log(error);
+x.style.display =
+x.style.display=="none"
+?
+"block"
+:
+"none";
 
 }
 
-}
-
-loadMenus();
+loadData();
 
 </script>
 
 </body>
-
 </html>
