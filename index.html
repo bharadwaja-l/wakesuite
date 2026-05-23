@@ -37,9 +37,7 @@ color:#111827;
 }
 
 
-/* ==================
-SIDEBAR
-================== */
+/* ========= SIDEBAR ========= */
 
 .sidebar{
 
@@ -56,8 +54,7 @@ background:white;
 padding:30px;
 
 box-shadow:
-2px 0 20px
-rgba(0,0,0,.05);
+2px 0 20px rgba(0,0,0,.05);
 
 overflow:auto;
 
@@ -100,8 +97,7 @@ cursor:pointer;
 font-weight:600;
 
 box-shadow:
-0 2px 10px
-rgba(0,0,0,.05);
+0 2px 10px rgba(0,0,0,.05);
 
 }
 
@@ -121,9 +117,7 @@ border-radius:10px;
 
 
 
-/* ==================
-MAIN
-================== */
+/* ========= MAIN ========= */
 
 .main{
 
@@ -152,6 +146,8 @@ margin-bottom:40px;
 }
 
 
+
+/* ========= CARDS ========= */
 
 .cards{
 
@@ -184,8 +180,7 @@ padding:25px;
 border-radius:18px;
 
 box-shadow:
-0 6px 20px
-rgba(0,0,0,.05);
+0 6px 20px rgba(0,0,0,.05);
 
 }
 
@@ -202,9 +197,7 @@ margin-top:10px;
 
 
 
-/* ==================
-UPLOAD
-================== */
+/* ========= UPLOAD ========= */
 
 .upload{
 
@@ -215,10 +208,9 @@ padding:30px;
 border-radius:20px;
 
 box-shadow:
-0 6px 20px
-rgba(0,0,0,.05);
+0 6px 20px rgba(0,0,0,.05);
 
-max-width:600px;
+max-width:650px;
 
 }
 
@@ -234,7 +226,6 @@ margin:
 10px 0 20px;
 
 border:
-
 1px solid #ddd;
 
 border-radius:10px;
@@ -246,6 +237,8 @@ border-radius:10px;
 
 padding:14px;
 
+width:100%;
+
 background:#2563eb;
 
 color:white;
@@ -256,7 +249,7 @@ border-radius:10px;
 
 cursor:pointer;
 
-width:100%;
+font-weight:600;
 
 }
 
@@ -278,7 +271,6 @@ color:gray;
 <body>
 
 
-<!-- SIDEBAR -->
 
 <div class="sidebar">
 
@@ -306,7 +298,7 @@ Loading...
 
 
 
-<!-- MAIN -->
+
 
 <div class="main">
 
@@ -383,7 +375,8 @@ Reports
 
 
 
-<!-- UPLOAD CENTER -->
+
+<!-- UPLOAD -->
 
 <div class="upload">
 
@@ -392,6 +385,7 @@ Reports
 Upload Report
 
 </h2>
+
 
 
 <label>
@@ -418,19 +412,7 @@ id="menu">
 
 <option>
 
-Wakefit
-
-</option>
-
-<option>
-
-Amazon
-
-</option>
-
-<option>
-
-Flipkart
+Loading...
 
 </option>
 
@@ -449,7 +431,7 @@ id="folder">
 
 <option>
 
-Select Folder
+Loading...
 
 </option>
 
@@ -469,13 +451,16 @@ type="file"
 id="file">
 
 
+
 <button>
 
 Upload
 
 </button>
 
+
 </div>
+
 
 
 
@@ -486,8 +471,8 @@ WakeSuite © 2026
 </div>
 
 
-
 </div>
+
 
 
 
@@ -503,6 +488,7 @@ async function load(){
 try{
 
 let response=
+
 await fetch(
 
 "https://script.google.com/macros/s/AKfycbw3dY00NkmnhjlTkkWYhg-KYu7XcPUc2n0ZxJr5GNttLugxHngh9tw43f42qjlBpFxs/exec"
@@ -512,16 +498,24 @@ await fetch(
 let data=
 await response.json();
 
+
+
 let menus=
 data.menus.slice(1);
 
 let folders=
 data.folders.slice(1);
 
+let uploads=
+data.uploads.slice(1);
+
+
 allFolders=
-folders;
+uploads;
+
 
 let html="";
+
 
 
 menus.forEach(menu=>{
@@ -550,12 +544,13 @@ style="display:none">
 
 `;
 
+
+
 folders.forEach(folder=>{
 
 if(
 
 folder[0]===menu[0]
-
 && folder[2]
 
 ){
@@ -576,6 +571,7 @@ html +=
 
 });
 
+
 html +=
 `</div>`;
 
@@ -584,12 +580,20 @@ html +=
 });
 
 
+
 document
 .getElementById(
 "sidebar"
 )
 .innerHTML=
+
 html;
+
+
+
+populateMenus(
+uploads
+);
 
 populateFolders();
 
@@ -603,6 +607,7 @@ document
 "sidebar"
 )
 .innerHTML=
+
 "Error";
 
 console.log(e);
@@ -613,9 +618,11 @@ console.log(e);
 
 
 
+
 function toggle(id){
 
 let x=
+
 document
 .getElementById(id);
 
@@ -635,6 +642,60 @@ x.style.display==="none"
 
 
 
+
+function populateMenus(uploads){
+
+let html="";
+
+let seen=[];
+
+
+uploads.forEach(u=>{
+
+if(
+
+u[2]
+
+&& !seen.includes(
+u[0]
+)
+
+){
+
+seen.push(
+u[0]
+);
+
+html +=
+
+`
+
+<option>
+
+${u[0]}
+
+</option>
+
+`;
+
+}
+
+});
+
+
+document
+.getElementById(
+"menu"
+)
+.innerHTML=
+
+html;
+
+}
+
+
+
+
 function populateFolders(){
 
 let menu=
@@ -645,9 +706,11 @@ document
 )
 .value;
 
+
 let html=
 
 "<option>Select Folder</option>";
+
 
 allFolders.forEach(f=>{
 
@@ -685,6 +748,7 @@ document
 html;
 
 }
+
 
 
 
