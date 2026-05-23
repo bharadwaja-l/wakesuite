@@ -303,37 +303,34 @@ WakeSuite © 2026
 let allFolders=[];
 
 
-/* LOAD CONFIGS */
+/* LOAD CONFIG */
 
 async function load(){
 
-let response=
+try{
 
+let response =
 await fetch(
 
 "https://script.google.com/macros/s/AKfycbzOIZmkn7NdxL9h0EaN7ykGqIvBp12QDuq0xhx1LXb5zpQCp18HyJhgvDkOJ7x47fIf/exec"
 
 );
 
-let text =
-await response.text();
-
-console.log(text);
-
-let result =
-JSON.parse(text);
+let data =
+await response.json();
 
 
-let menus=
+let menus =
 data.menus.slice(1);
 
-let folders=
+let folders =
 data.folders.slice(1);
 
-let uploads=
+let uploads =
 data.uploads.slice(1);
 
-allFolders=
+
+allFolders =
 uploads;
 
 let html="";
@@ -347,9 +344,7 @@ html +=
 
 `
 <div class="menu"
-onclick="
-toggle('${menu[0]}')
-">
+onclick="toggle('${menu[0]}')">
 
 ${menu[0]}
 
@@ -358,8 +353,8 @@ ${menu[0]}
 <div
 id="${menu[0]}"
 style="display:none">
-
 `;
+
 
 
 folders.forEach(folder=>{
@@ -367,7 +362,6 @@ folders.forEach(folder=>{
 if(
 
 folder[0]===menu[0]
-
 && folder[2]
 
 ){
@@ -375,20 +369,19 @@ folder[0]===menu[0]
 html +=
 
 `
-
 <div class="folder">
 
 📁 ${folder[1]}
 
 </div>
-
 `;
 
 }
 
 });
 
-html+=`</div>`;
+
+html += "</div>";
 
 }
 
@@ -408,6 +401,22 @@ uploads
 );
 
 populateFolders();
+
+}
+
+catch(err){
+
+console.log(err);
+
+document
+.getElementById(
+"sidebar"
+)
+.innerHTML=
+
+"Error loading";
+
+}
 
 }
 
@@ -437,17 +446,20 @@ x.style.display==="none"
 
 
 
-/* MENU DROPDOWN */
+/* MENU */
 
 function populateMenus(uploads){
 
 let html="";
 let seen=[];
 
+
 uploads.forEach(u=>{
 
 if(
+
 u[2]
+
 && !seen.includes(
 u[0]
 )
@@ -458,7 +470,7 @@ seen.push(
 u[0]
 );
 
-html+=
+html +=
 
 `
 <option>
@@ -466,7 +478,6 @@ html+=
 ${u[0]}
 
 </option>
-
 `;
 
 }
@@ -485,7 +496,7 @@ html;
 
 
 
-/* FOLDER DROPDOWN */
+/* FOLDERS */
 
 function populateFolders(){
 
@@ -505,11 +516,13 @@ let html=
 allFolders.forEach(f=>{
 
 if(
+
 f[0]===menu
 && f[2]
+
 ){
 
-html+=
+html +=
 
 `
 <option>
@@ -517,7 +530,6 @@ html+=
 ${f[1]}
 
 </option>
-
 `;
 
 }
@@ -547,40 +559,32 @@ populateFolders
 
 
 
-/* REAL UPLOAD */
+/* UPLOAD */
 
 async function uploadData(){
 
-let reportDate=
-document
-.getElementById(
+let reportDate =
+document.getElementById(
 "reportDate"
-)
-.value;
+).value;
 
 
-let menu=
-document
-.getElementById(
+let menu =
+document.getElementById(
 "menu"
-)
-.value;
+).value;
 
 
-let folder=
-document
-.getElementById(
+let folder =
+document.getElementById(
 "folder"
-)
-.value;
+).value;
 
 
-let file=
-document
-.getElementById(
+let file =
+document.getElementById(
 "file"
-)
-.files[0];
+).files[0];
 
 
 if(!file){
@@ -594,14 +598,14 @@ return;
 }
 
 
-let reader=
+let reader =
 new FileReader();
 
 
-reader.onload=
+reader.onload =
 async function(){
 
-let base64=
+let base64 =
 
 reader.result
 .split(",")[1];
@@ -631,7 +635,7 @@ let response=
 
 await fetch(
 
-"https://script.google.com/macros/s/AKfycbxvaAIG-F1rM3_vzyACoB-tVIy32_6paXYQkn3iOYFeCgbAlfkJRVLdhxDWxfdDPhIS/exec",
+"https://script.google.com/macros/s/AKfycbzOIZmkn7NdxL9h0EaN7ykGqIvBp12QDuq0xhx1LXb5zpQCp18HyJhgvDkOJ7x47fIf/exec",
 
 {
 
@@ -652,11 +656,13 @@ await response.json();
 
 
 if(
+
 result.status==="success"
+
 ){
 
 alert(
-"Uploaded to Drive"
+"Uploaded"
 );
 
 }
@@ -673,6 +679,8 @@ alert(
 
 }
 
+};
+
 
 reader.readAsDataURL(
 file
@@ -681,9 +689,7 @@ file
 }
 
 
+
 load();
 
 </script>
-
-</body>
-</html>
