@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 <title>WakeSuite</title>
 
 <style>
+
 body{
 font-family:Arial;
 padding:30px;
@@ -14,7 +16,9 @@ display:block;
 margin:10px 0;
 padding:12px;
 width:220px;
+cursor:pointer;
 }
+
 </style>
 
 </head>
@@ -22,9 +26,12 @@ width:220px;
 <body>
 
 <h1>WakeSuite</h1>
+
 <h3>Modules</h3>
 
-<div id="menu">Loading...</div>
+<div id="menu">
+Loading...
+</div>
 
 <script>
 
@@ -40,16 +47,14 @@ await fetch(
 let data =
 await response.json();
 
-console.log(data);
+let html = "";
 
-let html="";
+data.slice(1).forEach(row=>{
 
-data.slice(1).forEach(x=>{
-
-if(x[1]){
+if(row[1]){
 
 html +=
-`<button>${x[0]}</button>`;
+`<button>${row[0]}</button>`;
 
 }
 
@@ -58,18 +63,18 @@ html +=
 document
 .getElementById("menu")
 .innerHTML =
-html || "No menus found";
+html;
 
 }
 
-catch(err){
+catch(error){
 
 document
 .getElementById("menu")
 .innerHTML =
-"ERROR: " + err;
+"Error loading menus";
 
-console.error(err);
+console.log(error);
 
 }
 
@@ -80,4 +85,5 @@ loadMenus();
 </script>
 
 </body>
+
 </html>
