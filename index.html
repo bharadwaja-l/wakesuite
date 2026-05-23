@@ -37,12 +37,11 @@ color:#111827;
 }
 
 
-/* ========= SIDEBAR ========= */
+/* SIDEBAR */
 
 .sidebar{
 
 position:fixed;
-
 left:0;
 top:0;
 
@@ -54,7 +53,8 @@ background:white;
 padding:30px;
 
 box-shadow:
-2px 0 20px rgba(0,0,0,.05);
+2px 0 20px
+rgba(0,0,0,.05);
 
 overflow:auto;
 
@@ -97,7 +97,8 @@ cursor:pointer;
 font-weight:600;
 
 box-shadow:
-0 2px 10px rgba(0,0,0,.05);
+0 2px 10px
+rgba(0,0,0,.05);
 
 }
 
@@ -117,7 +118,7 @@ border-radius:10px;
 
 
 
-/* ========= MAIN ========= */
+/* MAIN */
 
 .main{
 
@@ -131,7 +132,6 @@ padding:40px;
 .title{
 
 font-size:42px;
-
 font-weight:700;
 
 }
@@ -140,28 +140,23 @@ font-weight:700;
 .subtitle{
 
 color:gray;
-
 margin-bottom:40px;
 
 }
 
 
 
-/* ========= CARDS ========= */
-
 .cards{
 
 display:grid;
 
 grid-template-columns:
-
 repeat(
 auto-fit,
 minmax(
 220px,
 1fr
 )
-
 );
 
 gap:20px;
@@ -180,7 +175,8 @@ padding:25px;
 border-radius:18px;
 
 box-shadow:
-0 6px 20px rgba(0,0,0,.05);
+0 6px 20px
+rgba(0,0,0,.05);
 
 }
 
@@ -197,7 +193,7 @@ margin-top:10px;
 
 
 
-/* ========= UPLOAD ========= */
+/* UPLOAD */
 
 .upload{
 
@@ -208,7 +204,8 @@ padding:30px;
 border-radius:20px;
 
 box-shadow:
-0 6px 20px rgba(0,0,0,.05);
+0 6px 20px
+rgba(0,0,0,.05);
 
 max-width:650px;
 
@@ -257,7 +254,6 @@ font-weight:600;
 .footer{
 
 margin-top:40px;
-
 color:gray;
 
 }
@@ -271,7 +267,6 @@ color:gray;
 <body>
 
 
-
 <div class="sidebar">
 
 <div class="logo">
@@ -280,13 +275,11 @@ WakeSuite
 
 </div>
 
-
 <div class="tag">
 
 Marketplace Intelligence
 
 </div>
-
 
 <div id="sidebar">
 
@@ -295,7 +288,6 @@ Loading...
 </div>
 
 </div>
-
 
 
 
@@ -376,8 +368,6 @@ Reports
 
 
 
-<!-- UPLOAD -->
-
 <div class="upload">
 
 <h2>
@@ -385,7 +375,6 @@ Reports
 Upload Report
 
 </h2>
-
 
 
 <label>
@@ -396,9 +385,7 @@ Report Date
 
 <input
 type="date"
-
 id="reportDate">
-
 
 
 <label>
@@ -447,12 +434,12 @@ File
 
 <input
 type="file"
-
 id="file">
 
 
 
-<button>
+<button
+onclick="uploadData()">
 
 Upload
 
@@ -460,7 +447,6 @@ Upload
 
 
 </div>
-
 
 
 
@@ -476,7 +462,6 @@ WakeSuite © 2026
 
 
 
-
 <script>
 
 let allFolders=[];
@@ -485,19 +470,16 @@ let allFolders=[];
 
 async function load(){
 
-try{
-
 let response=
 
 await fetch(
 
-"https://script.google.com/macros/s/AKfycbwcF3xwBl2viHh78x6SMiMgrbd3gzKZ3fGx55s1_30ofCH1xpB0VuM7MZsdRC4uktKg/exec"
+"https://script.google.com/macros/s/AKfycbxMk6mpK0A0kaBOnRjZ1TkRnxZMCtYrn-s-IWq0nCTP-RymrnuomDESQs9qzGR7fH4/exec"
 
 );
 
 let data=
 await response.json();
-
 
 
 let menus=
@@ -515,7 +497,6 @@ uploads;
 
 
 let html="";
-
 
 
 menus.forEach(menu=>{
@@ -540,10 +521,10 @@ ${menu[0]}
 
 <div
 id="${menu[0]}"
+
 style="display:none">
 
 `;
-
 
 
 folders.forEach(folder=>{
@@ -551,6 +532,7 @@ folders.forEach(folder=>{
 if(
 
 folder[0]===menu[0]
+
 && folder[2]
 
 ){
@@ -559,7 +541,8 @@ html +=
 
 `
 
-<div class="folder">
+<div
+class="folder">
 
 📁 ${folder[1]}
 
@@ -572,13 +555,12 @@ html +=
 });
 
 
-html +=
+html+=
 `</div>`;
 
 }
 
 });
-
 
 
 document
@@ -590,7 +572,6 @@ document
 html;
 
 
-
 populateMenus(
 uploads
 );
@@ -600,29 +581,11 @@ populateFolders();
 }
 
 
-catch(e){
-
-document
-.getElementById(
-"sidebar"
-)
-.innerHTML=
-
-"Error";
-
-console.log(e);
-
-}
-
-}
-
-
 
 
 function toggle(id){
 
 let x=
-
 document
 .getElementById(id);
 
@@ -639,7 +602,6 @@ x.style.display==="none"
 "none";
 
 }
-
 
 
 
@@ -692,7 +654,6 @@ document
 html;
 
 }
-
 
 
 
@@ -751,7 +712,6 @@ html;
 
 
 
-
 document
 .getElementById(
 "menu"
@@ -764,6 +724,93 @@ document
 populateFolders
 
 );
+
+
+
+
+async function uploadData(){
+
+let reportDate =
+document
+.getElementById(
+"reportDate"
+)
+.value;
+
+
+let menu =
+document
+.getElementById(
+"menu"
+)
+.value;
+
+
+let folder =
+document
+.getElementById(
+"folder"
+)
+.value;
+
+
+let file =
+document
+.getElementById(
+"file"
+)
+.files[0];
+
+
+if(!file){
+
+alert(
+"Choose file"
+);
+
+return;
+
+}
+
+
+let body={
+
+reportDate,
+
+menu,
+
+folder,
+
+fileName:
+file.name
+
+};
+
+
+
+await fetch(
+
+"https://script.google.com/macros/s/AKfycbxMk6mpK0A0kaBOnRjZ1TkRnxZMCtYrn-s-IWq0nCTP-RymrnuomDESQs9qzGR7fH4/exec",
+
+{
+
+method:"POST",
+
+body:
+JSON.stringify(
+body
+)
+
+}
+
+);
+
+
+alert(
+"Archive Saved"
+);
+
+}
 
 
 
