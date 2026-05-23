@@ -7,24 +7,17 @@
 
 <meta
 name="viewport"
-content="width=device-width,initial-scale=1">
+content="width=device-width, initial-scale=1">
 
-<link rel="preconnect"
-href="https://fonts.googleapis.com">
-
-<link href="
-https://fonts.googleapis.com/css2?
-family=Inter:wght@300;400;500;600;700
-&display=swap"
-
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
 rel="stylesheet">
-
 
 <style>
 
-/* ===================
+/* =====================
 GLOBAL
-=================== */
+===================== */
 
 *{
 
@@ -36,10 +29,9 @@ box-sizing:border-box;
 
 body{
 
-font-family:'Inter';
+font-family:'Inter',sans-serif;
 
 background:
-
 linear-gradient(
 135deg,
 #f8fafc,
@@ -51,16 +43,16 @@ color:#111827;
 }
 
 
-/* ===================
+/* =====================
 SIDEBAR
-=================== */
+===================== */
 
 .sidebar{
 
 position:fixed;
 
-left:0;
 top:0;
+left:0;
 
 width:260px;
 height:100vh;
@@ -70,9 +62,9 @@ background:white;
 padding:35px;
 
 box-shadow:
+2px 0 20px rgba(0,0,0,.05);
 
-2px 0 25px
-rgba(0,0,0,.05);
+overflow:auto;
 
 }
 
@@ -93,7 +85,7 @@ margin-bottom:10px;
 
 color:gray;
 
-margin-bottom:50px;
+margin-bottom:40px;
 
 }
 
@@ -102,22 +94,20 @@ margin-bottom:50px;
 
 padding:18px;
 
-border-radius:14px;
-
-background:#fff;
-
 margin-bottom:12px;
+
+background:white;
+
+border-radius:14px;
 
 cursor:pointer;
 
 font-weight:600;
 
-transition:.2s;
-
 box-shadow:
+0 3px 12px rgba(0,0,0,.05);
 
-0 3px 12px
-rgba(0,0,0,.04);
+transition:.2s;
 
 }
 
@@ -127,25 +117,19 @@ rgba(0,0,0,.04);
 background:#eff6ff;
 
 transform:
-translateX(6px);
+translateX(5px);
 
 }
 
 
 .folder{
 
-padding:14px;
+padding:12px;
 
 margin:
+8px 0 8px 25px;
 
-8px
-0
-8px
-25px;
-
-background:
-
-#f8fafc;
+background:#f5f7fa;
 
 border-radius:10px;
 
@@ -154,9 +138,10 @@ font-size:14px;
 }
 
 
-/* ===================
+
+/* =====================
 MAIN
-=================== */
+===================== */
 
 .main{
 
@@ -167,21 +152,9 @@ padding:40px;
 }
 
 
-.top{
-
-display:flex;
-
-justify-content:
-space-between;
-
-margin-bottom:40px;
-
-}
-
-
 .title{
 
-font-size:40px;
+font-size:42px;
 
 font-weight:700;
 
@@ -192,10 +165,17 @@ font-weight:700;
 
 color:gray;
 
-margin-top:10px;
+margin-top:8px;
+
+margin-bottom:40px;
 
 }
 
+
+
+/* =====================
+CARDS
+===================== */
 
 .cards{
 
@@ -205,11 +185,7 @@ grid-template-columns:
 
 repeat(
 auto-fit,
-minmax(
-220px,
-1fr
-)
-
+minmax(220px,1fr)
 );
 
 gap:20px;
@@ -228,27 +204,26 @@ padding:25px;
 border-radius:20px;
 
 box-shadow:
-
-0 8px 30px
-rgba(0,0,0,.05);
+0 8px 25px rgba(0,0,0,.05);
 
 }
 
 
 .metric{
 
-font-size:32px;
+font-size:34px;
 
 font-weight:700;
 
-margin-top:15px;
+margin-top:10px;
 
 }
 
 
-/* ===================
+
+/* =====================
 STATUS
-=================== */
+===================== */
 
 .status{
 
@@ -259,26 +234,87 @@ padding:30px;
 border-radius:20px;
 
 box-shadow:
+0 8px 25px rgba(0,0,0,.05);
 
-0 8px 30px
-rgba(0,0,0,.05);
-
-margin-top:40px;
+margin-bottom:40px;
 
 }
 
 
-/* ===================
-FOOTER
-=================== */
+
+/* =====================
+UPLOAD
+===================== */
+
+.upload{
+
+background:white;
+
+padding:30px;
+
+border-radius:20px;
+
+box-shadow:
+0 8px 25px rgba(0,0,0,.05);
+
+max-width:600px;
+
+}
+
+
+.upload input,
+.upload select{
+
+width:100%;
+
+padding:12px;
+
+margin-top:12px;
+
+margin-bottom:20px;
+
+border:
+
+1px solid #ddd;
+
+border-radius:10px;
+
+}
+
+
+.upload button{
+
+padding:14px 20px;
+
+background:#2563eb;
+
+color:white;
+
+border:none;
+
+border-radius:10px;
+
+cursor:pointer;
+
+font-weight:600;
+
+}
+
+
+.upload button:hover{
+
+background:#1d4ed8;
+
+}
+
 
 .footer{
 
-margin-top:50px;
+margin-top:40px;
 
 color:gray;
 
-font-size:13px;
+font-size:14px;
 
 }
 
@@ -291,6 +327,9 @@ font-size:13px;
 <body>
 
 
+
+<!-- SIDEBAR -->
+
 <div class="sidebar">
 
 <div class="logo">
@@ -298,6 +337,7 @@ font-size:13px;
 WakeSuite
 
 </div>
+
 
 <div class="tag">
 
@@ -316,12 +356,10 @@ Loading...
 
 
 
+<!-- MAIN -->
+
 <div class="main">
 
-
-<div class="top">
-
-<div>
 
 <div class="title">
 
@@ -329,20 +367,10 @@ Dashboard
 
 </div>
 
+
 <div class="subtitle">
 
 Wakefit Marketplace Operations
-
-</div>
-
-</div>
-
-
-<div>
-
-24 May 2026
-
-</div>
 
 </div>
 
@@ -425,33 +453,13 @@ GitHub → Live
 
 WakeSuite → Running
 
-
 </div>
 
 
 
-<div class="footer">
+<!-- UPLOAD CENTER -->
 
-WakeSuite © 2026
-
-</div>
-
-
-</div>
-
-<div class="footer">
-
-WakeSuite © 2026
-
-</div>
-
-
-</div>
-
-
-<!-- ======================
-UPLOAD CENTER
-====================== -->
+<div class="upload">
 
 <h2>
 
@@ -463,8 +471,6 @@ Upload Report
 <input
 type="date"
 id="reportDate">
-
-<br><br>
 
 
 <select id="menu">
@@ -483,8 +489,6 @@ Flipkart
 
 </select>
 
-<br><br>
-
 
 <input
 type="text"
@@ -493,15 +497,11 @@ placeholder="Folder"
 
 id="folder">
 
-<br><br>
-
 
 <input
 type="file"
 
 id="file">
-
-<br><br>
 
 
 <button>
@@ -511,8 +511,20 @@ Upload
 </button>
 
 
+</div>
 
-<script>
+
+
+<div class="footer">
+
+WakeSuite © 2026
+
+</div>
+
+
+</div>
+
+
 
 
 <script>
@@ -521,18 +533,20 @@ async function load(){
 
 try{
 
-let response=
+let response =
 await fetch(
+
 "https://script.google.com/macros/s/AKfycbwe1CK3w2veuRPZdHDIo7LWHptdk5uU1UVJMjGlTtnqyHswEsZzeX3cfjuo2iyj3sQL/exec"
+
 );
 
-let data=
+let data =
 await response.json();
 
-let menus=
+let menus =
 data.menus.slice(1);
 
-let folders=
+let folders =
 data.folders.slice(1);
 
 let html="";
@@ -542,7 +556,7 @@ menus.forEach(menu=>{
 
 if(menu[1]){
 
-html+=
+html +=
 
 `
 
@@ -559,9 +573,7 @@ ${menu[0]}
 
 
 <div
-
 id="${menu[0]}"
-
 style="display:none">
 
 `;
@@ -572,16 +584,16 @@ folders.forEach(folder=>{
 if(
 
 folder[0]===menu[0]
+
 && folder[2]
 
 ){
 
-html+=
+html +=
 
 `
 
-<div
-class="folder">
+<div class="folder">
 
 📁 ${folder[1]}
 
@@ -594,7 +606,7 @@ class="folder">
 });
 
 
-html+=
+html +=
 `</div>`;
 
 }
@@ -606,20 +618,23 @@ document
 .getElementById(
 "sidebar"
 )
-.innerHTML=
+.innerHTML =
 html;
 
 }
 
 
-catch(e){
+catch(error){
 
 document
 .getElementById(
 "sidebar"
 )
-.innerHTML=
-"Error";
+.innerHTML =
+
+"Error loading";
+
+console.log(error);
 
 }
 
@@ -629,11 +644,10 @@ document
 
 function toggle(id){
 
-let x=
-document
-.getElementById(id);
+let x =
+document.getElementById(id);
 
-x.style.display=
+x.style.display =
 
 x.style.display==="none"
 
@@ -651,6 +665,7 @@ x.style.display==="none"
 load();
 
 </script>
+
 
 
 </body>
