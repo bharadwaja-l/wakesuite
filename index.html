@@ -1,37 +1,3 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
-<title>WakeSuite</title>
-
-<style>
-
-body{
-font-family:Arial;
-padding:30px;
-}
-
-button{
-display:block;
-margin:10px;
-padding:12px;
-width:200px;
-cursor:pointer;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<h1>WakeSuite</h1>
-
-<h3>Modules</h3>
-
-<div id="menu"></div>
-
 <script>
 
 async function loadMenus(){
@@ -44,14 +10,19 @@ await fetch(
 
 let html="";
 
-data.slice(1).forEach(x=>{
+data.slice(1)
+.forEach(x=>{
 
-if(x[1]===true){
-  
+if(x[1]){
+
 html +=
-`<button>
+`
+<button>
+
 ${x[0]}
-</button>`;
+
+</button>
+`;
 
 }
 
@@ -67,7 +38,3 @@ html;
 loadMenus();
 
 </script>
-
-</body>
-
-</html>
