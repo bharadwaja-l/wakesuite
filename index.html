@@ -7,110 +7,195 @@
 
 <style>
 
-/* =======================
-   PAGE
-======================= */
+/* ==========================
+   GLOBAL
+========================== */
 
 body{
 
-font-family:Arial;
-background:#f4f6f9;
-padding:30px;
 margin:0;
+font-family:
+"Segoe UI",
+Arial;
+
+background:#f5f7fa;
 
 }
 
-/* =======================
+
+/* ==========================
    HEADER
-======================= */
+========================== */
 
-h1{
+.header{
 
-font-size:48px;
-margin-bottom:10px;
-color:#1f2937;
+background:white;
+
+padding:20px 40px;
+
+box-shadow:
+0 2px 8px
+rgba(0,0,0,.05);
+
+display:flex;
+
+justify-content:
+space-between;
+
+align-items:center;
 
 }
 
-.subtitle{
+.logo{
 
+font-size:34px;
+font-weight:700;
+
+color:#1e3a8a;
+
+}
+
+.sub{
+
+font-size:14px;
 color:#6b7280;
-margin-bottom:40px;
 
 }
 
-/* =======================
-   MENU BUTTONS
-======================= */
+
+/* ==========================
+   MAIN
+========================== */
+
+.container{
+
+padding:40px;
+
+}
+
+
+.section-title{
+
+font-size:24px;
+font-weight:600;
+
+margin-bottom:30px;
+
+}
+
+
+/* ==========================
+   MENU CARDS
+========================== */
 
 .menu{
 
+width:320px;
+
+padding:18px;
+
 background:white;
-padding:15px;
-margin-bottom:12px;
-width:280px;
 
 border:none;
-border-radius:12px;
+
+border-radius:16px;
+
+margin-bottom:14px;
 
 font-size:18px;
-font-weight:bold;
+
+font-weight:600;
+
+text-align:left;
 
 cursor:pointer;
 
 box-shadow:
-0 2px 8px rgba(0,0,0,.08);
 
-text-align:left;
+0 4px 10px
+rgba(0,0,0,.06);
+
+transition:.25s;
+
+}
+
+
+.menu:hover{
+
+transform:
+translateY(-3px);
+
+background:
+#eef4ff;
+
+}
+
+
+/* ==========================
+   FOLDERS
+========================== */
+
+.folder{
+
+margin-left:35px;
+
+padding:14px;
+
+background:white;
+
+border-radius:12px;
+
+margin-bottom:8px;
+
+width:260px;
+
+box-shadow:
+
+0 2px 8px
+rgba(0,0,0,.05);
+
+cursor:pointer;
 
 transition:.2s;
 
 }
 
-.menu:hover{
-
-transform:translateY(-2px);
-
-}
-
-/* =======================
-   FOLDERS
-======================= */
-
-.folder{
-
-margin-left:40px;
-padding:12px;
-
-background:white;
-
-border-radius:8px;
-
-margin-bottom:8px;
-
-width:220px;
-
-box-shadow:
-0 1px 5px rgba(0,0,0,.06);
-
-cursor:pointer;
-
-}
 
 .folder:hover{
 
-background:#eef2ff;
+background:#f0f7ff;
 
 }
 
-/* =======================
-   ERROR
-======================= */
 
-.error{
+/* ==========================
+   STATUS BAR
+========================== */
 
-color:red;
-font-weight:bold;
+.status{
+
+margin-top:40px;
+
+padding:20px;
+
+background:white;
+
+border-radius:16px;
+
+box-shadow:
+
+0 4px 10px
+rgba(0,0,0,.05);
+
+width:500px;
+
+}
+
+
+.small{
+
+font-size:14px;
+color:gray;
 
 }
 
@@ -118,25 +203,80 @@ font-weight:bold;
 
 </head>
 
+
+
 <body>
 
-<h1>
+
+<div class="header">
+
+<div>
+
+<div class="logo">
 
 WakeSuite
 
-</h1>
+</div>
 
-<div class="subtitle">
+<div class="sub">
 
 Marketplace Operations Portal
 
 </div>
+
+</div>
+
+<div>
+
+24 May 2026
+
+</div>
+
+</div>
+
+
+
+<div class="container">
+
+<div class="section-title">
+
+Modules
+
+</div>
+
 
 <div id="content">
 
 Loading...
 
 </div>
+
+
+<div class="status">
+
+<b>System Status</b>
+
+<br><br>
+
+<div class="small">
+
+Google Sheets : Connected
+
+<br>
+
+Apps Script : Active
+
+<br>
+
+GitHub : Live
+
+</div>
+
+</div>
+
+
+</div>
+
 
 
 <script>
@@ -171,6 +311,7 @@ html +=
 `
 
 <button
+
 class="menu"
 
 onclick="toggle('${menu[0]}')">
@@ -187,7 +328,6 @@ id="${menu[0]}"
 style="display:none">
 
 `;
-
 
 folders.forEach(folder=>{
 
@@ -216,7 +356,8 @@ html +=
 });
 
 
-html += `</div>`;
+html +=
+`</div>`;
 
 }
 
@@ -230,10 +371,10 @@ document
 .innerHTML =
 html;
 
-
 }
 
-catch(err){
+
+catch(error){
 
 document
 .getElementById(
@@ -241,13 +382,9 @@ document
 )
 .innerHTML =
 
-`<div class='error'>
+"Error loading";
 
-${err}
-
-</div>`;
-
-console.log(err);
+console.log(error);
 
 }
 
