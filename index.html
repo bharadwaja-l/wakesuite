@@ -2,7 +2,6 @@
 <html>
 
 <head>
-
 <title>WakeSuite</title>
 
 <style>
@@ -13,17 +12,15 @@ padding:30px;
 }
 
 button{
-
-width:250px;
+display:block;
+margin:8px 0;
 padding:12px;
-margin:5px;
-
+width:220px;
 }
 
 .folder{
-
-margin-left:40px;
-
+margin-left:30px;
+padding:5px;
 }
 
 </style>
@@ -35,14 +32,14 @@ margin-left:40px;
 <h1>WakeSuite</h1>
 
 <div id="content">
-
 Loading...
-
 </div>
 
 <script>
 
 async function loadData(){
+
+try{
 
 let response =
 await fetch(
@@ -52,6 +49,8 @@ await fetch(
 let data =
 await response.json();
 
+console.log(data);
+
 let html="";
 
 let menus =
@@ -60,39 +59,33 @@ data.menus.slice(1);
 let folders =
 data.folders.slice(1);
 
-menus.forEach(m=>{
+menus.forEach(menu=>{
 
-if(m[1]){
+if(menu[1]){
 
 html +=
-`<button
-onclick="toggleFolder('${m[0]}')">
+`<button onclick="toggle('${menu[0]}')">
 
-${m[0]}
+${menu[0]}
 
 </button>
 
-<div
-id="${m[0]}"
-style="display:none">
+<div id="${menu[0]}"
+style="display:none">`;
 
-`;
-
-folders.forEach(f=>{
+folders.forEach(folder=>{
 
 if(
-f[0]==m[0]
-&& f[2]
+folder[0]===menu[0]
+&& folder[2]
 ){
 
 html +=
-`
-<div class='folder'>
+`<div class="folder">
 
-• ${f[1]}
+• ${folder[1]}
 
-</div>
-`;
+</div>`;
 
 }
 
@@ -106,22 +99,32 @@ html +=
 });
 
 document
-.getElementById(
-"content"
-)
+.getElementById("content")
 .innerHTML =
 html;
 
 }
 
-function toggleFolder(id){
+catch(error){
+
+document
+.getElementById("content")
+.innerHTML =
+"ERROR: " + error;
+
+console.log(error);
+
+}
+
+}
+
+function toggle(id){
 
 let x =
-document
-.getElementById(id);
+document.getElementById(id);
 
 x.style.display =
-x.style.display=="none"
+x.style.display==="none"
 ?
 "block"
 :
