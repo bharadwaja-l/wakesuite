@@ -5,197 +5,280 @@
 
 <title>WakeSuite</title>
 
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1">
+
+<link rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link href="
+https://fonts.googleapis.com/css2?
+family=Inter:wght@300;400;500;600;700
+&display=swap"
+
+rel="stylesheet">
+
+
 <style>
 
-/* ==========================
-   GLOBAL
-========================== */
+/* ===================
+GLOBAL
+=================== */
+
+*{
+
+margin:0;
+padding:0;
+box-sizing:border-box;
+
+}
 
 body{
 
-margin:0;
-font-family:
-"Segoe UI",
-Arial;
+font-family:'Inter';
 
-background:#f5f7fa;
+background:
+
+linear-gradient(
+135deg,
+#f8fafc,
+#eef2ff
+);
+
+color:#111827;
 
 }
 
 
-/* ==========================
-   HEADER
-========================== */
+/* ===================
+SIDEBAR
+=================== */
 
-.header{
+.sidebar{
+
+position:fixed;
+
+left:0;
+top:0;
+
+width:260px;
+height:100vh;
 
 background:white;
 
-padding:20px 40px;
+padding:35px;
 
 box-shadow:
-0 2px 8px
+
+2px 0 25px
 rgba(0,0,0,.05);
 
-display:flex;
-
-justify-content:
-space-between;
-
-align-items:center;
-
 }
+
 
 .logo{
 
 font-size:34px;
 font-weight:700;
 
-color:#1e3a8a;
+color:#2563eb;
 
-}
-
-.sub{
-
-font-size:14px;
-color:#6b7280;
+margin-bottom:10px;
 
 }
 
 
-/* ==========================
-   MAIN
-========================== */
+.tag{
 
-.container{
+color:gray;
 
-padding:40px;
+margin-bottom:50px;
 
 }
 
-
-.section-title{
-
-font-size:24px;
-font-weight:600;
-
-margin-bottom:30px;
-
-}
-
-
-/* ==========================
-   MENU CARDS
-========================== */
 
 .menu{
 
-width:320px;
-
 padding:18px;
 
-background:white;
+border-radius:14px;
 
-border:none;
+background:#fff;
 
-border-radius:16px;
-
-margin-bottom:14px;
-
-font-size:18px;
-
-font-weight:600;
-
-text-align:left;
+margin-bottom:12px;
 
 cursor:pointer;
 
+font-weight:600;
+
+transition:.2s;
+
 box-shadow:
 
-0 4px 10px
-rgba(0,0,0,.06);
-
-transition:.25s;
+0 3px 12px
+rgba(0,0,0,.04);
 
 }
 
 
 .menu:hover{
 
-transform:
-translateY(-3px);
+background:#eff6ff;
 
-background:
-#eef4ff;
+transform:
+translateX(6px);
 
 }
 
-
-/* ==========================
-   FOLDERS
-========================== */
 
 .folder{
 
-margin-left:35px;
-
 padding:14px;
+
+margin:
+
+8px
+0
+8px
+25px;
+
+background:
+
+#f8fafc;
+
+border-radius:10px;
+
+font-size:14px;
+
+}
+
+
+/* ===================
+MAIN
+=================== */
+
+.main{
+
+margin-left:280px;
+
+padding:40px;
+
+}
+
+
+.top{
+
+display:flex;
+
+justify-content:
+space-between;
+
+margin-bottom:40px;
+
+}
+
+
+.title{
+
+font-size:40px;
+
+font-weight:700;
+
+}
+
+
+.subtitle{
+
+color:gray;
+
+margin-top:10px;
+
+}
+
+
+.cards{
+
+display:grid;
+
+grid-template-columns:
+
+repeat(
+auto-fit,
+minmax(
+220px,
+1fr
+)
+
+);
+
+gap:20px;
+
+margin-bottom:40px;
+
+}
+
+
+.card{
 
 background:white;
 
-border-radius:12px;
+padding:25px;
 
-margin-bottom:8px;
-
-width:260px;
+border-radius:20px;
 
 box-shadow:
 
-0 2px 8px
+0 8px 30px
 rgba(0,0,0,.05);
 
-cursor:pointer;
+}
 
-transition:.2s;
+
+.metric{
+
+font-size:32px;
+
+font-weight:700;
+
+margin-top:15px;
 
 }
 
 
-.folder:hover{
-
-background:#f0f7ff;
-
-}
-
-
-/* ==========================
-   STATUS BAR
-========================== */
+/* ===================
+STATUS
+=================== */
 
 .status{
 
-margin-top:40px;
-
-padding:20px;
-
 background:white;
 
-border-radius:16px;
+padding:30px;
+
+border-radius:20px;
 
 box-shadow:
 
-0 4px 10px
+0 8px 30px
 rgba(0,0,0,.05);
 
-width:500px;
+margin-top:40px;
 
 }
 
 
-.small{
+/* ===================
+FOOTER
+=================== */
 
-font-size:14px;
+.footer{
+
+margin-top:50px;
+
 color:gray;
+
+font-size:13px;
 
 }
 
@@ -208,9 +291,7 @@ color:gray;
 <body>
 
 
-<div class="header">
-
-<div>
+<div class="sidebar">
 
 <div class="logo">
 
@@ -218,13 +299,44 @@ WakeSuite
 
 </div>
 
-<div class="sub">
+<div class="tag">
 
-Marketplace Operations Portal
+Marketplace Intelligence
+
+</div>
+
+
+<div id="sidebar">
+
+Loading...
 
 </div>
 
 </div>
+
+
+
+<div class="main">
+
+
+<div class="top">
+
+<div>
+
+<div class="title">
+
+Dashboard
+
+</div>
+
+<div class="subtitle">
+
+Wakefit Marketplace Operations
+
+</div>
+
+</div>
+
 
 <div>
 
@@ -236,67 +348,118 @@ Marketplace Operations Portal
 
 
 
-<div class="container">
+<div class="cards">
 
-<div class="section-title">
+<div class="card">
 
-Modules
+Suppression
+
+<div class="metric">
+
+128
+
+</div>
 
 </div>
 
 
-<div id="content">
+<div class="card">
 
-Loading...
+Buy Box
+
+<div class="metric">
+
+42
 
 </div>
+
+</div>
+
+
+<div class="card">
+
+Price Alerts
+
+<div class="metric">
+
+18
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+Reports
+
+<div class="metric">
+
+532
+
+</div>
+
+</div>
+
+</div>
+
 
 
 <div class="status">
 
-<b>System Status</b>
+<b>System Health</b>
 
 <br><br>
 
-<div class="small">
-
-Google Sheets : Connected
+Google Sheets → Connected
 
 <br>
 
-Apps Script : Active
+Apps Script → Active
 
 <br>
 
-GitHub : Live
+GitHub → Live
+
+<br>
+
+WakeSuite → Running
+
 
 </div>
 
+
+
+<div class="footer">
+
+WakeSuite © 2026
+
 </div>
 
 
 </div>
+
 
 
 
 <script>
 
-async function loadData(){
+async function load(){
 
 try{
 
-let response =
+let response=
 await fetch(
 "https://script.googleusercontent.com/a/macros/wakefit.co/echo?user_content_key=AUkAhnRT-0CtWcRKPUpszyynziXN_mrbOeAYzbhzmHFCU6z5GRSnYPuBP-8pSVdUPyVYg9f8zTVxGLPoyTXGhpFIuFB8q9ah32hfINlu8RVCFAhqzFzDQ4dXcttX56LM_zd7t8KhZYm32Q9hISABQStmUTaziNifBqOh_wM1c05aA32QlyQuJIjBsPqa5vARKt66DHFZKmbcutmy13_Asuvs_KzGL-cxzXFT3Ji0QFQCuuxEAWBMOt5GDiHRHff7TrICbtsGUVCnHdnt0xTqcIwO4VtBGV-8AwYahoMKGjSe&lib=MosJG25q3a5Xj7Jm-JPRrUZxeXXwTpFvz"
 );
 
-let data =
+let data=
 await response.json();
 
-let menus =
+let menus=
 data.menus.slice(1);
 
-let folders =
+let folders=
 data.folders.slice(1);
 
 let html="";
@@ -306,19 +469,20 @@ menus.forEach(menu=>{
 
 if(menu[1]){
 
-html +=
+html+=
 
 `
 
-<button
-
+<div
 class="menu"
 
-onclick="toggle('${menu[0]}')">
+onclick="
+toggle('${menu[0]}')
+">
 
 ${menu[0]}
 
-</button>
+</div>
 
 
 <div
@@ -329,21 +493,22 @@ style="display:none">
 
 `;
 
+
 folders.forEach(folder=>{
 
 if(
 
 folder[0]===menu[0]
-
 && folder[2]
 
 ){
 
-html +=
+html+=
 
 `
 
-<div class="folder">
+<div
+class="folder">
 
 📁 ${folder[1]}
 
@@ -356,7 +521,7 @@ html +=
 });
 
 
-html +=
+html+=
 `</div>`;
 
 }
@@ -366,37 +531,36 @@ html +=
 
 document
 .getElementById(
-"content"
+"sidebar"
 )
-.innerHTML =
+.innerHTML=
 html;
 
 }
 
 
-catch(error){
+catch(e){
 
 document
 .getElementById(
-"content"
+"sidebar"
 )
-.innerHTML =
-
-"Error loading";
-
-console.log(error);
+.innerHTML=
+"Error";
 
 }
 
 }
+
 
 
 function toggle(id){
 
-let x =
-document.getElementById(id);
+let x=
+document
+.getElementById(id);
 
-x.style.display =
+x.style.display=
 
 x.style.display==="none"
 
@@ -411,10 +575,11 @@ x.style.display==="none"
 }
 
 
-loadData();
+load();
 
 </script>
 
 
 </body>
+
 </html>
