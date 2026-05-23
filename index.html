@@ -2,25 +2,116 @@
 <html>
 
 <head>
+
 <title>WakeSuite</title>
 
 <style>
 
+/* =======================
+   PAGE
+======================= */
+
 body{
+
 font-family:Arial;
+background:#f4f6f9;
 padding:30px;
+margin:0;
+
 }
 
-button{
-display:block;
-margin:8px 0;
-padding:12px;
-width:220px;
+/* =======================
+   HEADER
+======================= */
+
+h1{
+
+font-size:48px;
+margin-bottom:10px;
+color:#1f2937;
+
 }
+
+.subtitle{
+
+color:#6b7280;
+margin-bottom:40px;
+
+}
+
+/* =======================
+   MENU BUTTONS
+======================= */
+
+.menu{
+
+background:white;
+padding:15px;
+margin-bottom:12px;
+width:280px;
+
+border:none;
+border-radius:12px;
+
+font-size:18px;
+font-weight:bold;
+
+cursor:pointer;
+
+box-shadow:
+0 2px 8px rgba(0,0,0,.08);
+
+text-align:left;
+
+transition:.2s;
+
+}
+
+.menu:hover{
+
+transform:translateY(-2px);
+
+}
+
+/* =======================
+   FOLDERS
+======================= */
 
 .folder{
-margin-left:30px;
-padding:5px;
+
+margin-left:40px;
+padding:12px;
+
+background:white;
+
+border-radius:8px;
+
+margin-bottom:8px;
+
+width:220px;
+
+box-shadow:
+0 1px 5px rgba(0,0,0,.06);
+
+cursor:pointer;
+
+}
+
+.folder:hover{
+
+background:#eef2ff;
+
+}
+
+/* =======================
+   ERROR
+======================= */
+
+.error{
+
+color:red;
+font-weight:bold;
+
 }
 
 </style>
@@ -29,11 +120,24 @@ padding:5px;
 
 <body>
 
-<h1>WakeSuite</h1>
+<h1>
+
+WakeSuite
+
+</h1>
+
+<div class="subtitle">
+
+Marketplace Operations Portal
+
+</div>
 
 <div id="content">
+
 Loading...
+
 </div>
+
 
 <script>
 
@@ -43,15 +147,11 @@ try{
 
 let response =
 await fetch(
-"https://script.google.com/macros/s/AKfycbzy85O8cTZs50vmSE381oDh8QKOVwrsPTIRjcW7NNIdiBM0I3GOTOsDw_2mdFGK_3c1/exec"
+"https://script.googleusercontent.com/a/macros/wakefit.co/echo?user_content_key=AUkAhnRT-0CtWcRKPUpszyynziXN_mrbOeAYzbhzmHFCU6z5GRSnYPuBP-8pSVdUPyVYg9f8zTVxGLPoyTXGhpFIuFB8q9ah32hfINlu8RVCFAhqzFzDQ4dXcttX56LM_zd7t8KhZYm32Q9hISABQStmUTaziNifBqOh_wM1c05aA32QlyQuJIjBsPqa5vARKt66DHFZKmbcutmy13_Asuvs_KzGL-cxzXFT3Ji0QFQCuuxEAWBMOt5GDiHRHff7TrICbtsGUVCnHdnt0xTqcIwO4VtBGV-8AwYahoMKGjSe&lib=MosJG25q3a5Xj7Jm-JPRrUZxeXXwTpFvz"
 );
 
 let data =
 await response.json();
-
-console.log(data);
-
-let html="";
 
 let menus =
 data.menus.slice(1);
@@ -59,64 +159,100 @@ data.menus.slice(1);
 let folders =
 data.folders.slice(1);
 
+let html="";
+
+
 menus.forEach(menu=>{
 
 if(menu[1]){
 
 html +=
-`<button onclick="toggle('${menu[0]}')">
+
+`
+
+<button
+class="menu"
+
+onclick="toggle('${menu[0]}')">
 
 ${menu[0]}
 
 </button>
 
-<div id="${menu[0]}"
-style="display:none">`;
+
+<div
+
+id="${menu[0]}"
+
+style="display:none">
+
+`;
+
 
 folders.forEach(folder=>{
 
 if(
+
 folder[0]===menu[0]
+
 && folder[2]
+
 ){
 
 html +=
-`<div class="folder">
 
-• ${folder[1]}
+`
 
-</div>`;
+<div class="folder">
+
+📁 ${folder[1]}
+
+</div>
+
+`;
+
+}
+
+});
+
+
+html += `</div>`;
 
 }
 
 });
 
-html +=
-`</div>`;
-
-}
-
-});
 
 document
-.getElementById("content")
+.getElementById(
+"content"
+)
 .innerHTML =
 html;
 
+
 }
 
-catch(error){
+catch(err){
 
 document
-.getElementById("content")
+.getElementById(
+"content"
+)
 .innerHTML =
-"ERROR: " + error;
 
-console.log(error);
+`<div class='error'>
+
+${err}
+
+</div>`;
+
+console.log(err);
 
 }
 
 }
+
 
 function toggle(id){
 
@@ -124,17 +260,24 @@ let x =
 document.getElementById(id);
 
 x.style.display =
+
 x.style.display==="none"
+
 ?
+
 "block"
+
 :
+
 "none";
 
 }
 
+
 loadData();
 
 </script>
+
 
 </body>
 </html>
