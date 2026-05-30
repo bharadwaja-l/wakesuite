@@ -191,32 +191,32 @@ Wakefit Marketplace Operations
 
 
 <div class="cards">
-
-<div class="card">
-Active SKUs
-<div class="metric" id="activeSkus">
-0
+  <div class="card">
+Suppression
+<div class="metric">
+128
 </div>
 </div>
 
 <div class="card">
-Disparities
-<div class="metric" id="disparities">
-0
+Buy Box
+<div class="metric">
+42
 </div>
 </div>
 
 <div class="card">
-Daily Impact
-<div class="metric" id="dailyImpact">
-0
+Price Alerts
+<div class="metric">
+18
 </div>
 </div>
 
 <div class="card">
-Run Status
-<div class="metric" id="runStatus">
--
+Reports
+<div class="metric">
+532
+</div>
 </div>
 </div>
 
@@ -315,29 +315,6 @@ await fetch(
 
 let data =
 await response.json();
-
-if (data.dashboard && data.dashboard.length > 1) {
-
-  let dash = data.dashboard[1];
-
-  document.getElementById(
-    "activeSkus"
-  ).innerText = dash[1];
-
-  document.getElementById(
-    "disparities"
-  ).innerText = dash[2];
-
-  document.getElementById(
-    "dailyImpact"
-  ).innerText =
-    "₹" + dash[6];
-
-  document.getElementById(
-    "runStatus"
-  ).innerText =
-    dash[11];
-}
   
 let menus =
 data.menus.slice(1);
