@@ -190,11 +190,10 @@ Wakefit Marketplace Operations
 
 
 <div class="cards">
-
-<div class="card">
-Suppression
-<div class="metric">
-128
+<div class="card" onclick="showPriceDisparity()">
+Price Disparity
+<div class="metric" id="priceDisparityCount">
+0
 </div>
 </div>
 
@@ -213,7 +212,31 @@ Reports
 </div>
 
 </div>
+<div
+id="priceDisparitySection"
+style="
+display:none;
+background:white;
+padding:20px;
+border-radius:18px;
+margin-top:20px;
+box-shadow:0 6px 20px rgba(0,0,0,.05);
+">
 
+<h2>
+Price Disparity Details
+</h2>
+
+<table
+id="priceDisparityTable"
+style="
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+">
+</table>
+
+</div>
 <div class="upload">
 
 <h2>
@@ -314,6 +337,18 @@ data.folders.slice(1);
 let uploads =
 data.uploads.slice(1);
 
+if(
+data.priceDisparity &&
+data.priceDisparity.length > 1
+){
+
+document.getElementById(
+"priceDisparityCount"
+).innerText =
+
+data.priceDisparity.length - 1;
+
+}
 
 allFolders =
 uploads;
@@ -341,7 +376,30 @@ err.toString();
 
 }
 
+function showPriceDisparity(){
 
+let section =
+document.getElementById(
+"priceDisparitySection"
+);
+
+if(
+section.style.display ===
+"none"
+){
+
+section.style.display =
+"block";
+
+}
+else{
+
+section.style.display =
+"none";
+
+}
+
+}
 
 /* TOGGLE */
 
