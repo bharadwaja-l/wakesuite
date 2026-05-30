@@ -317,7 +317,27 @@ await fetch(
 let data =
 await response.json();
 
+let dash =
+data.dashboard[1];
 
+document.getElementById(
+"activeSkus"
+).innerText = dash[1];
+
+document.getElementById(
+"disparities"
+).innerText = dash[2];
+
+document.getElementById(
+"dailyImpact"
+).innerText =
+"₹" + dash[6];
+
+document.getElementById(
+"runStatus"
+).innerText =
+dash[11];
+  
 let menus =
 data.menus.slice(1);
 
