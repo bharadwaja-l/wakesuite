@@ -171,7 +171,6 @@ Marketplace Intelligence
 </div>
 
 <div id="sidebar">
-Loading...
 </div>
 
 </div>
@@ -318,69 +317,6 @@ data.uploads.slice(1);
 
 allFolders =
 uploads;
-
-let html="";
-
-
-menus.forEach(menu=>{
-
-if(menu[1]){
-
-html +=
-
-`
-<div class="menu"
-onclick="toggle('${menu[0]}')">
-
-${menu[0]}
-
-</div>
-
-<div
-id="${menu[0]}"
-style="display:none">
-`;
-
-
-
-folders.forEach(folder=>{
-
-if(
-
-folder[0]===menu[0]
-&& folder[2]
-
-){
-
-html +=
-
-`
-<div class="folder">
-
-📁 ${folder[1]}
-
-</div>
-`;
-
-}
-
-});
-
-
-html += "</div>";
-
-}
-
-});
-
-
-document
-.getElementById(
-"sidebar"
-)
-.innerHTML=
-html;
-
 
 populateMenus(
 uploads
