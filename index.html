@@ -424,15 +424,14 @@ populateFolders();
 
 catch(err){
 
-console.log(err);
+console.error(err);
 
 document
 .getElementById(
 "sidebar"
 )
-.innerHTML=
-
-"Error loading";
+.innerHTML =
+err.toString();
 
 }
 
