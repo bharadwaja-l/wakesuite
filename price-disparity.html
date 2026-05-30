@@ -9,7 +9,50 @@ name="viewport"
 content="width=device-width, initial-scale=1">
 
 <style>
+.cards{
+display:grid;
+grid-template-columns:
+repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+margin-bottom:25px;
+}
 
+.card{
+background:white;
+padding:20px;
+border-radius:16px;
+box-shadow:
+0 4px 12px rgba(0,0,0,.08);
+}
+
+.metric{
+font-size:30px;
+font-weight:700;
+margin-top:10px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+th{
+background:#2563eb;
+color:white;
+padding:12px;
+position:sticky;
+top:0;
+}
+
+td{
+padding:10px;
+border:1px solid #ddd;
+}
+
+tr:nth-child(even){
+background:#f8fafc;
+}
 body{
 font-family:Arial;
 padding:30px;
@@ -44,7 +87,37 @@ color:white;
 <h1>
 Price Disparity Dashboard
 </h1>
+<div class="cards">
 
+<div class="card">
+Total Disparities
+<div class="metric" id="totalDisparities">
+0
+</div>
+</div>
+
+<div class="card">
+Total Daily Impact
+<div class="metric" id="totalImpact">
+₹0
+</div>
+</div>
+
+<div class="card">
+Highest Impact
+<div class="metric" id="highestImpact">
+₹0
+</div>
+</div>
+
+<div class="card">
+Price Only
+<div class="metric" id="priceOnly">
+0
+</div>
+</div>
+
+</div>
 <table id="disparityTable">
 <tr>
 <td>Loading...</td>
@@ -65,7 +138,54 @@ await response.json();
 
 let rows =
 data.priceDisparity;
+let totalImpact = 0;
+let highestImpact = 0;
+let priceOnly = 0;
 
+for(let i=1;i<rows.length;i++){
+
+let impact =
+Number(rows[i][13] || 0);
+
+totalImpact += impact;
+
+if(
+impact > highestImpact
+){
+highestImpact = impact;
+}
+
+let action =
+String(rows[i][12] || "");
+
+if(
+action ===
+"Update Price"
+){
+priceOnly++;
+}
+
+}
+
+document.getElementById(
+"totalDisparities"
+).innerText =
+rows.length - 1;
+
+document.getElementById(
+"totalImpact"
+).innerText =
+"₹" + totalImpact;
+
+document.getElementById(
+"highestImpact"
+).innerText =
+"₹" + highestImpact;
+
+document.getElementById(
+"priceOnly"
+).innerText =
+priceOnly;
 let html = "";
 
 rows.forEach((row,index)=>{
