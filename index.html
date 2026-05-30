@@ -193,7 +193,6 @@ Wakefit Marketplace Operations
 <div class="cards">
 
 <div class="card">
-<div class="card">
 Active SKUs
 <div class="metric" id="activeSkus">
 0
@@ -339,24 +338,6 @@ if (data.dashboard && data.dashboard.length > 1) {
   ).innerText =
     dash[11];
 }
-
-document.getElementById(
-"activeSkus"
-).innerText = dash[1];
-
-document.getElementById(
-"disparities"
-).innerText = dash[2];
-
-document.getElementById(
-"dailyImpact"
-).innerText =
-"₹" + dash[6];
-
-document.getElementById(
-"runStatus"
-).innerText =
-dash[11];
   
 let menus =
 data.menus.slice(1);
