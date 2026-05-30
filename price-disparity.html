@@ -116,7 +116,20 @@ Price Only
 0
 </div>
 </div>
+<input
+type="text"
+id="searchBox"
+placeholder="Search SKU / ASIN..."
+onkeyup="filterTable()"
+style="
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:1px solid #ddd;
+border-radius:8px;
+">
 
+<table id="disparityTable">
 </div>
 <table id="disparityTable">
 <tr>
@@ -224,7 +237,49 @@ document
 html;
 
 }
+function filterTable(){
 
+let input =
+document.getElementById(
+"searchBox"
+).value.toUpperCase();
+
+let table =
+document.getElementById(
+"disparityTable"
+);
+
+let rows =
+table.getElementsByTagName(
+"tr"
+);
+
+for(
+let i = 1;
+i < rows.length;
+i++
+){
+
+let text =
+rows[i].textContent ||
+rows[i].innerText;
+
+rows[i].style.display =
+
+text.toUpperCase()
+.indexOf(input) > -1
+
+?
+
+""
+
+:
+
+"none";
+
+}
+
+}
 loadDisparity();
 
 </script>
