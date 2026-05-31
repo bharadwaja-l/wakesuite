@@ -114,24 +114,25 @@ Price Only
 
 </div>
 
+<div style="margin-bottom:15px;">
+
 <input
 type="text"
 id="searchBox"
 placeholder="Search SKU / ASIN..."
 onkeyup="filterTable()"
 style="
-width:100%;
+width:40%;
 padding:12px;
-margin-bottom:15px;
 border:1px solid #ddd;
 border-radius:8px;
 ">
+
 <select
 id="actionFilter"
 onchange="filterTable()"
 style="
 padding:12px;
-margin-bottom:15px;
 margin-left:10px;
 border:1px solid #ddd;
 border-radius:8px;
@@ -153,6 +154,22 @@ Update MRP
 Update Price + Update MRP
 </option>
 
+</select>
+
+<button
+onclick="sortByImpact()"
+style="
+padding:12px;
+margin-left:10px;
+border:none;
+border-radius:8px;
+background:#2563eb;
+color:white;
+cursor:pointer;
+">
+Sort by Impact ↓
+</button>
+
 <button
 onclick="exportCSV()"
 style="
@@ -166,7 +183,9 @@ cursor:pointer;
 ">
 Export CSV
 </button>
-</select>
+
+</div>
+
 <table id="disparityTable">
 <tr>
 <td>Loading...</td>
