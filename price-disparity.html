@@ -84,38 +84,36 @@ color:white;
 
 </head>
 
+<body>
+
 <h1>
 Price Disparity Dashboard
 </h1>
+
 <div class="cards">
 
 <div class="card">
 Total Disparities
-<div class="metric" id="totalDisparities">
-0
-</div>
+<div class="metric" id="totalDisparities">0</div>
 </div>
 
 <div class="card">
 Total Daily Impact
-<div class="metric" id="totalImpact">
-₹0
-</div>
+<div class="metric" id="totalImpact">₹0</div>
 </div>
 
 <div class="card">
 Highest Impact
-<div class="metric" id="highestImpact">
-₹0
-</div>
+<div class="metric" id="highestImpact">₹0</div>
 </div>
 
 <div class="card">
 Price Only
-<div class="metric" id="priceOnly">
-0
+<div class="metric" id="priceOnly">0</div>
 </div>
+
 </div>
+
 <input
 type="text"
 id="searchBox"
@@ -130,13 +128,10 @@ border-radius:8px;
 ">
 
 <table id="disparityTable">
-</div>
-<table id="disparityTable">
 <tr>
 <td>Loading...</td>
 </tr>
 </table>
-
 <script>
 
 async function loadDisparity(){
