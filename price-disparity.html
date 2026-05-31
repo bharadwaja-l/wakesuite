@@ -126,7 +126,34 @@ margin-bottom:15px;
 border:1px solid #ddd;
 border-radius:8px;
 ">
+<select
+id="actionFilter"
+onchange="filterTable()"
+style="
+padding:12px;
+margin-bottom:15px;
+margin-left:10px;
+border:1px solid #ddd;
+border-radius:8px;
+">
 
+<option value="">
+All Actions
+</option>
+
+<option value="Update Price">
+Update Price
+</option>
+
+<option value="Update MRP">
+Update MRP
+</option>
+
+<option value="Update Price + Update MRP">
+Update Price + Update MRP
+</option>
+
+</select>
 <table id="disparityTable">
 <tr>
 <td>Loading...</td>
@@ -230,14 +257,33 @@ document
 )
 .innerHTML =
 html;
+<button
+onclick="sortByImpact()"
+style="
+padding:12px;
+margin-left:10px;
+border:none;
+border-radius:8px;
+background:#2563eb;
+color:white;
+cursor:pointer;
+">
 
+Sort by Impact ↓
+
+</button>
 }
 function filterTable(){
 
-let input =
+let searchText =
 document.getElementById(
 "searchBox"
 ).value.toUpperCase();
+
+let actionFilter =
+document.getElementById(
+"actionFilter"
+).value;
 
 let table =
 document.getElementById(
@@ -250,8 +296,8 @@ table.getElementsByTagName(
 );
 
 for(
-let i = 1;
-i < rows.length;
+let i=1;
+i<rows.length;
 i++
 ){
 
@@ -259,10 +305,31 @@ let text =
 rows[i].textContent ||
 rows[i].innerText;
 
+let actionCell =
+rows[i].cells[12]
+?
+rows[i].cells[12].innerText
+:
+"";
+
+let matchesSearch =
+text.toUpperCase()
+.indexOf(searchText)
+> -1;
+
+let matchesAction =
+
+actionFilter === ""
+
+||
+
+actionCell ===
+actionFilter;
+
 rows[i].style.display =
 
-text.toUpperCase()
-.indexOf(input) > -1
+matchesSearch &&
+matchesAction
 
 ?
 
@@ -273,7 +340,107 @@ text.toUpperCase()
 "none";
 
 }
+function sortByImpact(){
 
+let table =
+document.getElementById(
+"disparityTable"
+);
+
+let rows =
+Array.from(
+table.rows
+).slice(1);
+
+rows.sort(
+(a,b)=>
+
+Number(
+b.cells[13].innerText
+)
+
+-
+
+Number(
+a.cells[13].innerText
+)
+
+);
+
+rows.forEach(
+row =>
+table.appendChild(row)
+);
+
+}
+<button
+onclick="exportCSV()"
+style="
+padding:12px;
+margin-left:10px;
+border:none;
+border-radius:8px;
+background:green;
+color:white;
+cursor:pointer;
+">
+
+Export CSV
+
+</button>
+function exportCSV(){
+
+let table =
+document.getElementById(
+"disparityTable"
+);
+
+let csv = [];
+
+for(
+let row of table.rows
+){
+
+let cols =
+Array.from(
+row.cells
+).map(
+cell =>
+'"' +
+cell.innerText +
+'"'
+);
+
+csv.push(
+cols.join(",")
+);
+
+}
+
+let blob =
+new Blob(
+[csv.join("\n")],
+{
+type:"text/csv"
+}
+);
+
+let a =
+document.createElement(
+"a"
+);
+
+a.href =
+URL.createObjectURL(
+blob
+);
+
+a.download =
+"price_disparity.csv";
+
+a.click();
+
+}
 }
 loadDisparity();
 
