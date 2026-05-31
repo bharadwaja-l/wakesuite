@@ -153,6 +153,19 @@ Update MRP
 Update Price + Update MRP
 </option>
 
+<button
+onclick="exportCSV()"
+style="
+padding:12px;
+margin-left:10px;
+border:none;
+border-radius:8px;
+background:green;
+color:white;
+cursor:pointer;
+">
+Export CSV
+</button>
 </select>
 <table id="disparityTable">
 <tr>
@@ -340,6 +353,7 @@ matchesAction
 "none";
 
 }
+
 function sortByImpact(){
 
 let table =
@@ -373,19 +387,6 @@ table.appendChild(row)
 );
 
 }
-<button
-onclick="exportCSV()"
-style="
-padding:12px;
-margin-left:10px;
-border:none;
-border-radius:8px;
-background:green;
-color:white;
-cursor:pointer;
-">
-
-Export CSV
 
 </button>
 function exportCSV(){
@@ -397,23 +398,15 @@ document.getElementById(
 
 let csv = [];
 
-for(
-let row of table.rows
-){
+for(let row of table.rows){
 
 let cols =
-Array.from(
-row.cells
-).map(
-cell =>
-'"' +
-cell.innerText +
-'"'
+Array.from(row.cells)
+.map(cell =>
+'"' + cell.innerText + '"'
 );
 
-csv.push(
-cols.join(",")
-);
+csv.push(cols.join(","));
 
 }
 
@@ -426,21 +419,16 @@ type:"text/csv"
 );
 
 let a =
-document.createElement(
-"a"
-);
+document.createElement("a");
 
 a.href =
-URL.createObjectURL(
-blob
-);
+URL.createObjectURL(blob);
 
 a.download =
 "price_disparity.csv";
 
 a.click();
 
-}
 }
 loadDisparity();
 
