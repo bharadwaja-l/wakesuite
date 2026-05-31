@@ -186,6 +186,7 @@ await response.json();
 
 let rows =
 data.priceDisparity;
+
 let totalImpact = 0;
 let highestImpact = 0;
 let priceOnly = 0;
@@ -197,19 +198,14 @@ Number(rows[i][13] || 0);
 
 totalImpact += impact;
 
-if(
-impact > highestImpact
-){
+if(impact > highestImpact){
 highestImpact = impact;
 }
 
 let action =
 String(rows[i][12] || "");
 
-if(
-action ===
-"Update Price"
-){
+if(action === "Update Price"){
 priceOnly++;
 }
 
@@ -234,6 +230,7 @@ document.getElementById(
 "priceOnly"
 ).innerText =
 priceOnly;
+
 let html = "";
 
 rows.forEach((row,index)=>{
@@ -270,22 +267,9 @@ document
 )
 .innerHTML =
 html;
-<button
-onclick="sortByImpact()"
-style="
-padding:12px;
-margin-left:10px;
-border:none;
-border-radius:8px;
-background:#2563eb;
-color:white;
-cursor:pointer;
-">
 
-Sort by Impact ↓
-
-</button>
 }
+
 function filterTable(){
 
 let searchText =
@@ -308,11 +292,7 @@ table.getElementsByTagName(
 "tr"
 );
 
-for(
-let i=1;
-i<rows.length;
-i++
-){
+for(let i=1;i<rows.length;i++){
 
 let text =
 rows[i].textContent ||
@@ -354,6 +334,8 @@ matchesAction
 
 }
 
+}
+
 function sortByImpact(){
 
 let table =
@@ -388,7 +370,6 @@ table.appendChild(row)
 
 }
 
-</button>
 function exportCSV(){
 
 let table =
@@ -430,7 +411,7 @@ a.download =
 a.click();
 
 }
+
 loadDisparity();
 
 </script>
-</html>
