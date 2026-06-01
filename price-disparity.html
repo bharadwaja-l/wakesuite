@@ -225,6 +225,9 @@ await response.json();
 let rows =
 data.priceDisparity;
 
+let categories =
+new Set();
+
 let totalImpact = 0;
 let highestImpact = 0;
 let priceOnly = 0;
@@ -251,6 +254,10 @@ topSku = rows[i][2];
 }
 let action =
 String(rows[i][12] || "");
+
+categories.add(
+rows[i][5]
+);
 
 if(action === "Update Price"){
 priceOnly++;
@@ -282,6 +289,23 @@ document.getElementById(
 "topImpactSku"
 ).innerText =
 topSku;
+
+let categoryHtml =
+'<option value="">All Categories</option>';
+
+categories.forEach(cat=>{
+
+categoryHtml +=
+`<option value="${cat}">
+${cat}
+</option>`;
+
+});
+
+document.getElementById(
+"categoryFilter"
+).innerHTML =
+categoryHtml;
 
 let html = "";
 
