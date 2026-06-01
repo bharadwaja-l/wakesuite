@@ -176,6 +176,17 @@ All Categories
 </option>
 
 </select>
+<input
+type="date"
+id="dateFilter"
+onchange="filterTable()"
+style="
+padding:12px;
+margin-bottom:15px;
+margin-left:10px;
+border:1px solid #ddd;
+border-radius:8px;
+">
 <button
 onclick="sortByImpact()"
 style="
@@ -404,6 +415,11 @@ document.getElementById(
 "categoryFilter"
 ).value;
 
+let dateFilter =
+document.getElementById(
+"dateFilter"
+).value;
+
 let table =
 document.getElementById(
 "disparityTable"
@@ -434,6 +450,13 @@ rows[i].cells[5].innerText
 :
 "";
 
+let dateCell =
+rows[i].cells[1]
+?
+rows[i].cells[1].innerText
+:
+"";
+
 let matchesSearch =
 text.toUpperCase()
 .indexOf(searchText)
@@ -457,11 +480,22 @@ categoryFilter === ""
 categoryCell ===
 categoryFilter;
 
+let matchesDate =
+
+dateFilter === ""
+
+||
+
+dateCell.includes(
+dateFilter
+);
+
 rows[i].style.display =
 
 matchesSearch &&
 matchesAction &&
-matchesCategory
+matchesCategory &&
+matchesDate
 
 ?
 
