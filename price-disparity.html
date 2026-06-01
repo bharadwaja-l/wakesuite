@@ -313,7 +313,7 @@ rows.forEach((row,index)=>{
 
 html += "<tr>";
 
-row.forEach(col=>{
+row.forEach((col,colIndex)=>{
 
 if(index===0){
 
@@ -322,12 +322,53 @@ html +=
 col +
 "</th>";
 
-}else{
+}
+
+else{
+
+if(colIndex===12){
+
+let color="";
+
+if(col==="Update Price"){
+
+color="#f59e0b";
+
+}
+
+else if(col==="Update MRP"){
+
+color="#2563eb";
+
+}
+
+else if(col==="Update Price + Update MRP"){
+
+color="#ef4444";
+
+}
+
+html +=
+
+`<td style="
+font-weight:bold;
+color:${color};
+">
+
+${col}
+
+</td>`;
+
+}
+
+else{
 
 html +=
 "<td>" +
 col +
 "</td>";
+
+}
 
 }
 
