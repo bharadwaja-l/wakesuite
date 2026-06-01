@@ -260,7 +260,7 @@ if(impact > topImpact){
 
 topImpact = impact;
 
-topSku = rows[i][2];
+topSku = rows[i][3];
 
 }
 let action =
@@ -337,7 +337,7 @@ col +
 
 else{
 
-if(colIndex===12){
+if(colIndex===13){
 
 let color="";
 
@@ -529,13 +529,13 @@ rows.sort(
 (a,b)=>
 
 Number(
-b.cells[13].innerText
+b.cells[14].innerText
 )
 
 -
 
 Number(
-a.cells[13].innerText
+a.cells[14].innerText
 )
 
 );
