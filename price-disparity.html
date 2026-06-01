@@ -112,6 +112,11 @@ Price Only
 <div class="metric" id="priceOnly">0</div>
 </div>
 
+<div class="card">
+Top Impact SKU
+<div class="metric" id="topImpactSku">-</div>
+</div>
+  
 </div>
 
 <div style="margin-bottom:15px;">
@@ -208,6 +213,8 @@ let totalImpact = 0;
 let highestImpact = 0;
 let priceOnly = 0;
 
+let topSku = "";
+let topImpact = 0;
 for(let i=1;i<rows.length;i++){
 
 let impact =
@@ -219,6 +226,13 @@ if(impact > highestImpact){
 highestImpact = impact;
 }
 
+if(impact > topImpact){
+
+topImpact = impact;
+
+topSku = rows[i][2];
+
+}
 let action =
 String(rows[i][12] || "");
 
@@ -247,6 +261,11 @@ document.getElementById(
 "priceOnly"
 ).innerText =
 priceOnly;
+
+document.getElementById(
+"topImpactSku"
+).innerText =
+topSku;
 
 let html = "";
 
