@@ -358,6 +358,11 @@ document.getElementById(
 "actionFilter"
 ).value;
 
+let categoryFilter =
+document.getElementById(
+"categoryFilter"
+).value;
+
 let table =
 document.getElementById(
 "disparityTable"
@@ -381,6 +386,13 @@ rows[i].cells[12].innerText
 :
 "";
 
+let categoryCell =
+rows[i].cells[5]
+?
+rows[i].cells[5].innerText
+:
+"";
+
 let matchesSearch =
 text.toUpperCase()
 .indexOf(searchText)
@@ -395,10 +407,20 @@ actionFilter === ""
 actionCell ===
 actionFilter;
 
+let matchesCategory =
+
+categoryFilter === ""
+
+||
+
+categoryCell ===
+categoryFilter;
+
 rows[i].style.display =
 
 matchesSearch &&
-matchesAction
+matchesAction &&
+matchesCategory
 
 ?
 
