@@ -240,20 +240,41 @@ cursor:pointer;
 ">
 Export CSV
 </button>
+<button
+onclick="toggleAnalytics()"
+style="
+padding:12px;
+margin-left:10px;
+border:none;
+border-radius:8px;
+background:#7c3aed;
+color:white;
+cursor:pointer;
+">
+📊 Show Analytics
+</button>
 </div>
 <div class="chart-container">
+<div
+id="analyticsSection"
+style="display:none;"
+>
+
 <h2>Daily Disparity Trend</h2>
 <canvas id="dailyDisparityChart"></canvas>
-</div>
 
-<div class="chart-container">
+<br><br>
+
 <h2>Daily Impact Trend</h2>
 <canvas id="dailyImpactChart"></canvas>
-</div>
 
-<div class="chart-container">
+<br><br>
+
 <h2>Disparities by Category</h2>
 <canvas id="categoryChart"></canvas>
+
+<br><br>
+
 </div>
 
 <br><br>
@@ -801,7 +822,29 @@ a.download =
 a.click();
 
 }
+function toggleAnalytics(){
 
+let section =
+document.getElementById(
+"analyticsSection"
+);
+
+if(
+section.style.display === "none"
+){
+
+section.style.display =
+"block";
+
+}
+else{
+
+section.style.display =
+"none";
+
+}
+
+}
 loadDisparity();
 
 </script>
