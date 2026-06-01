@@ -79,7 +79,31 @@ th{
 background:#2563eb;
 color:white;
 }
+.chart-container{
 
+width:100%;
+max-width:1200px;
+
+height:400px;
+
+margin:30px auto;
+
+background:white;
+
+padding:20px;
+
+border-radius:16px;
+
+box-shadow:
+0 4px 12px rgba(0,0,0,.08);
+
+}
+
+canvas{
+
+max-height:350px !important;
+
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -217,18 +241,20 @@ cursor:pointer;
 Export CSV
 </button>
 </div>
+<div class="chart-container">
 <h2>Daily Disparity Trend</h2>
 <canvas id="dailyDisparityChart"></canvas>
+</div>
 
-<br><br>
-
+<div class="chart-container">
 <h2>Daily Impact Trend</h2>
 <canvas id="dailyImpactChart"></canvas>
+</div>
 
-<br><br>
-
+<div class="chart-container">
 <h2>Disparities by Category</h2>
 <canvas id="categoryChart"></canvas>
+</div>
 
 <br><br>
 
