@@ -484,13 +484,21 @@ let matchesDate = true;
 
 if(dateFilter !== ""){
 
-let rowDate =
-new Date(dateCell)
-.toISOString()
-.substring(0,10);
+let selectedDate =
+new Date(dateFilter);
+
+let formattedDate =
+selectedDate.toLocaleDateString(
+"en-GB",
+{
+day:"2-digit",
+month:"short",
+year:"numeric"
+}
+).replace(/,/g,"");
 
 matchesDate =
-rowDate === dateFilter;
+dateCell === formattedDate;
 
 }
 
