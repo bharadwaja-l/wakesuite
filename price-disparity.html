@@ -244,7 +244,7 @@ let highestImpact = 0;
 let priceOnly = 0;
 
 let topSku = "";
-let topImpact = 0;
+let topImpact = 3;
 for(let i=1;i<rows.length;i++){
 
 let impact =
@@ -437,9 +437,9 @@ rows[i].textContent ||
 rows[i].innerText;
 
 let actionCell =
-rows[i].cells[12]
+rows[i].cells[13]
 ?
-rows[i].cells[12].innerText
+rows[i].cells[13].innerText
 :
 "";
 
@@ -451,9 +451,9 @@ rows[i].cells[6].innerText
 "";
 
 let dateCell =
-rows[i].cells[1]
+rows[i].cells[0]
 ?
-rows[i].cells[1].innerText
+rows[i].cells[0].innerText
 :
 "";
 
@@ -480,13 +480,19 @@ categoryFilter === ""
 categoryCell ===
 categoryFilter;
 
-let matchesDate =
+let matchesDate = true;
 
-dateFilter === ""
+if(dateFilter !== ""){
 
-||
+let rowDate =
+new Date(dateCell)
+.toISOString()
+.substring(0,10);
 
-dateCell.substring(0,10) === dateFilter;
+matchesDate =
+rowDate === dateFilter;
+
+}
 
 rows[i].style.display =
 
