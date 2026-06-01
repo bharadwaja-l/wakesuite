@@ -374,10 +374,32 @@ ${col}
 
 else{
 
+if(colIndex===4){
+
+html +=
+`<td>
+<a
+href="https://www.amazon.in/dp/${col}"
+target="_blank"
+style="
+color:#2563eb;
+font-weight:bold;
+text-decoration:none;
+">
+${col}
+</a>
+</td>`;
+
+}
+
+else{
+
 html +=
 "<td>" +
 col +
 "</td>";
+
+}
 
 }
 
