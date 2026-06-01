@@ -82,6 +82,8 @@ color:white;
 
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body>
@@ -215,6 +217,20 @@ cursor:pointer;
 Export CSV
 </button>
 </div>
+<h2>Daily Disparity Trend</h2>
+<canvas id="dailyDisparityChart"></canvas>
+
+<br><br>
+
+<h2>Daily Impact Trend</h2>
+<canvas id="dailyImpactChart"></canvas>
+
+<br><br>
+
+<h2>Disparities by Category</h2>
+<canvas id="categoryChart"></canvas>
+
+<br><br>
 
 <table id="disparityTable">
 <tr>
@@ -239,6 +255,10 @@ data.priceDisparity;
 let categories =
 new Set();
 
+let dailyImpactMap = {};
+let dailyDisparityMap = {};
+let categoryCountMap = {};
+
 let totalImpact = 0;
 let highestImpact = 0;
 let priceOnly = 0;
@@ -249,6 +269,29 @@ for(let i=1;i<rows.length;i++){
 
 let impact =
 Number(rows[i][14] || 0);
+let reportDate =
+rows[i][2];
+
+if(!dailyImpactMap[reportDate]){
+
+dailyImpactMap[reportDate] = 0;
+dailyDisparityMap[reportDate] = 0;
+
+}
+
+dailyImpactMap[reportDate] += impact;
+dailyDisparityMap[reportDate]++;
+
+let category =
+rows[i][6];
+
+if(!categoryCountMap[category]){
+
+categoryCountMap[category] = 0;
+
+}
+
+categoryCountMap[category]++;
 
 totalImpact += impact;
 
@@ -417,9 +460,123 @@ document
 )
 .innerHTML =
 html;
+createCharts(
+dailyImpactMap,
+dailyDisparityMap,
+categoryCountMap
+);
+}
+function createCharts(
+
+dailyImpactMap,
+dailyDisparityMap,
+categoryCountMap
+
+){
+
+new Chart(
+
+document.getElementById(
+"dailyImpactChart"
+),
+
+{
+type:"line",
+
+data:{
+
+labels:
+Object.keys(
+dailyImpactMap
+),
+
+datasets:[{
+
+label:
+"Daily Impact",
+
+data:
+Object.values(
+dailyImpactMap
+)
+
+}]
 
 }
 
+}
+
+);
+
+new Chart(
+
+document.getElementById(
+"dailyDisparityChart"
+),
+
+{
+type:"line",
+
+data:{
+
+labels:
+Object.keys(
+dailyDisparityMap
+),
+
+datasets:[{
+
+label:
+"Daily Disparities",
+
+data:
+Object.values(
+dailyDisparityMap
+)
+
+}]
+
+}
+
+}
+
+);
+
+new Chart(
+
+document.getElementById(
+"categoryChart"
+),
+
+{
+type:"bar",
+
+data:{
+
+labels:
+Object.keys(
+categoryCountMap
+),
+
+datasets:[{
+
+label:
+"Disparities",
+
+data:
+Object.values(
+categoryCountMap
+)
+
+}]
+
+}
+
+}
+
+);
+
+}
 function filterTable(){
 
 let searchText =
