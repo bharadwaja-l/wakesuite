@@ -9,6 +9,17 @@ name="viewport"
 content="width=device-width, initial-scale=1">
 
 <style>
+
+body{
+font-family:Arial;
+padding:30px;
+background:#f8fafc;
+}
+
+h1{
+margin-bottom:20px;
+}
+
 .cards{
 display:grid;
 grid-template-columns:
@@ -35,6 +46,7 @@ table{
 width:100%;
 border-collapse:collapse;
 background:white;
+table-layout:auto;
 }
 
 th{
@@ -43,48 +55,55 @@ color:white;
 padding:12px;
 position:sticky;
 top:0;
+z-index:1;
+white-space:nowrap;
 }
 
 td{
 padding:10px;
 border:1px solid #ddd;
+white-space:nowrap;
+}
+
+th,td{
+border:1px solid #ddd;
+text-align:left;
 }
 
 tr:nth-child(even){
 background:#f8fafc;
 }
-body{
-font-family:Arial;
-padding:30px;
-background:#f8fafc;
+
+/* Date columns smaller */
+
+th:nth-child(1),
+td:nth-child(1),
+
+th:nth-child(2),
+td:nth-child(2),
+
+th:nth-child(3),
+td:nth-child(3){
+
+font-size:12px;
+
 }
 
-h1{
-margin-bottom:20px;
+/* Action column */
+
+th:nth-child(14),
+td:nth-child(14){
+
+font-weight:bold;
+
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-}
+/* Chart containers */
 
-th,td{
-padding:10px;
-border:1px solid #ddd;
-text-align:left;
-}
-
-th{
-background:#2563eb;
-color:white;
-}
 .chart-container{
 
 width:100%;
 max-width:1200px;
-
-height:400px;
 
 margin:30px auto;
 
@@ -104,8 +123,18 @@ canvas{
 max-height:350px !important;
 
 }
-</style>
 
+/* Better filter alignment */
+
+input,
+select,
+button{
+
+vertical-align:middle;
+
+}
+
+</style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
