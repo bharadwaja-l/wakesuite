@@ -283,10 +283,16 @@ cursor:pointer;
 📊 Show Analytics
 </button>
 </div>
-<div class="chart-container">
 <div
 id="analyticsSection"
-style="display:none;"
+style="
+display:none;
+background:white;
+padding:20px;
+border-radius:16px;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
+margin-bottom:20px;
+"
 >
 
 <h2>Daily Disparity Trend</h2>
@@ -301,8 +307,6 @@ style="display:none;"
 
 <h2>Disparities by Category</h2>
 <canvas id="categoryChart"></canvas>
-
-<br><br>
 
 </div>
 
