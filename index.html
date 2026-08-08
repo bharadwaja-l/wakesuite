@@ -672,3 +672,172 @@ file
 load();
 
 </script>
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAw0kR3aemcexscDptHVnRjxSQx3XmjuV4",
+  authDomain: "wakesuite-4daf9.firebaseapp.com",
+  projectId: "wakesuite-4daf9",
+  storageBucket: "wakesuite-4daf9.firebasestorage.app",
+  messagingSenderId: "34563161502",
+  appId: "1:34563161502:web:9f0e9bc1e2da2d423d2a8f",
+  measurementId: "G-VH7V68BSKD"
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const provider =
+  new GoogleAuthProvider();
+
+
+const loginOverlay =
+  document.createElement("div");
+
+loginOverlay.id =
+  "firebaseLoginOverlay";
+
+loginOverlay.innerHTML = `
+  <div style="
+      background:white;
+      width:380px;
+      max-width:90%;
+      padding:40px;
+      border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.15);
+      text-align:center;
+      font-family:Inter,Arial,sans-serif;
+  ">
+
+    <div style="
+      font-size:34px;
+      font-weight:700;
+      color:#2563eb;
+      margin-bottom:8px;
+    ">
+      WakeSuite
+    </div>
+
+    <div style="
+      color:#6b7280;
+      margin-bottom:30px;
+    ">
+      Marketplace Intelligence
+    </div>
+
+    <button
+      id="firebaseGoogleLogin"
+      style="
+        width:100%;
+        padding:14px;
+        border:0;
+        border-radius:10px;
+        background:#2563eb;
+        color:white;
+        font-size:15px;
+        font-weight:600;
+        cursor:pointer;
+      "
+    >
+      Sign in with Google
+    </button>
+
+  </div>
+`;
+
+
+Object.assign(
+  loginOverlay.style,
+  {
+    position:"fixed",
+    inset:"0",
+    background:"#f8fafc",
+    display:"flex",
+    alignItems:"center",
+    justifyContent:"center",
+    zIndex:"99999"
+  }
+);
+
+
+document.body.appendChild(
+  loginOverlay
+);
+
+
+document
+.getElementById(
+  "firebaseGoogleLogin"
+)
+.addEventListener(
+  "click",
+  async () => {
+
+    try {
+
+      await signInWithPopup(
+        auth,
+        provider
+      );
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      alert(
+        "Google sign-in failed: "
+        + error.message
+      );
+
+    }
+
+  }
+);
+
+
+onAuthStateChanged(
+  auth,
+  user => {
+
+    if(user){
+
+      loginOverlay.style.display =
+        "none";
+
+      console.log(
+        "WakeSuite user:",
+        user.email
+      );
+
+      console.log(
+        "Firebase UID:",
+        user.uid
+      );
+
+    }
+    else{
+
+      loginOverlay.style.display =
+        "flex";
+
+    }
+
+  }
+);
+
+</script>
