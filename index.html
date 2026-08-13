@@ -539,7 +539,27 @@ body{
 
   </div>
 
+<div
+  class="master-panel"
+  style="margin-bottom:30px;"
+>
 
+  <h2>
+    Amazon Price Disparity
+  </h2>
+
+  <div class="master-subtitle">
+    Uses Master Pricing + Daily Pricing + All Listings + FBA Inventory + Business Reports
+  </div>
+
+  <button
+    class="master-button"
+    onclick="runAmazonPriceDisparity()"
+  >
+    Run Amazon Price Disparity
+  </button>
+
+</div>
 
   <!-- PRICE DISPARITY -->
 
@@ -4003,7 +4023,1551 @@ window.wakeSuiteFirebase = {
 
 };
 
+/* ======================================================
+   AMAZON PRICE DISPARITY ENGINE
+====================================================== */
 
+const AMAZON_PRICE_THRESHOLD = 5;
+const BUSINESS_REPORT_DAYS = 60;
+
+
+/* ======================================================
+   NORMALIZE JOIN KEY
+====================================================== */
+
+function normalizeKey(value){
+
+  return String(
+    value ?? ""
+  )
+  .trim();
+
+}
+
+
+/* ======================================================
+   MASTER PRICING
+   DEDUPLICATE + CONFLICT CHECK
+====================================================== */
+
+function prepareMasterPricing(){
+
+  if(
+    !window.masterPricingAmazon ||
+    !window.masterPricingAmazon.rows
+  ){
+
+    throw new Error(
+      "Connect Master Pricing first."
+    );
+
+  }
+
+
+  const masterMap =
+    new Map();
+
+
+  const conflicts =
+    [];
+
+
+  let exactDuplicates = 0;
+
+
+  window.masterPricingAmazon.rows
+  .forEach(
+    row => {
+
+
+      const azSku =
+        normalizeKey(
+          row.azSku
+        );
+
+
+      const asin =
+        normalizeKey(
+          row.asin
+        );
+
+
+      const wfSku =
+        normalizeKey(
+          row.wfSku
+        );
+
+
+      const category =
+        normalizeKey(
+          row.category
+        );
+
+
+      if(!azSku){
+        return;
+      }
+
+
+      const record = {
+
+        azSku,
+        asin,
+        wfSku,
+        category
+
+      };
+
+
+      if(
+        !masterMap.has(
+          azSku
+        )
+      ){
+
+        masterMap.set(
+          azSku,
+          record
+        );
+
+        return;
+
+      }
+
+
+      const existing =
+        masterMap.get(
+          azSku
+        );
+
+
+      const exactSame =
+
+        existing.azSku === record.azSku
+
+        &&
+
+        existing.asin === record.asin
+
+        &&
+
+        existing.wfSku === record.wfSku
+
+        &&
+
+        existing.category === record.category;
+
+
+      if(
+        exactSame
+      ){
+
+        exactDuplicates += 1;
+
+      }
+      else{
+
+        conflicts.push({
+
+          azSku:
+
+            azSku,
+
+          existing:
+
+            existing,
+
+          conflict:
+
+            record
+
+        });
+
+
+        /*
+          Remove conflicting AZ SKU from
+          processing.
+
+          WakeSuite must never silently
+          choose one mapping.
+        */
+
+        masterMap.delete(
+          azSku
+        );
+
+      }
+
+
+    }
+  );
+
+
+  return {
+
+    masterMap,
+
+    exactDuplicates,
+
+    conflicts
+
+  };
+
+}
+
+
+/* ======================================================
+   WAKEFIT DAILY PRICING
+====================================================== */
+
+function buildWakefitPricingMap(rows){
+
+  const map =
+    new Map();
+
+
+  rows.forEach(
+    row => {
+
+
+      const wfSku =
+        normalizeKey(
+          row[
+            "item_sku"
+          ]
+        );
+
+
+      if(!wfSku){
+        return;
+      }
+
+
+      map.set(
+        wfSku,
+        {
+
+          wfSku:
+
+            wfSku,
+
+          wfMrp:
+
+            parseMoney(
+              row[
+                "mrp"
+              ]
+            ),
+
+          wfPrice:
+
+            parseMoney(
+              row[
+                "sale_price"
+              ]
+            )
+
+        }
+      );
+
+
+    }
+  );
+
+
+  return map;
+
+}
+
+
+/* ======================================================
+   AMAZON ALL LISTINGS
+====================================================== */
+
+function buildAmazonListingMap(rows){
+
+  const map =
+    new Map();
+
+
+  rows.forEach(
+    row => {
+
+
+      const azSku =
+        normalizeKey(
+          row[
+            "seller-sku"
+          ]
+        );
+
+
+      if(!azSku){
+        return;
+      }
+
+
+      map.set(
+        azSku,
+        {
+
+          azSku:
+
+            azSku,
+
+          asin:
+
+            normalizeKey(
+              row[
+                "asin1"
+              ]
+            ),
+
+          status:
+
+            String(
+              row[
+                "status"
+              ]
+              ||
+              ""
+            )
+            .trim()
+            .toLowerCase(),
+
+          azPrice:
+
+            parseMoney(
+              row[
+                "price"
+              ]
+            ),
+
+          azMrp:
+
+            parseMoney(
+              row[
+                "maximum-retail-price"
+              ]
+            ),
+
+          quantity:
+
+            parseNumber(
+              row[
+                "quantity"
+              ]
+            )
+
+        }
+      );
+
+
+    }
+  );
+
+
+  return map;
+
+}
+
+
+/* ======================================================
+   AMAZON FBA SELLABLE INVENTORY
+====================================================== */
+
+function buildFbaInventoryMap(rows){
+
+  const map =
+    new Map();
+
+
+  rows.forEach(
+    row => {
+
+
+      const condition =
+
+        String(
+          row[
+            "Warehouse-Condition-code"
+          ]
+          ||
+          ""
+        )
+        .trim()
+        .toUpperCase();
+
+
+      if(
+        condition !==
+        "SELLABLE"
+      ){
+
+        return;
+
+      }
+
+
+      const azSku =
+        normalizeKey(
+          row[
+            "seller-sku"
+          ]
+        );
+
+
+      if(!azSku){
+        return;
+      }
+
+
+      const quantity =
+        parseNumber(
+          row[
+            "Quantity Available"
+          ]
+        );
+
+
+      const current =
+        map.get(
+          azSku
+        )
+        ||
+        0;
+
+
+      map.set(
+        azSku,
+        current + quantity
+      );
+
+
+    }
+  );
+
+
+  return map;
+
+}
+
+
+/* ======================================================
+   BUSINESS REPORT
+   ONE RECORD PER CHILD ASIN
+====================================================== */
+
+function buildBusinessRevenueMap(rows){
+
+  const map =
+    new Map();
+
+
+  rows.forEach(
+    row => {
+
+
+      const asin =
+        normalizeKey(
+          row[
+            "(Child) ASIN"
+          ]
+        );
+
+
+      if(!asin){
+        return;
+      }
+
+
+      const revenue =
+        parseMoney(
+          row[
+            "Ordered Product Sales"
+          ]
+        );
+
+
+      const units =
+        parseNumber(
+          row[
+            "Units Ordered"
+          ]
+        );
+
+
+      const orderItems =
+        parseNumber(
+          row[
+            "Total Order Items"
+          ]
+        );
+
+
+      if(
+        !map.has(
+          asin
+        )
+      ){
+
+        map.set(
+          asin,
+          {
+
+            asin,
+
+            revenue:
+              0,
+
+            unitsOrdered:
+              0,
+
+            totalOrderItems:
+              0
+
+          }
+        );
+
+      }
+
+
+      const current =
+        map.get(
+          asin
+        );
+
+
+      current.revenue +=
+        revenue;
+
+
+      current.unitsOrdered +=
+        units;
+
+
+      current.totalOrderItems +=
+        orderItems;
+
+
+    }
+  );
+
+
+  return map;
+
+}
+
+
+/* ======================================================
+   PRICE ACTION
+====================================================== */
+
+function calculatePriceAction(
+  wfPrice,
+  azPrice
+){
+
+  const lowerLimit =
+    wfPrice -
+    AMAZON_PRICE_THRESHOLD;
+
+
+  const upperLimit =
+    wfPrice +
+    AMAZON_PRICE_THRESHOLD;
+
+
+  if(
+    azPrice <
+    lowerLimit
+  ){
+
+    return {
+
+      requiredAction:
+
+        "Increase Amazon Price",
+
+      disparity:
+
+        true,
+
+      allowedPrice:
+
+        lowerLimit
+
+    };
+
+  }
+
+
+  if(
+    azPrice >
+    upperLimit
+  ){
+
+    return {
+
+      requiredAction:
+
+        "Decrease Amazon Price",
+
+      disparity:
+
+        true,
+
+      allowedPrice:
+
+        upperLimit
+
+    };
+
+  }
+
+
+  return {
+
+    requiredAction:
+
+      "No Action",
+
+    disparity:
+
+      false,
+
+    allowedPrice:
+
+      azPrice
+
+  };
+
+}
+
+
+/* ======================================================
+   ASIN-LEVEL REVENUE IMPACT
+
+   Revenue must NEVER be duplicated.
+
+   If multiple eligible AZ SKUs exist for
+   one ASIN, use the lowest AZ Price row
+   as the ASIN impact basis.
+====================================================== */
+
+function allocateAsinRevenueImpact(
+  rows,
+  businessMap
+){
+
+  const asinGroups =
+    new Map();
+
+
+  rows.forEach(
+    row => {
+
+
+      if(
+        !row.asin
+      ){
+
+        return;
+
+      }
+
+
+      if(
+        !asinGroups.has(
+          row.asin
+        )
+      ){
+
+        asinGroups.set(
+          row.asin,
+          []
+        );
+
+      }
+
+
+      asinGroups
+      .get(
+        row.asin
+      )
+      .push(
+        row
+      );
+
+
+    }
+  );
+
+
+  asinGroups.forEach(
+    (
+      asinRows,
+      asin
+    ) => {
+
+
+      const business =
+        businessMap.get(
+          asin
+        );
+
+
+      const revenue =
+        business
+        ?
+        business.revenue
+        :
+        0;
+
+
+      /*
+        Revenue itself stays once at ASIN level.
+      */
+
+      asinRows.forEach(
+        row => {
+
+          row.asinRevenue =
+            0;
+
+          row.dailyRevenueImpact =
+            0;
+
+          row.revenueImpactAllocated =
+            false;
+
+        }
+      );
+
+
+      if(
+        revenue <= 0
+      ){
+
+        return;
+
+      }
+
+
+      /*
+        Lowest active/in-stock Amazon offer
+        represents the ASIN-level price basis.
+      */
+
+      const impactRow =
+
+        [...asinRows]
+        .sort(
+          (
+            a,
+            b
+          ) =>
+
+            a.azPrice -
+            b.azPrice
+
+        )[0];
+
+
+      impactRow.asinRevenue =
+        revenue;
+
+
+      impactRow.revenueImpactAllocated =
+        true;
+
+
+      /*
+        Revenue impact only applies
+        when Amazon is underpriced.
+      */
+
+      if(
+
+        impactRow.requiredAction !==
+        "Increase Amazon Price"
+
+      ){
+
+        return;
+
+      }
+
+
+      if(
+        impactRow.azPrice <= 0
+      ){
+
+        return;
+
+      }
+
+
+      const allowedPrice =
+
+        impactRow.wfPrice -
+
+        AMAZON_PRICE_THRESHOLD;
+
+
+      const priceGap =
+
+        allowedPrice -
+
+        impactRow.azPrice;
+
+
+      if(
+        priceGap <= 0
+      ){
+
+        return;
+
+      }
+
+
+      const priceGapPercent =
+
+        priceGap /
+
+        impactRow.azPrice;
+
+
+      const dailyImpact =
+
+        revenue
+
+        *
+
+        priceGapPercent
+
+        /
+
+        BUSINESS_REPORT_DAYS;
+
+
+      impactRow.allowedPrice =
+        allowedPrice;
+
+
+      impactRow.priceGap =
+        priceGap;
+
+
+      impactRow.priceGapPercent =
+        priceGapPercent;
+
+
+      impactRow.dailyRevenueImpact =
+        dailyImpact;
+
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   BUILD AMAZON PRICE DISPARITY
+====================================================== */
+
+function buildAmazonPriceDisparity(){
+
+  const reports =
+    window.wakeSuiteSessionReports;
+
+
+  if(
+    !window.masterPricingAmazon
+  ){
+
+    throw new Error(
+      "Connect Master Pricing first."
+    );
+
+  }
+
+
+  const dailyPricingReport =
+
+    reports[
+      "wakefit_daily_pricing"
+    ];
+
+
+  const allListingsReport =
+
+    reports[
+      "amazon_all_listings"
+    ];
+
+
+  const fbaReport =
+
+    reports[
+      "amazon_fba_inventory"
+    ];
+
+
+  const businessReport =
+
+    reports[
+      "amazon_business_reports"
+    ];
+
+
+  const missingReports =
+    [];
+
+
+  if(!dailyPricingReport){
+
+    missingReports.push(
+      "Wakefit Daily Pricing"
+    );
+
+  }
+
+
+  if(!allListingsReport){
+
+    missingReports.push(
+      "Amazon All Listings"
+    );
+
+  }
+
+
+  if(!fbaReport){
+
+    missingReports.push(
+      "Amazon FBA Inventory"
+    );
+
+  }
+
+
+  if(!businessReport){
+
+    missingReports.push(
+      "Amazon Business Reports"
+    );
+
+  }
+
+
+  if(
+    missingReports.length > 0
+  ){
+
+    throw new Error(
+
+      "Upload these reports first:\n\n" +
+
+      missingReports.join(
+        "\n"
+      )
+
+    );
+
+  }
+
+
+  const masterResult =
+    prepareMasterPricing();
+
+
+  const masterMap =
+    masterResult.masterMap;
+
+
+  const wfMap =
+    buildWakefitPricingMap(
+
+      dailyPricingReport
+      .parsedFile
+      .rows
+
+    );
+
+
+  const listingMap =
+    buildAmazonListingMap(
+
+      allListingsReport
+      .parsedFile
+      .rows
+
+    );
+
+
+  const fbaMap =
+    buildFbaInventoryMap(
+
+      fbaReport
+      .parsedFile
+      .rows
+
+    );
+
+
+  const businessMap =
+    buildBusinessRevenueMap(
+
+      businessReport
+      .parsedFile
+      .rows
+
+    );
+
+
+  const output =
+    [];
+
+
+  const issues = {
+
+    masterConflicts:
+
+      masterResult.conflicts,
+
+    exactMasterDuplicates:
+
+      masterResult.exactDuplicates,
+
+    missingWakefitPricing:
+
+      [],
+
+    missingAmazonListing:
+
+      [],
+
+    invalidPrices:
+
+      []
+
+  };
+
+
+  masterMap.forEach(
+    master => {
+
+
+      const azSku =
+        master.azSku;
+
+
+      const listing =
+        listingMap.get(
+          azSku
+        );
+
+
+      if(!listing){
+
+        issues
+        .missingAmazonListing
+        .push(
+          azSku
+        );
+
+        return;
+
+      }
+
+
+      /*
+        Active listings only
+      */
+
+      if(
+        listing.status !==
+        "active"
+      ){
+
+        return;
+
+      }
+
+
+      const allListingsQty =
+
+        listing.quantity;
+
+
+      const fbaSellableQty =
+
+        fbaMap.get(
+          azSku
+        )
+        ||
+        0;
+
+
+      /*
+        FINAL INVENTORY RULE
+
+        Use All Listings quantity first.
+
+        If blank / zero,
+        use FBA SELLABLE fallback.
+      */
+
+      const inventory =
+
+        allListingsQty > 0
+
+        ?
+
+        allListingsQty
+
+        :
+
+        fbaSellableQty;
+
+
+      /*
+        Must have stock.
+      */
+
+      if(
+        inventory <= 0
+      ){
+
+        return;
+
+      }
+
+
+      const wf =
+        wfMap.get(
+          master.wfSku
+        );
+
+
+      if(!wf){
+
+        issues
+        .missingWakefitPricing
+        .push(
+          {
+
+            azSku:
+
+              master.azSku,
+
+            wfSku:
+
+              master.wfSku
+
+          }
+        );
+
+        return;
+
+      }
+
+
+      const wfPrice =
+        wf.wfPrice;
+
+
+      const wfMrp =
+        wf.wfMrp;
+
+
+      const azPrice =
+        listing.azPrice;
+
+
+      const azMrp =
+        listing.azMrp;
+
+
+      /*
+        Price must exist.
+      */
+
+      if(
+        wfPrice <= 0 ||
+        azPrice <= 0
+      ){
+
+        issues
+        .invalidPrices
+        .push(
+          azSku
+        );
+
+        return;
+
+      }
+
+
+      const action =
+        calculatePriceAction(
+          wfPrice,
+          azPrice
+        );
+
+
+      const row = {
+
+        category:
+
+          master.category,
+
+        wfSku:
+
+          master.wfSku,
+
+        azSku:
+
+          master.azSku,
+
+        asin:
+
+          master.asin
+          ||
+          listing.asin,
+
+        wfMrp:
+
+          wfMrp,
+
+        wfPrice:
+
+          wfPrice,
+
+        azMrp:
+
+          azMrp,
+
+        azPrice:
+
+          azPrice,
+
+        mrpDiff:
+
+          azMrp -
+          wfMrp,
+
+        priceDiff:
+
+          azPrice -
+          wfPrice,
+
+        inventory:
+
+          inventory,
+
+        allListingsQty:
+
+          allListingsQty,
+
+        fbaSellableQty:
+
+          fbaSellableQty,
+
+        requiredAction:
+
+          action.requiredAction,
+
+        disparity:
+
+          action.disparity,
+
+        asinRevenue:
+
+          0,
+
+        dailyRevenueImpact:
+
+          0,
+
+        revenueImpactAllocated:
+
+          false
+
+      };
+
+
+      output.push(
+        row
+      );
+
+
+    }
+  );
+
+
+  /*
+    Allocate Business Report revenue
+    exactly once per ASIN.
+  */
+
+  allocateAsinRevenueImpact(
+    output,
+    businessMap
+  );
+
+
+  /*
+    SUMMARY
+  */
+
+  const disparityRows =
+
+    output.filter(
+      row =>
+        row.disparity
+    );
+
+
+  const increaseRows =
+
+    output.filter(
+      row =>
+
+        row.requiredAction ===
+        "Increase Amazon Price"
+
+    );
+
+
+  const decreaseRows =
+
+    output.filter(
+      row =>
+
+        row.requiredAction ===
+        "Decrease Amazon Price"
+
+    );
+
+
+  const totalDailyImpact =
+
+    output.reduce(
+      (
+        sum,
+        row
+      ) =>
+
+        sum +
+
+        row.dailyRevenueImpact,
+
+      0
+    );
+
+
+  const impactedAsins =
+
+    new Set(
+
+      output
+
+      .filter(
+        row =>
+          row.dailyRevenueImpact > 0
+      )
+
+      .map(
+        row =>
+          row.asin
+      )
+
+    );
+
+
+  const result = {
+
+    generatedAt:
+
+      new Date(),
+
+    threshold:
+
+      AMAZON_PRICE_THRESHOLD,
+
+    businessReportDays:
+
+      BUSINESS_REPORT_DAYS,
+
+    rows:
+
+      output,
+
+    disparityRows:
+
+      disparityRows,
+
+    issues:
+
+      issues,
+
+    summary:{
+
+      totalActiveSkus:
+
+        output.length,
+
+      disparitySkus:
+
+        disparityRows.length,
+
+      increasePriceRequired:
+
+        increaseRows.length,
+
+      decreasePriceRequired:
+
+        decreaseRows.length,
+
+      impactedAsins:
+
+        impactedAsins.size,
+
+      totalDailyRevenueImpact:
+
+        totalDailyImpact,
+
+      masterExactDuplicatesRemoved:
+
+        masterResult.exactDuplicates,
+
+      masterConflicts:
+
+        masterResult
+        .conflicts
+        .length
+
+    }
+
+  };
+
+
+  window.amazonPriceDisparityResult =
+    result;
+
+
+  console.log(
+    "AMAZON PRICE DISPARITY RESULT:",
+    result
+  );
+
+
+  return result;
+
+}
+
+
+/* ======================================================
+   RUN ENGINE
+====================================================== */
+
+function runAmazonPriceDisparity(){
+
+  try{
+
+
+    const result =
+      buildAmazonPriceDisparity();
+
+
+    document
+    .getElementById(
+      "priceDisparityCount"
+    )
+    .textContent =
+
+      result
+      .summary
+      .disparitySkus
+      .toLocaleString(
+        "en-IN"
+      );
+
+
+    alert(
+
+      "Amazon Price Disparity completed.\n\n" +
+
+      "Active/In-stock SKUs: " +
+
+      result.summary.totalActiveSkus
+      .toLocaleString(
+        "en-IN"
+      ) +
+
+      "\n\nDisparity SKUs: " +
+
+      result.summary.disparitySkus
+      .toLocaleString(
+        "en-IN"
+      ) +
+
+      "\n\nIncrease Price: " +
+
+      result.summary.increasePriceRequired
+      .toLocaleString(
+        "en-IN"
+      ) +
+
+      "\n\nDecrease Price: " +
+
+      result.summary.decreasePriceRequired
+      .toLocaleString(
+        "en-IN"
+      ) +
+
+      "\n\nASINs with Revenue Impact: " +
+
+      result.summary.impactedAsins
+      .toLocaleString(
+        "en-IN"
+      ) +
+
+      "\n\nDaily Revenue Impact: " +
+
+      formatINR(
+        result.summary.totalDailyRevenueImpact
+      ) +
+
+      "\n\nMaster conflicts: " +
+
+      result.summary.masterConflicts
+
+    );
+
+
+  }
+  catch(error){
+
+
+    console.error(
+      "Price Disparity failed:",
+      error
+    );
+
+
+    alert(
+      "Unable to run Price Disparity.\n\n" +
+      error.message
+    );
+
+
+  }
+
+}
 </script>
 
 
