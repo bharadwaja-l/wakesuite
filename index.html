@@ -15,6 +15,7 @@
   rel="stylesheet"
 >
 
+<!-- SheetJS -->
 <script
   src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js">
 </script>
@@ -126,7 +127,7 @@ body{
   padding:30px;
   border-radius:20px;
   box-shadow:0 6px 20px rgba(0,0,0,.05);
-  max-width:650px;
+  max-width:700px;
 }
 
 .upload h2{
@@ -221,6 +222,47 @@ body{
 .validation-error{
   color:#b91c1c;
   font-weight:600;
+}
+
+
+/* BUSINESS REPORT SUMMARY */
+
+.business-summary{
+  display:none;
+  margin-top:18px;
+  padding:18px;
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  border-radius:12px;
+}
+
+.business-summary h3{
+  margin-bottom:12px;
+  color:#1d4ed8;
+}
+
+.business-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+}
+
+.business-metric{
+  background:white;
+  padding:12px;
+  border-radius:10px;
+}
+
+.business-metric-label{
+  font-size:12px;
+  color:#6b7280;
+}
+
+.business-metric-value{
+  margin-top:5px;
+  font-size:18px;
+  font-weight:700;
 }
 
 
@@ -391,8 +433,7 @@ body{
     <div
       id="uploadStatus"
       class="upload-status"
-    >
-    </div>
+    ></div>
 
 
     <div
@@ -436,6 +477,85 @@ body{
 
     </div>
 
+
+    <div
+      id="businessSummary"
+      class="business-summary"
+    >
+
+      <h3>
+        Business Report Summary
+      </h3>
+
+      <div class="business-grid">
+
+        <div class="business-metric">
+
+          <div class="business-metric-label">
+            ASINs
+          </div>
+
+          <div
+            class="business-metric-value"
+            id="businessAsinCount"
+          >
+            0
+          </div>
+
+        </div>
+
+
+        <div class="business-metric">
+
+          <div class="business-metric-label">
+            Units Ordered
+          </div>
+
+          <div
+            class="business-metric-value"
+            id="businessUnits"
+          >
+            0
+          </div>
+
+        </div>
+
+
+        <div class="business-metric">
+
+          <div class="business-metric-label">
+            Revenue
+          </div>
+
+          <div
+            class="business-metric-value"
+            id="businessRevenue"
+          >
+            ₹0
+          </div>
+
+        </div>
+
+
+        <div class="business-metric">
+
+          <div class="business-metric-label">
+            Order Items
+          </div>
+
+          <div
+            class="business-metric-value"
+            id="businessOrderItems"
+          >
+            0
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
 
@@ -457,8 +577,9 @@ body{
 let uploadConfig = [];
 
 
+
 /* ======================================================
-   CURRENT VALIDATED REPORT DEFINITIONS
+   REPORT DEFINITIONS
 ====================================================== */
 
 const REPORT_DEFINITIONS = {
@@ -552,6 +673,29 @@ const REPORT_DEFINITIONS = {
 
     ]
 
+  },
+
+
+  amazonBusinessReports: {
+
+    id:
+      "amazon_business_reports",
+
+    label:
+      "Amazon → Business Reports",
+
+    requiredHeaders: [
+
+      "(Child) ASIN",
+
+      "Units Ordered",
+
+      "Ordered Product Sales",
+
+      "Total Order Items"
+
+    ]
+
   }
 
 
@@ -560,7 +704,7 @@ const REPORT_DEFINITIONS = {
 
 
 /* ======================================================
-   RECEIVE CONFIG FROM FIREBASE MODULE
+   APPLY FIRESTORE CONFIG
 ====================================================== */
 
 window.applyUploadConfig =
@@ -577,13 +721,9 @@ function(configs){
 
     .sort(
       (a,b) =>
-        Number(
-          a.sortOrder || 0
-        )
+        Number(a.sortOrder || 0)
         -
-        Number(
-          b.sortOrder || 0
-        )
+        Number(b.sortOrder || 0)
     );
 
 
@@ -595,7 +735,6 @@ function(configs){
 
   populateMenus();
 
-
   populateFolders();
 
 };
@@ -603,30 +742,23 @@ function(configs){
 
 
 /* ======================================================
-   PRICE DISPARITY
+   PRICE DISPARITY SECTION
 ====================================================== */
 
 function showPriceDisparity(){
 
 
   const section =
-    document
-    .getElementById(
+    document.getElementById(
       "priceDisparitySection"
     );
 
 
   section.style.display =
-
-    section.style.display ===
-    "block"
-
+    section.style.display === "block"
     ?
-
     "none"
-
     :
-
     "block";
 
 }
@@ -674,21 +806,19 @@ function escapeHtml(value){
 
 
 /* ======================================================
-   POPULATE MENUS FROM FIRESTORE CONFIG
+   POPULATE MENU
 ====================================================== */
 
 function populateMenus(){
 
 
   const menuElement =
-    document
-    .getElementById(
+    document.getElementById(
       "menu"
     );
 
 
-  const menus =
-    [];
+  const menus = [];
 
 
   uploadConfig.forEach(
@@ -708,7 +838,6 @@ function populateMenus(){
 
       }
 
-
     }
   );
 
@@ -718,9 +847,7 @@ function populateMenus(){
   ){
 
     menuElement.innerHTML =
-
       `<option value="">No menus configured</option>`;
-
 
     return;
 
@@ -735,9 +862,7 @@ function populateMenus(){
 
 
       html +=
-
         `<option value="${escapeHtml(menu)}">${escapeHtml(menu)}</option>`;
-
 
     }
   );
@@ -751,7 +876,7 @@ function populateMenus(){
 
 
 /* ======================================================
-   POPULATE FOLDERS FROM FIRESTORE CONFIG
+   POPULATE FOLDERS
 ====================================================== */
 
 function populateFolders(){
@@ -766,14 +891,12 @@ function populateFolders(){
 
 
   const folderElement =
-    document
-    .getElementById(
+    document.getElementById(
       "folder"
     );
 
 
   let html =
-
     `<option value="">Select Folder</option>`;
 
 
@@ -789,9 +912,7 @@ function populateFolders(){
 
 
       html +=
-
         `<option value="${escapeHtml(item.folder)}">${escapeHtml(item.folder)}</option>`;
-
 
     }
   );
@@ -826,8 +947,7 @@ function setUploadStatus(
 
 
   const element =
-    document
-    .getElementById(
+    document.getElementById(
       "uploadStatus"
     );
 
@@ -905,22 +1025,15 @@ function isUsefulHeader(header){
     .trim();
 
 
-  if(
-    !value
-  ){
-
+  if(!value){
     return false;
-
   }
 
 
   if(
-    value ===
-    "__EMPTY"
+    value === "__EMPTY"
   ){
-
     return false;
-
   }
 
 
@@ -929,9 +1042,7 @@ function isUsefulHeader(header){
       "__EMPTY_"
     )
   ){
-
     return false;
-
   }
 
 
@@ -969,9 +1080,7 @@ function normalizeRow(row){
           cleanKey
         )
       ){
-
         return;
-
       }
 
 
@@ -980,12 +1089,123 @@ function normalizeRow(row){
       ] =
         value;
 
-
     }
   );
 
 
   return cleaned;
+
+}
+
+
+
+/* ======================================================
+   NUMBER PARSER
+====================================================== */
+
+function parseNumber(value){
+
+
+  if(
+    value === null ||
+    value === undefined ||
+    value === ""
+  ){
+    return 0;
+  }
+
+
+  const cleaned =
+    String(value)
+
+    .replace(
+      /,/g,
+      ""
+    )
+
+    .trim();
+
+
+  const number =
+    Number(
+      cleaned
+    );
+
+
+  return Number.isFinite(number)
+    ?
+    number
+    :
+    0;
+
+}
+
+
+
+/* ======================================================
+   MONEY PARSER
+
+   Example:
+   ₹1,51,25,908.00
+   becomes
+   15125908
+====================================================== */
+
+function parseMoney(value){
+
+
+  if(
+    value === null ||
+    value === undefined ||
+    value === ""
+  ){
+    return 0;
+  }
+
+
+  const cleaned =
+    String(value)
+
+    .replace(
+      /[^0-9.-]/g,
+      ""
+    );
+
+
+  const number =
+    Number(
+      cleaned
+    );
+
+
+  return Number.isFinite(number)
+    ?
+    number
+    :
+    0;
+
+}
+
+
+
+/* ======================================================
+   FORMAT INR
+====================================================== */
+
+function formatINR(value){
+
+
+  return new Intl.NumberFormat(
+    "en-IN",
+    {
+      style:"currency",
+      currency:"INR",
+      maximumFractionDigits:2
+    }
+  )
+  .format(
+    value || 0
+  );
 
 }
 
@@ -1039,7 +1259,7 @@ function reportMatchesHeaders(
 
 
 /* ======================================================
-   AUTO DETECT CURRENTLY KNOWN REPORTS
+   AUTO DETECT REPORT
 ====================================================== */
 
 function detectReport(headers){
@@ -1082,7 +1302,7 @@ function detectReport(headers){
 
 
 /* ======================================================
-   EXPECTED REPORT FROM FIRESTORE CONFIG ID
+   SELECTED FIRESTORE CONFIG
 ====================================================== */
 
 function getSelectedConfig(
@@ -1109,7 +1329,7 @@ function getSelectedConfig(
 
 
 /* ======================================================
-   GET VALIDATION DEFINITION
+   VALIDATION DEFINITION FROM CONFIG
 ====================================================== */
 
 function getDefinitionFromConfig(
@@ -1117,12 +1337,8 @@ function getDefinitionFromConfig(
 ){
 
 
-  if(
-    !config
-  ){
-
+  if(!config){
     return null;
-
   }
 
 
@@ -1159,12 +1375,20 @@ function getDefinitionFromConfig(
   }
 
 
-  /*
-    Business Reports schema will be
-    added after you provide its headers.
+  if(
+    config.id ===
+    "amazon_business_reports"
+  ){
 
-    Flipkart validation will also be
-    added later with its finalized logic.
+    return REPORT_DEFINITIONS
+      .amazonBusinessReports;
+
+  }
+
+
+  /*
+    Flipkart validation will be added
+    when its business logic is finalized.
   */
 
   return null;
@@ -1174,7 +1398,7 @@ function getDefinitionFromConfig(
 
 
 /* ======================================================
-   VALIDATE REPORT
+   VALIDATE SELECTED REPORT
 ====================================================== */
 
 function validateSelectedReport(
@@ -1282,10 +1506,6 @@ function validateSelectedReport(
         selectedDefinition.label,
 
       detectedLabel:
-        detectedDefinition
-        ?
-        detectedDefinition.label
-        :
         selectedDefinition.label,
 
       detectedId:
@@ -1328,128 +1548,13 @@ function validateSelectedReport(
 
 
 /* ======================================================
-   SHOW FILE INFO
-====================================================== */
-
-function showParsedFileInfo(
-  parsedFile,
-  validation
-){
-
-
-  document
-  .getElementById(
-    "fileInfo"
-  )
-  .style.display =
-    "block";
-
-
-  document
-  .getElementById(
-    "parsedFileName"
-  )
-  .textContent =
-
-    "File: " +
-    parsedFile.fileName;
-
-
-  document
-  .getElementById(
-    "parsedSheetName"
-  )
-  .textContent =
-
-    "Sheet: " +
-    parsedFile.sheetName;
-
-
-  document
-  .getElementById(
-    "parsedRowCount"
-  )
-  .textContent =
-
-    "Rows: " +
-    parsedFile.rowCount;
-
-
-  document
-  .getElementById(
-    "parsedHeaders"
-  )
-  .textContent =
-
-    "Columns: " +
-    parsedFile.headers.join(
-      ", "
-    );
-
-
-  document
-  .getElementById(
-    "detectedReport"
-  )
-  .textContent =
-
-    "Detected report: " +
-    validation.detectedLabel;
-
-
-  const validationElement =
-    document
-    .getElementById(
-      "validationResult"
-    );
-
-
-  if(
-    validation.valid
-  ){
-
-
-    validationElement.className =
-
-      "file-info-row validation-success";
-
-
-    validationElement.textContent =
-
-      "✓ Validation passed";
-
-
-  }
-  else{
-
-
-    validationElement.className =
-
-      "file-info-row validation-error";
-
-
-    validationElement.textContent =
-
-      "✕ " +
-      validation.message;
-
-
-  }
-
-}
-
-
-
-/* ======================================================
    READ FILE
 ====================================================== */
 
 async function readWakeSuiteFile(file){
 
 
-  if(
-    !file
-  ){
+  if(!file){
 
     throw new Error(
       "No file selected."
@@ -1490,11 +1595,8 @@ async function readWakeSuiteFile(file){
       XLSX.read(
         buffer,
         {
-
           type:"array",
-
           cellDates:false
-
         }
       );
 
@@ -1541,13 +1643,9 @@ async function readWakeSuiteFile(file){
     XLSX.utils.sheet_to_json(
       worksheet,
       {
-
         defval:"",
-
         raw:false,
-
         blankrows:false
-
       }
     );
 
@@ -1645,10 +1743,401 @@ async function readWakeSuiteFile(file){
 
 
 /* ======================================================
+   BUSINESS REPORT ASIN AGGREGATION
+
+   IMPORTANT:
+   Revenue is stored once per Child ASIN.
+
+   We do NOT duplicate revenue by AZ SKU.
+====================================================== */
+
+function buildBusinessReportAsinMap(
+  rows
+){
+
+
+  const asinMap =
+    new Map();
+
+
+  rows.forEach(
+    row => {
+
+
+      const asin =
+        String(
+          row[
+            "(Child) ASIN"
+          ]
+          ||
+          ""
+        )
+        .trim();
+
+
+      if(!asin){
+        return;
+      }
+
+
+      const unitsOrdered =
+        parseNumber(
+          row[
+            "Units Ordered"
+          ]
+        );
+
+
+      const revenue =
+        parseMoney(
+          row[
+            "Ordered Product Sales"
+          ]
+        );
+
+
+      const totalOrderItems =
+        parseNumber(
+          row[
+            "Total Order Items"
+          ]
+        );
+
+
+      if(
+        !asinMap.has(
+          asin
+        )
+      ){
+
+
+        asinMap.set(
+          asin,
+          {
+
+            asin:
+              asin,
+
+            unitsOrdered:
+              0,
+
+            orderedProductSales:
+              0,
+
+            totalOrderItems:
+              0
+
+          }
+        );
+
+      }
+
+
+      const current =
+        asinMap.get(
+          asin
+        );
+
+
+      current.unitsOrdered +=
+        unitsOrdered;
+
+
+      current.orderedProductSales +=
+        revenue;
+
+
+      current.totalOrderItems +=
+        totalOrderItems;
+
+
+    }
+  );
+
+
+  return asinMap;
+
+}
+
+
+
+/* ======================================================
+   BUSINESS REPORT SUMMARY
+====================================================== */
+
+function processBusinessReport(
+  parsedFile
+){
+
+
+  const asinMap =
+    buildBusinessReportAsinMap(
+      parsedFile.rows
+    );
+
+
+  const asinRows =
+    Array.from(
+      asinMap.values()
+    );
+
+
+  let totalUnitsOrdered = 0;
+
+  let totalRevenue = 0;
+
+  let totalOrderItems = 0;
+
+
+  asinRows.forEach(
+    row => {
+
+
+      totalUnitsOrdered +=
+        row.unitsOrdered;
+
+
+      totalRevenue +=
+        row.orderedProductSales;
+
+
+      totalOrderItems +=
+        row.totalOrderItems;
+
+
+    }
+  );
+
+
+  const result = {
+
+    uniqueAsinCount:
+      asinRows.length,
+
+    totalUnitsOrdered:
+      totalUnitsOrdered,
+
+    totalOrderedProductSales:
+      totalRevenue,
+
+    totalOrderItems:
+      totalOrderItems,
+
+    asinRows:
+      asinRows,
+
+    asinMap:
+      asinMap
+
+  };
+
+
+  console.log(
+    "Business Report ASIN summary:",
+    result
+  );
+
+
+  return result;
+
+}
+
+
+
+/* ======================================================
+   SHOW BUSINESS REPORT SUMMARY
+====================================================== */
+
+function showBusinessReportSummary(
+  summary
+){
+
+
+  const box =
+    document.getElementById(
+      "businessSummary"
+    );
+
+
+  box.style.display =
+    "block";
+
+
+  document
+  .getElementById(
+    "businessAsinCount"
+  )
+  .textContent =
+    summary.uniqueAsinCount
+    .toLocaleString(
+      "en-IN"
+    );
+
+
+  document
+  .getElementById(
+    "businessUnits"
+  )
+  .textContent =
+    summary.totalUnitsOrdered
+    .toLocaleString(
+      "en-IN"
+    );
+
+
+  document
+  .getElementById(
+    "businessRevenue"
+  )
+  .textContent =
+    formatINR(
+      summary.totalOrderedProductSales
+    );
+
+
+  document
+  .getElementById(
+    "businessOrderItems"
+  )
+  .textContent =
+    summary.totalOrderItems
+    .toLocaleString(
+      "en-IN"
+    );
+
+}
+
+
+
+/* ======================================================
+   HIDE BUSINESS SUMMARY
+====================================================== */
+
+function hideBusinessReportSummary(){
+
+
+  document
+  .getElementById(
+    "businessSummary"
+  )
+  .style.display =
+    "none";
+
+}
+
+
+
+/* ======================================================
+   SHOW FILE INFORMATION
+====================================================== */
+
+function showParsedFileInfo(
+  parsedFile,
+  validation
+){
+
+
+  document
+  .getElementById(
+    "fileInfo"
+  )
+  .style.display =
+    "block";
+
+
+  document
+  .getElementById(
+    "parsedFileName"
+  )
+  .textContent =
+    "File: " +
+    parsedFile.fileName;
+
+
+  document
+  .getElementById(
+    "parsedSheetName"
+  )
+  .textContent =
+    "Sheet: " +
+    parsedFile.sheetName;
+
+
+  document
+  .getElementById(
+    "parsedRowCount"
+  )
+  .textContent =
+    "Rows: " +
+    parsedFile.rowCount;
+
+
+  document
+  .getElementById(
+    "parsedHeaders"
+  )
+  .textContent =
+    "Columns: " +
+    parsedFile.headers.join(
+      ", "
+    );
+
+
+  document
+  .getElementById(
+    "detectedReport"
+  )
+  .textContent =
+    "Detected report: " +
+    validation.detectedLabel;
+
+
+  const validationElement =
+    document
+    .getElementById(
+      "validationResult"
+    );
+
+
+  if(
+    validation.valid
+  ){
+
+
+    validationElement.className =
+      "file-info-row validation-success";
+
+
+    validationElement.textContent =
+      "✓ Validation passed";
+
+
+  }
+  else{
+
+
+    validationElement.className =
+      "file-info-row validation-error";
+
+
+    validationElement.textContent =
+      "✕ " +
+      validation.message;
+
+  }
+
+}
+
+
+
+/* ======================================================
    UPLOAD
 ====================================================== */
 
 async function uploadData(){
+
+
+  hideBusinessReportSummary();
 
 
   const reportDate =
@@ -1684,15 +2173,12 @@ async function uploadData(){
 
 
   const uploadButton =
-    document
-    .getElementById(
+    document.getElementById(
       "uploadButton"
     );
 
 
-  if(
-    !reportDate
-  ){
+  if(!reportDate){
 
     alert(
       "Please select Report Date."
@@ -1703,9 +2189,7 @@ async function uploadData(){
   }
 
 
-  if(
-    !menu
-  ){
+  if(!menu){
 
     alert(
       "Please select Menu."
@@ -1716,9 +2200,7 @@ async function uploadData(){
   }
 
 
-  if(
-    !folder
-  ){
+  if(!folder){
 
     alert(
       "Please select Folder."
@@ -1729,9 +2211,7 @@ async function uploadData(){
   }
 
 
-  if(
-    !file
-  ){
+  if(!file){
 
     alert(
       "Please choose a file."
@@ -1815,25 +2295,22 @@ async function uploadData(){
 
 
       let message =
-
         validation.message +
 
         "\n\nSelected:\n" +
-
         validation.selectedLabel +
 
         "\n\nDetected:\n" +
-
         validation.detectedLabel;
 
 
       if(
+        validation.missingHeaders &&
         validation.missingHeaders.length > 0
       ){
 
 
         message +=
-
           "\n\nMissing columns:\n" +
 
           validation
@@ -1846,7 +2323,6 @@ async function uploadData(){
 
 
       message +=
-
         "\n\nNothing was saved to Firestore.";
 
 
@@ -1866,15 +2342,47 @@ async function uploadData(){
     }
 
 
-    uploadButton.innerText =
-      "Registering...";
-
-
     const selectedConfig =
       getSelectedConfig(
         menu,
         folder
       );
+
+
+    let businessSummary =
+      null;
+
+
+    /*
+      Business Report processing is
+      ASIN-level only.
+    */
+
+    if(
+      selectedConfig.id ===
+      "amazon_business_reports"
+    ){
+
+
+      businessSummary =
+        processBusinessReport(
+          parsedFile
+        );
+
+
+      window.currentBusinessReport =
+        businessSummary;
+
+
+      showBusinessReportSummary(
+        businessSummary
+      );
+
+    }
+
+
+    uploadButton.innerText =
+      "Registering...";
 
 
     const metadata = {
@@ -1934,6 +2442,41 @@ async function uploadData(){
     };
 
 
+    /*
+      Store ONLY summary metrics
+      for Business Reports.
+
+      We are NOT writing thousands
+      of ASIN rows to Firestore here.
+    */
+
+    if(
+      businessSummary
+    ){
+
+
+      metadata.businessReportSummary = {
+
+        revenueKey:
+          "Child ASIN",
+
+        uniqueAsinCount:
+          businessSummary.uniqueAsinCount,
+
+        totalUnitsOrdered:
+          businessSummary.totalUnitsOrdered,
+
+        totalOrderedProductSales:
+          businessSummary.totalOrderedProductSales,
+
+        totalOrderItems:
+          businessSummary.totalOrderItems
+
+      };
+
+    }
+
+
     const uploadId =
       await window
       .saveUploadMetadata(
@@ -1955,11 +2498,17 @@ async function uploadData(){
       reportType:
         folder,
 
+      configId:
+        selectedConfig.id,
+
       file:
         file,
 
       parsedFile:
-        parsedFile
+        parsedFile,
+
+      businessSummary:
+        businessSummary
 
     };
 
@@ -2033,6 +2582,10 @@ async function uploadData(){
 
 
 
+<!-- ======================================================
+     FIREBASE
+====================================================== -->
+
 <script type="module">
 
 
@@ -2061,6 +2614,10 @@ import {
 from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 
+
+/* ======================================================
+   FIREBASE CONFIG
+====================================================== */
 
 const firebaseConfig = {
 
@@ -2250,7 +2807,7 @@ document
 
 
 /* ======================================================
-   LOAD UPLOAD CONFIG FROM FIRESTORE
+   LOAD UPLOAD CONFIG
 ====================================================== */
 
 async function loadUploadConfigFromFirestore(){
@@ -2292,7 +2849,7 @@ async function loadUploadConfigFromFirestore(){
 
 
   console.log(
-    "Firestore configuration documents:",
+    "Firestore upload config:",
     configs
   );
 
@@ -2306,7 +2863,7 @@ async function loadUploadConfigFromFirestore(){
 
 
 /* ======================================================
-   AUTH
+   AUTH STATE
 ====================================================== */
 
 onAuthStateChanged(
@@ -2314,9 +2871,7 @@ onAuthStateChanged(
   async user => {
 
 
-    if(
-      user
-    ){
+    if(user){
 
 
       loginOverlay.style.display =
@@ -2326,6 +2881,12 @@ onAuthStateChanged(
       console.log(
         "WakeSuite user:",
         user.email
+      );
+
+
+      console.log(
+        "Firebase UID:",
+        user.uid
       );
 
 
@@ -2366,7 +2927,6 @@ onAuthStateChanged(
       loginOverlay.style.display =
         "flex";
 
-
     }
 
 
@@ -2387,9 +2947,7 @@ async function(metadata){
     auth.currentUser;
 
 
-  if(
-    !user
-  ){
+  if(!user){
 
     throw new Error(
       "You must be signed in to WakeSuite."
@@ -2430,6 +2988,10 @@ async function(metadata){
 };
 
 
+
+/* ======================================================
+   EXPOSE FIREBASE
+====================================================== */
 
 window.wakeSuiteFirebase = {
 
