@@ -686,15 +686,11 @@ import {
 from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
 import {
-  getFirestore,
-  doc,
-  setDoc,
-  serverTimestamp
+  getFirestore
 }
 from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAwOkR3aemcexscDptHVnRjxSQx3XmjuV4",
   authDomain: "wakesuite-4daf9.firebaseapp.com",
@@ -709,10 +705,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
-const db = getFirestore(app);
-const provider =
-  new GoogleAuthProvider();
 
+const db = getFirestore(app);
+
+const provider = new GoogleAuthProvider();
+
+
+/* LOGIN SCREEN */
 
 const loginOverlay =
   document.createElement("div");
@@ -788,6 +787,8 @@ document.body.appendChild(
 );
 
 
+/* GOOGLE LOGIN */
+
 document
 .getElementById(
   "firebaseGoogleLogin"
@@ -806,7 +807,9 @@ document
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
 
       alert(
         "Google sign-in failed: "
@@ -819,9 +822,11 @@ document
 );
 
 
+/* AUTHENTICATION CHECK */
+
 onAuthStateChanged(
   auth,
-  async user => {
+  user => {
 
     if(user){
 
@@ -838,39 +843,9 @@ onAuthStateChanged(
         user.uid
       );
 
-      try {
-
-        await setDoc(
-          doc(
-            db,
-            "system",
-            "connection-test"
-          ),
-          {
-            status:
-              "WakeSuite Connected",
-
-            updatedAt:
-              serverTimestamp()
-          },
-          {
-            merge: true
-          }
-        );
-
-        console.log(
-          "Firestore connection successful"
-        );
-
-      }
-      catch(error){
-
-        console.error(
-          "Firestore connection failed:",
-          error
-        );
-
-      }
+      console.log(
+        "WakeSuite Firebase ready"
+      );
 
     }
     else{
@@ -882,4 +857,20 @@ onAuthStateChanged(
 
   }
 );
+
+
+/*
+  Make Firebase available to the
+  existing WakeSuite page.
+
+  We will use these in the next step
+  for uploads and processing.
+*/
+
+window.wakeSuiteFirebase = {
+  app,
+  auth,
+  db
+};
+
 </script>
