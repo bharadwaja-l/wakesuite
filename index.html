@@ -15,12 +15,9 @@
   rel="stylesheet"
 >
 
-
-<!-- SheetJS -->
 <script
   src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js">
 </script>
-
 
 <style>
 
@@ -65,23 +62,6 @@ body{
 .tag{
   color:gray;
   margin-bottom:40px;
-}
-
-.menu{
-  padding:16px;
-  background:white;
-  margin-bottom:10px;
-  border-radius:14px;
-  cursor:pointer;
-  font-weight:600;
-  box-shadow:0 2px 10px rgba(0,0,0,.05);
-}
-
-.folder{
-  padding:12px;
-  margin:8px 0 8px 25px;
-  background:#f5f7fa;
-  border-radius:10px;
 }
 
 
@@ -169,8 +149,8 @@ body{
 }
 
 .upload button{
-  padding:14px;
   width:100%;
+  padding:14px;
   background:#2563eb;
   color:white;
   border:none;
@@ -259,8 +239,6 @@ body{
 <body>
 
 
-<!-- SIDEBAR -->
-
 <div class="sidebar">
 
   <div class="logo">
@@ -271,12 +249,8 @@ body{
     Marketplace Intelligence
   </div>
 
-  <div id="sidebar"></div>
-
 </div>
 
-
-<!-- MAIN -->
 
 <div class="main">
 
@@ -288,8 +262,6 @@ body{
     Wakefit Marketplace Operations
   </div>
 
-
-  <!-- CARDS -->
 
   <div class="cards">
 
@@ -335,8 +307,6 @@ body{
   </div>
 
 
-  <!-- PRICE DISPARITY -->
-
   <div id="priceDisparitySection">
 
     <h2>
@@ -355,8 +325,6 @@ body{
 
   </div>
 
-
-  <!-- UPLOAD -->
 
   <div class="upload">
 
@@ -382,7 +350,7 @@ body{
     <select id="menu">
 
       <option value="">
-        Loading...
+        Loading from Firebase...
       </option>
 
     </select>
@@ -483,21 +451,14 @@ body{
 
 
 /* ======================================================
-   CURRENT CONFIG SOURCE
-
-   Menu + Folder still come from Apps Script for now.
+   FIRESTORE UPLOAD CONFIG
 ====================================================== */
 
-const CONFIG_URL =
-"https://script.google.com/macros/s/AKfycbwATBjVbhBakrmycVfde-bQCEjaXWMc4YRNz3c_PTcEbOWZ5fE69fmyIWmAKPF71D5n/exec";
-
-
-let allFolders = [];
-
+let uploadConfig = [];
 
 
 /* ======================================================
-   REPORT DEFINITIONS
+   CURRENT VALIDATED REPORT DEFINITIONS
 ====================================================== */
 
 const REPORT_DEFINITIONS = {
@@ -591,34 +552,6 @@ const REPORT_DEFINITIONS = {
 
     ]
 
-  },
-
-
-  amazonOrderReport: {
-
-    id:
-      "amazon_order_report",
-
-    label:
-      "Amazon → Order Report",
-
-    /*
-      We only require the columns
-      needed for current Price Disparity logic.
-
-      The report can contain many more columns.
-    */
-
-    requiredHeaders: [
-
-      "purchase-date",
-
-      "sku",
-
-      "quantity-purchased"
-
-    ]
-
   }
 
 
@@ -627,90 +560,45 @@ const REPORT_DEFINITIONS = {
 
 
 /* ======================================================
-   LOAD CONFIG
+   RECEIVE CONFIG FROM FIREBASE MODULE
 ====================================================== */
 
-async function load(){
+window.applyUploadConfig =
+function(configs){
 
 
-  try{
+  uploadConfig =
+    configs
 
-
-    const response =
-      await fetch(
-        CONFIG_URL
-      );
-
-
-    if(!response.ok){
-
-      throw new Error(
-        "Unable to load WakeSuite configuration."
-      );
-
-    }
-
-
-    const data =
-      await response.json();
-
-
-    const uploads =
-      data.uploads
-      ?
-      data.uploads.slice(1)
-      :
-      [];
-
-
-    if(
-      data.priceDisparity &&
-      data.priceDisparity.length > 1
-    ){
-
-      document
-      .getElementById(
-        "priceDisparityCount"
-      )
-      .innerText =
-        data.priceDisparity.length - 1;
-
-    }
-
-
-    allFolders =
-      uploads;
-
-
-    populateMenus(
-      uploads
-    );
-
-
-    populateFolders();
-
-
-  }
-  catch(error){
-
-
-    console.error(
-      "WakeSuite config error:",
-      error
-    );
-
-
-    document
-    .getElementById(
-      "sidebar"
+    .filter(
+      item =>
+        item.active === true
     )
-    .innerHTML =
-      "Unable to load configuration.";
+
+    .sort(
+      (a,b) =>
+        Number(
+          a.sortOrder || 0
+        )
+        -
+        Number(
+          b.sortOrder || 0
+        )
+    );
 
 
-  }
+  console.log(
+    "Upload configuration loaded:",
+    uploadConfig
+  );
 
-}
+
+  populateMenus();
+
+
+  populateFolders();
+
+};
 
 
 
@@ -728,54 +616,25 @@ function showPriceDisparity(){
     );
 
 
-  if(
+  section.style.display =
+
     section.style.display ===
     "block"
-  ){
 
-    section.style.display =
-      "none";
-
-  }
-  else{
-
-    section.style.display =
-      "block";
-
-  }
-
-}
-
-
-
-/* ======================================================
-   TOGGLE
-====================================================== */
-
-function toggle(id){
-
-
-  const element =
-    document
-    .getElementById(
-      id
-    );
-
-
-  element.style.display =
-    element.style.display ===
-    "none"
     ?
-    "block"
+
+    "none"
+
     :
-    "none";
+
+    "block";
 
 }
 
 
 
 /* ======================================================
-   ESCAPE HTML
+   SAFE HTML
 ====================================================== */
 
 function escapeHtml(value){
@@ -815,45 +674,37 @@ function escapeHtml(value){
 
 
 /* ======================================================
-   POPULATE MENUS
+   POPULATE MENUS FROM FIRESTORE CONFIG
 ====================================================== */
 
-function populateMenus(uploads){
+function populateMenus(){
 
 
-  let html = "";
+  const menuElement =
+    document
+    .getElementById(
+      "menu"
+    );
 
 
-  const seen =
-    new Set();
+  const menus =
+    [];
 
 
-  uploads.forEach(
-    row => {
-
-
-      const menu =
-        row[0];
-
-
-      const active =
-        row[2];
+  uploadConfig.forEach(
+    item => {
 
 
       if(
-        menu &&
-        active &&
-        !seen.has(menu)
+        item.menu &&
+        !menus.includes(
+          item.menu
+        )
       ){
 
-
-        seen.add(
-          menu
+        menus.push(
+          item.menu
         );
-
-
-        html +=
-          `<option value="${escapeHtml(menu)}">${escapeHtml(menu)}</option>`;
 
       }
 
@@ -862,19 +713,37 @@ function populateMenus(uploads){
   );
 
 
-  if(!html){
+  if(
+    menus.length === 0
+  ){
 
-    html =
-      `<option value="">No menus available</option>`;
+    menuElement.innerHTML =
+
+      `<option value="">No menus configured</option>`;
+
+
+    return;
 
   }
 
 
-  document
-  .getElementById(
-    "menu"
-  )
-  .innerHTML =
+  let html = "";
+
+
+  menus.forEach(
+    menu => {
+
+
+      html +=
+
+        `<option value="${escapeHtml(menu)}">${escapeHtml(menu)}</option>`;
+
+
+    }
+  );
+
+
+  menuElement.innerHTML =
     html;
 
 }
@@ -882,13 +751,13 @@ function populateMenus(uploads){
 
 
 /* ======================================================
-   POPULATE FOLDERS
+   POPULATE FOLDERS FROM FIRESTORE CONFIG
 ====================================================== */
 
 function populateFolders(){
 
 
-  const selectedMenu =
+  const menu =
     document
     .getElementById(
       "menu"
@@ -896,48 +765,39 @@ function populateFolders(){
     .value;
 
 
+  const folderElement =
+    document
+    .getElementById(
+      "folder"
+    );
+
+
   let html =
+
     `<option value="">Select Folder</option>`;
 
 
-  allFolders.forEach(
-    row => {
+  uploadConfig
+
+  .filter(
+    item =>
+      item.menu === menu
+  )
+
+  .forEach(
+    item => {
 
 
-      const menu =
-        row[0];
+      html +=
 
-
-      const folder =
-        row[1];
-
-
-      const active =
-        row[2];
-
-
-      if(
-        menu === selectedMenu &&
-        folder &&
-        active
-      ){
-
-
-        html +=
-          `<option value="${escapeHtml(folder)}">${escapeHtml(folder)}</option>`;
-
-      }
+        `<option value="${escapeHtml(item.folder)}">${escapeHtml(item.folder)}</option>`;
 
 
     }
   );
 
 
-  document
-  .getElementById(
-    "folder"
-  )
-  .innerHTML =
+  folderElement.innerHTML =
     html;
 
 }
@@ -986,13 +846,6 @@ function setUploadStatus(
 
 /* ======================================================
    HEADER NORMALIZATION
-
-   Makes these equivalent:
-
-   seller-sku
-   Seller SKU
-   seller_sku
-   SELLER-SKU
 ====================================================== */
 
 function canonicalHeader(value){
@@ -1020,10 +873,6 @@ function canonicalHeader(value){
 
 
 
-/* ======================================================
-   ORIGINAL HEADER CLEANUP
-====================================================== */
-
 function cleanHeader(value){
 
 
@@ -1043,7 +892,57 @@ function cleanHeader(value){
 
 
 /* ======================================================
-   NORMALIZE ROW HEADERS
+   REMOVE EMPTY SHEETJS HEADERS
+====================================================== */
+
+function isUsefulHeader(header){
+
+
+  const value =
+    String(
+      header || ""
+    )
+    .trim();
+
+
+  if(
+    !value
+  ){
+
+    return false;
+
+  }
+
+
+  if(
+    value ===
+    "__EMPTY"
+  ){
+
+    return false;
+
+  }
+
+
+  if(
+    value.startsWith(
+      "__EMPTY_"
+    )
+  ){
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+
+/* ======================================================
+   NORMALIZE ROW
 ====================================================== */
 
 function normalizeRow(row){
@@ -1065,6 +964,17 @@ function normalizeRow(row){
         );
 
 
+      if(
+        !isUsefulHeader(
+          cleanKey
+        )
+      ){
+
+        return;
+
+      }
+
+
       cleaned[
         cleanKey
       ] =
@@ -1082,7 +992,7 @@ function normalizeRow(row){
 
 
 /* ======================================================
-   CHECK IF HEADERS MATCH REPORT
+   HEADER CHECK
 ====================================================== */
 
 function reportMatchesHeaders(
@@ -1129,7 +1039,7 @@ function reportMatchesHeaders(
 
 
 /* ======================================================
-   AUTO-DETECT REPORT FROM FILE HEADERS
+   AUTO DETECT CURRENTLY KNOWN REPORTS
 ====================================================== */
 
 function detectReport(headers){
@@ -1172,46 +1082,53 @@ function detectReport(headers){
 
 
 /* ======================================================
-   FIND EXPECTED REPORT FROM MENU + FOLDER
+   EXPECTED REPORT FROM FIRESTORE CONFIG ID
 ====================================================== */
 
-function getSelectedReportDefinition(
+function getSelectedConfig(
   menu,
   folder
 ){
 
 
-  const normalizedMenu =
-    String(
-      menu || ""
-    )
-    .trim()
-    .toLowerCase();
+  return uploadConfig.find(
+    item =>
+
+      item.menu === menu
+
+      &&
+
+      item.folder === folder
+
+  )
+  ||
+  null;
+
+}
 
 
-  const normalizedFolder =
-    String(
-      folder || ""
-    )
-    .trim()
-    .toLowerCase();
 
+/* ======================================================
+   GET VALIDATION DEFINITION
+====================================================== */
 
+function getDefinitionFromConfig(
+  config
+){
 
-  /* WAKEFIT DAILY PRICING */
 
   if(
-    normalizedMenu.includes(
-      "wakefit"
-    )
-    &&
-    normalizedFolder.includes(
-      "daily"
-    )
-    &&
-    normalizedFolder.includes(
-      "pricing"
-    )
+    !config
+  ){
+
+    return null;
+
+  }
+
+
+  if(
+    config.id ===
+    "wakefit_daily_pricing"
   ){
 
     return REPORT_DEFINITIONS
@@ -1220,21 +1137,9 @@ function getSelectedReportDefinition(
   }
 
 
-
-  /* AMAZON ALL LISTINGS */
-
   if(
-    normalizedMenu.includes(
-      "amazon"
-    )
-    &&
-    normalizedFolder.includes(
-      "all"
-    )
-    &&
-    normalizedFolder.includes(
-      "listing"
-    )
+    config.id ===
+    "amazon_all_listings"
   ){
 
     return REPORT_DEFINITIONS
@@ -1243,21 +1148,9 @@ function getSelectedReportDefinition(
   }
 
 
-
-  /* AMAZON FBA INVENTORY */
-
   if(
-    normalizedMenu.includes(
-      "amazon"
-    )
-    &&
-    normalizedFolder.includes(
-      "fba"
-    )
-    &&
-    normalizedFolder.includes(
-      "inventory"
-    )
+    config.id ===
+    "amazon_fba_inventory"
   ){
 
     return REPORT_DEFINITIONS
@@ -1266,25 +1159,13 @@ function getSelectedReportDefinition(
   }
 
 
+  /*
+    Business Reports schema will be
+    added after you provide its headers.
 
-  /* AMAZON ORDER REPORT */
-
-  if(
-    normalizedMenu.includes(
-      "amazon"
-    )
-    &&
-    normalizedFolder.includes(
-      "order"
-    )
-  ){
-
-    return REPORT_DEFINITIONS
-      .amazonOrderReport;
-
-  }
-
-
+    Flipkart validation will also be
+    added later with its finalized logic.
+  */
 
   return null;
 
@@ -1293,7 +1174,7 @@ function getSelectedReportDefinition(
 
 
 /* ======================================================
-   VALIDATE SELECTED REPORT AGAINST FILE
+   VALIDATE REPORT
 ====================================================== */
 
 function validateSelectedReport(
@@ -1303,10 +1184,16 @@ function validateSelectedReport(
 ){
 
 
-  const selectedDefinition =
-    getSelectedReportDefinition(
+  const selectedConfig =
+    getSelectedConfig(
       menu,
       folder
+    );
+
+
+  const selectedDefinition =
+    getDefinitionFromConfig(
+      selectedConfig
     );
 
 
@@ -1316,9 +1203,8 @@ function validateSelectedReport(
     );
 
 
-
   if(
-    !selectedDefinition
+    !selectedConfig
   ){
 
     return {
@@ -1340,12 +1226,41 @@ function validateSelectedReport(
       missingHeaders:[],
 
       message:
-        "Validation has not yet been configured for this report type."
+        "Upload configuration was not found."
 
     };
 
   }
 
+
+  if(
+    !selectedDefinition
+  ){
+
+    return {
+
+      valid:false,
+
+      selectedLabel:
+        menu +
+        " → " +
+        folder,
+
+      detectedLabel:
+        detectedDefinition
+        ?
+        detectedDefinition.label
+        :
+        "Validation pending",
+
+      missingHeaders:[],
+
+      message:
+        "Validation is not configured yet for this report type."
+
+    };
+
+  }
 
 
   const check =
@@ -1353,7 +1268,6 @@ function validateSelectedReport(
       headers,
       selectedDefinition
     );
-
 
 
   if(
@@ -1375,10 +1289,6 @@ function validateSelectedReport(
         selectedDefinition.label,
 
       detectedId:
-        detectedDefinition
-        ?
-        detectedDefinition.id
-        :
         selectedDefinition.id,
 
       missingHeaders:[],
@@ -1389,7 +1299,6 @@ function validateSelectedReport(
     };
 
   }
-
 
 
   return {
@@ -1406,18 +1315,11 @@ function validateSelectedReport(
       :
       "Unknown report",
 
-    detectedId:
-      detectedDefinition
-      ?
-      detectedDefinition.id
-      :
-      null,
-
     missingHeaders:
       check.missingHeaders,
 
     message:
-      "The selected report type does not match the uploaded file."
+      "The selected report does not match the uploaded file."
 
   };
 
@@ -1426,7 +1328,7 @@ function validateSelectedReport(
 
 
 /* ======================================================
-   SHOW PARSED FILE INFO
+   SHOW FILE INFO
 ====================================================== */
 
 function showParsedFileInfo(
@@ -1435,14 +1337,11 @@ function showParsedFileInfo(
 ){
 
 
-  const box =
-    document
-    .getElementById(
-      "fileInfo"
-    );
-
-
-  box.style.display =
+  document
+  .getElementById(
+    "fileInfo"
+  )
+  .style.display =
     "block";
 
 
@@ -1451,6 +1350,7 @@ function showParsedFileInfo(
     "parsedFileName"
   )
   .textContent =
+
     "File: " +
     parsedFile.fileName;
 
@@ -1460,6 +1360,7 @@ function showParsedFileInfo(
     "parsedSheetName"
   )
   .textContent =
+
     "Sheet: " +
     parsedFile.sheetName;
 
@@ -1469,6 +1370,7 @@ function showParsedFileInfo(
     "parsedRowCount"
   )
   .textContent =
+
     "Rows: " +
     parsedFile.rowCount;
 
@@ -1478,6 +1380,7 @@ function showParsedFileInfo(
     "parsedHeaders"
   )
   .textContent =
+
     "Columns: " +
     parsedFile.headers.join(
       ", "
@@ -1489,9 +1392,9 @@ function showParsedFileInfo(
     "detectedReport"
   )
   .textContent =
+
     "Detected report: " +
     validation.detectedLabel;
-
 
 
   const validationElement =
@@ -1507,10 +1410,12 @@ function showParsedFileInfo(
 
 
     validationElement.className =
+
       "file-info-row validation-success";
 
 
     validationElement.textContent =
+
       "✓ Validation passed";
 
 
@@ -1519,11 +1424,14 @@ function showParsedFileInfo(
 
 
     validationElement.className =
+
       "file-info-row validation-error";
 
 
     validationElement.textContent =
-      "✕ Validation failed";
+
+      "✕ " +
+      validation.message;
 
 
   }
@@ -1539,7 +1447,9 @@ function showParsedFileInfo(
 async function readWakeSuiteFile(file){
 
 
-  if(!file){
+  if(
+    !file
+  ){
 
     throw new Error(
       "No file selected."
@@ -1580,8 +1490,11 @@ async function readWakeSuiteFile(file){
       XLSX.read(
         buffer,
         {
+
           type:"array",
+
           cellDates:false
+
         }
       );
 
@@ -1591,7 +1504,6 @@ async function readWakeSuiteFile(file){
 
 
     console.error(
-      "File parsing error:",
       error
     );
 
@@ -1629,9 +1541,13 @@ async function readWakeSuiteFile(file){
     XLSX.utils.sheet_to_json(
       worksheet,
       {
+
         defval:"",
+
         raw:false,
+
         blankrows:false
+
       }
     );
 
@@ -1666,9 +1582,6 @@ async function readWakeSuiteFile(file){
     ?
     Object.keys(
       rows[0]
-    )
-    .map(
-      cleanHeader
     )
     :
     [];
@@ -1732,7 +1645,7 @@ async function readWakeSuiteFile(file){
 
 
 /* ======================================================
-   UPLOAD + VALIDATION
+   UPLOAD
 ====================================================== */
 
 async function uploadData(){
@@ -1777,10 +1690,9 @@ async function uploadData(){
     );
 
 
-
-  /* VALIDATION */
-
-  if(!reportDate){
+  if(
+    !reportDate
+  ){
 
     alert(
       "Please select Report Date."
@@ -1791,7 +1703,9 @@ async function uploadData(){
   }
 
 
-  if(!menu){
+  if(
+    !menu
+  ){
 
     alert(
       "Please select Menu."
@@ -1802,7 +1716,9 @@ async function uploadData(){
   }
 
 
-  if(!folder){
+  if(
+    !folder
+  ){
 
     alert(
       "Please select Folder."
@@ -1813,7 +1729,9 @@ async function uploadData(){
   }
 
 
-  if(!file){
+  if(
+    !file
+  ){
 
     alert(
       "Please choose a file."
@@ -1857,9 +1775,6 @@ async function uploadData(){
     );
 
 
-
-    /* READ FILE */
-
     const parsedFile =
       await readWakeSuiteFile(
         file
@@ -1873,9 +1788,6 @@ async function uploadData(){
     window.currentWakeSuiteParsed =
       parsedFile;
 
-
-
-    /* VALIDATE REPORT */
 
     const validation =
       validateSelectedReport(
@@ -1897,9 +1809,6 @@ async function uploadData(){
     );
 
 
-
-    /* STOP IF WRONG FILE */
-
     if(
       !validation.valid
     ){
@@ -1907,24 +1816,25 @@ async function uploadData(){
 
       let message =
 
-        "Wrong report selected.\n\n" +
+        validation.message +
 
-        "You selected:\n" +
+        "\n\nSelected:\n" +
+
         validation.selectedLabel +
 
-        "\n\nWakeSuite detected:\n" +
+        "\n\nDetected:\n" +
+
         validation.detectedLabel;
 
 
       if(
-        validation.missingHeaders &&
         validation.missingHeaders.length > 0
       ){
 
 
         message +=
 
-          "\n\nMissing expected columns:\n" +
+          "\n\nMissing columns:\n" +
 
           validation
           .missingHeaders
@@ -1937,11 +1847,11 @@ async function uploadData(){
 
       message +=
 
-        "\n\nNothing has been saved to Firestore.";
+        "\n\nNothing was saved to Firestore.";
 
 
       setUploadStatus(
-        "Validation failed. The report was not registered.",
+        validation.message,
         "error"
       );
 
@@ -1951,100 +1861,77 @@ async function uploadData(){
       );
 
 
-      console.warn(
-        "Upload blocked due to report mismatch."
-      );
-
-
       return;
 
     }
-
-
-
-    /* VALID REPORT */
-
-    setUploadStatus(
-      "Report validated successfully. Registering...",
-      "success"
-    );
 
 
     uploadButton.innerText =
       "Registering...";
 
 
+    const selectedConfig =
+      getSelectedConfig(
+        menu,
+        folder
+      );
+
 
     const metadata = {
-
 
       reportDate:
         reportDate,
 
-
       menu:
         menu,
-
 
       reportType:
         folder,
 
+      configId:
+        selectedConfig.id,
 
       detectedReport:
         validation.detectedLabel,
 
-
       detectedReportId:
         validation.detectedId,
-
 
       validationStatus:
         "Valid",
 
-
       fileName:
         file.name,
 
-
       fileSize:
         file.size,
-
 
       mimeType:
         file.type ||
         "unknown",
 
-
       lastModified:
         file.lastModified,
-
 
       sheetName:
         parsedFile.sheetName,
 
-
       rowCount:
         parsedFile.rowCount,
-
 
       headers:
         parsedFile.headers,
 
-
       status:
         "Ready for processing",
-
 
       processed:
         false,
 
-
       rawFileStored:
         false
 
-
     };
-
 
 
     const uploadId =
@@ -2054,52 +1941,27 @@ async function uploadData(){
       );
 
 
-
     window.currentWakeSuiteUpload = {
-
 
       uploadId:
         uploadId,
 
-
       reportDate:
         reportDate,
-
 
       menu:
         menu,
 
-
       reportType:
         folder,
-
-
-      detectedReport:
-        validation.detectedLabel,
-
 
       file:
         file,
 
-
       parsedFile:
         parsedFile
 
-
     };
-
-
-
-    console.log(
-      "WakeSuite upload registered:",
-      uploadId
-    );
-
-
-    console.log(
-      "Validated report:",
-      validation.detectedLabel
-    );
 
 
     setUploadStatus(
@@ -2120,16 +1982,10 @@ async function uploadData(){
       "Report: " +
       validation.detectedLabel +
 
-      "\n\nFile: " +
-      file.name +
-
-      "\n\nRows detected: " +
+      "\n\nRows: " +
       parsedFile.rowCount +
 
-      "\n\nColumns detected: " +
-      parsedFile.headers.length +
-
-      "\n\nThe raw file has NOT been uploaded to cloud storage."
+      "\n\nThe raw file was NOT uploaded to cloud storage."
 
     );
 
@@ -2139,7 +1995,7 @@ async function uploadData(){
 
 
     console.error(
-      "WakeSuite upload error:",
+      "WakeSuite error:",
       error
     );
 
@@ -2173,15 +2029,9 @@ async function uploadData(){
 }
 
 
-
-load();
-
-
 </script>
 
 
-
-<!-- FIREBASE -->
 
 <script type="module">
 
@@ -2205,6 +2055,7 @@ import {
   getFirestore,
   collection,
   addDoc,
+  getDocs,
   serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
@@ -2261,7 +2112,9 @@ const provider =
 
 
 
-/* LOGIN SCREEN */
+/* ======================================================
+   LOGIN SCREEN
+====================================================== */
 
 const loginOverlay =
   document.createElement(
@@ -2351,7 +2204,9 @@ document.body.appendChild(
 
 
 
-/* GOOGLE LOGIN */
+/* ======================================================
+   GOOGLE LOGIN
+====================================================== */
 
 document
 .getElementById(
@@ -2376,7 +2231,6 @@ document
 
 
       console.error(
-        "Google sign-in error:",
         error
       );
 
@@ -2395,14 +2249,74 @@ document
 
 
 
-/* AUTH */
+/* ======================================================
+   LOAD UPLOAD CONFIG FROM FIRESTORE
+====================================================== */
+
+async function loadUploadConfigFromFirestore(){
+
+
+  console.log(
+    "Loading upload configuration from Firestore..."
+  );
+
+
+  const snapshot =
+    await getDocs(
+      collection(
+        db,
+        "upload_config"
+      )
+    );
+
+
+  const configs = [];
+
+
+  snapshot.forEach(
+    documentSnapshot => {
+
+
+      configs.push({
+
+        id:
+          documentSnapshot.id,
+
+        ...documentSnapshot.data()
+
+      });
+
+
+    }
+  );
+
+
+  console.log(
+    "Firestore configuration documents:",
+    configs
+  );
+
+
+  window.applyUploadConfig(
+    configs
+  );
+
+}
+
+
+
+/* ======================================================
+   AUTH
+====================================================== */
 
 onAuthStateChanged(
   auth,
-  user => {
+  async user => {
 
 
-    if(user){
+    if(
+      user
+    ){
 
 
       loginOverlay.style.display =
@@ -2416,14 +2330,33 @@ onAuthStateChanged(
 
 
       console.log(
-        "Firebase UID:",
-        user.uid
-      );
-
-
-      console.log(
         "WakeSuite Firebase ready"
       );
+
+
+      try{
+
+
+        await loadUploadConfigFromFirestore();
+
+
+      }
+      catch(error){
+
+
+        console.error(
+          "Unable to load upload config:",
+          error
+        );
+
+
+        alert(
+          "Unable to load WakeSuite configuration from Firebase.\n\n" +
+          error.message
+        );
+
+
+      }
 
 
     }
@@ -2442,7 +2375,9 @@ onAuthStateChanged(
 
 
 
-/* SAVE UPLOAD METADATA */
+/* ======================================================
+   SAVE UPLOAD METADATA
+====================================================== */
 
 window.saveUploadMetadata =
 async function(metadata){
@@ -2452,13 +2387,13 @@ async function(metadata){
     auth.currentUser;
 
 
-  if(!user){
-
+  if(
+    !user
+  ){
 
     throw new Error(
       "You must be signed in to WakeSuite."
     );
-
 
   }
 
@@ -2466,34 +2401,26 @@ async function(metadata){
   const documentReference =
     await addDoc(
 
-
       collection(
         db,
         "uploads"
       ),
 
-
       {
-
 
         ...metadata,
 
-
         userId:
           user.uid,
-
 
         userEmail:
           user.email ||
           "",
 
-
         uploadedAt:
           serverTimestamp()
 
-
       }
-
 
     );
 
