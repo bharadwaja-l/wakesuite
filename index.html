@@ -8683,17 +8683,72 @@ function cleanForFirestore(value){
 
 function chunkRows(rows,size=180){
   const out=[];
-  for(let i=0;i<rows.length;i+=size){ out.push(rows.slice(i,i+size)); }
+  for(let i=0;i<rows.length;i+=size){
+    out.push(rows.slice(i,i+size));
+  }
   return out;
+}
+
+/*
+  Firestore does not allow arrays directly inside another array.
+
+  WakeSuite history rows are compact arrays, so storing:
+      rows: [ [...], [...], [...] ]
+  causes "Nested arrays are not supported".
+
+  Store each compact row inside a map instead:
+      rows: {
+        r0000: [...],
+        r0001: [...],
+        ...
+      }
+
+  A map can safely contain arrays, and there is no outer Firestore array.
+*/
+function packChunkRows(rows){
+  const packed={};
+
+  rows.forEach((row,index)=>{
+    packed[
+      "r" + String(index).padStart(4,"0")
+    ] = cleanForFirestore(row);
+  });
+
+  return packed;
+}
+
+function unpackChunkRows(packedRows){
+  if(!packedRows){
+    return [];
+  }
+
+  /*
+    Backward compatibility if a future/older document
+    contains a normal array of row objects.
+  */
+  if(Array.isArray(packedRows)){
+    return packedRows;
+  }
+
+  return Object.keys(packedRows)
+    .sort()
+    .map(key=>packedRows[key]);
 }
 
 async function commitBatchOps(ops){
   for(let i=0;i<ops.length;i+=400){
     const batch=writeBatch(db);
-    ops.slice(i,i+400).forEach(op=>{
-      if(op.type === "delete") batch.delete(op.ref);
-      else batch.set(op.ref,op.data);
-    });
+
+    ops
+      .slice(i,i+400)
+      .forEach(op=>{
+        if(op.type === "delete"){
+          batch.delete(op.ref);
+        }else{
+          batch.set(op.ref,op.data);
+        }
+      });
+
     await batch.commit();
   }
 }
@@ -8711,7 +8766,17 @@ window.saveDailySnapshot = async function(reportDate,snapshot){
   const metaRef=doc(db,"daily_snapshots",reportDate);
   const existing=await getDoc(metaRef);
   const previous=existing.exists()?existing.data():null;
-  const revision=Number(previous?.revision||0)+1;
+
+  /*
+    If the previous automatic run failed while status was "processing",
+    retry the same revision instead of creating a false new revision.
+  */
+  const previousRevision=Number(previous?.revision||0);
+
+  const revision=
+    previous?.status === "completed"
+      ? previousRevision + 1
+      : Math.max(previousRevision,1);
 
   await setDoc(metaRef,{
     reportDate,
@@ -8742,7 +8807,21 @@ window.saveDailySnapshot = async function(reportDate,snapshot){
   Object.entries(groups).forEach(([type,rows])=>{
     chunkRows(rows).forEach((chunk,index)=>{
       const id=`${type}_${String(index).padStart(4,"0")}`;
-      writeOps.push({type:"set",ref:doc(db,"daily_snapshots",reportDate,"chunks",id),data:{type,index,rows:cleanForFirestore(chunk)}});
+      writeOps.push({
+        type:"set",
+        ref:doc(
+          db,
+          "daily_snapshots",
+          reportDate,
+          "chunks",
+          id
+        ),
+        data:{
+          type,
+          index,
+          rows:packChunkRows(chunk)
+        }
+      });
     });
   });
   if(writeOps.length) await commitBatchOps(writeOps);
@@ -8772,7 +8851,13 @@ window.loadDailySnapshot = async function(reportDate){
   const ordered=[];
   chunks.forEach(d=>ordered.push(d.data()));
   ordered.sort((a,b)=>String(a.type).localeCompare(String(b.type))||Number(a.index)-Number(b.index));
-  ordered.forEach(c=>{ if(groups[c.type]) groups[c.type].push(...(c.rows||[])); });
+  ordered.forEach(c=>{
+    if(groups[c.type]){
+      groups[c.type].push(
+        ...unpackChunkRows(c.rows)
+      );
+    }
+  });
   return {...meta,...groups};
 };
 
