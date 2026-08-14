@@ -8348,7 +8348,7 @@ import {
   doc,
   getDoc,
   setDoc,
-  writeBatch
+  deleteDoc
 }
 from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
@@ -8681,77 +8681,268 @@ function cleanForFirestore(value){
   return JSON.parse(JSON.stringify(value));
 }
 
-function chunkRows(rows,size=180){
-  const out=[];
-  for(let i=0;i<rows.length;i+=size){
-    out.push(rows.slice(i,i+size));
-  }
-  return out;
-}
 
 /*
-  Firestore does not allow arrays directly inside another array.
+  Keep every Firestore chunk comfortably below the
+  1 MiB document ceiling.
 
-  WakeSuite history rows are compact arrays, so storing:
-      rows: [ [...], [...], [...] ]
-  causes "Nested arrays are not supported".
-
-  Store each compact row inside a map instead:
-      rows: {
-        r0000: [...],
-        r0001: [...],
-        ...
-      }
-
-  A map can safely contain arrays, and there is no outer Firestore array.
+  The byte limit is deliberately conservative because
+  Firestore also stores field names and document metadata.
 */
-function packChunkRows(rows){
-  const packed={};
+function estimateJsonBytes(value){
 
-  rows.forEach((row,index)=>{
-    packed[
-      "r" + String(index).padStart(4,"0")
-    ] = cleanForFirestore(row);
-  });
+  const json =
+    JSON.stringify(value);
 
-  return packed;
+  try{
+
+    return new TextEncoder()
+      .encode(json)
+      .length;
+
+  }
+  catch(error){
+
+    return json.length;
+
+  }
+
 }
 
+
+function chunkRows(
+  rows,
+  maxRows = 80,
+  maxEstimatedBytes = 450000
+){
+
+  const chunks = [];
+
+  let current = [];
+  let currentBytes = 0;
+
+
+  rows.forEach(
+    row => {
+
+      const cleaned =
+        cleanForFirestore(row);
+
+      /*
+        Approximate the eventual r0000/r0001 map-key
+        overhead as well.
+      */
+      const rowBytes =
+        estimateJsonBytes(cleaned)
+        +
+        24;
+
+
+      if(
+        current.length > 0
+        &&
+        (
+          current.length >= maxRows
+          ||
+          currentBytes + rowBytes >
+          maxEstimatedBytes
+        )
+      ){
+
+        chunks.push(
+          current
+        );
+
+        current = [];
+
+        currentBytes = 0;
+
+      }
+
+
+      current.push(
+        cleaned
+      );
+
+      currentBytes +=
+        rowBytes;
+
+    }
+  );
+
+
+  if(
+    current.length > 0
+  ){
+
+    chunks.push(
+      current
+    );
+
+  }
+
+
+  return chunks;
+
+}
+
+
+/*
+  Firestore cannot store an array directly inside another
+  array. Compact WakeSuite rows are arrays, so each row is
+  stored as a field inside a map.
+*/
+function packChunkRows(rows){
+
+  const packed = {};
+
+
+  rows.forEach(
+    (row,index) => {
+
+      packed[
+        "r" +
+        String(index).padStart(4,"0")
+      ] =
+        cleanForFirestore(row);
+
+    }
+  );
+
+
+  return packed;
+
+}
+
+
 function unpackChunkRows(packedRows){
-  if(!packedRows){
+
+  if(
+    !packedRows
+  ){
     return [];
   }
 
-  /*
-    Backward compatibility if a future/older document
-    contains a normal array of row objects.
-  */
-  if(Array.isArray(packedRows)){
+
+  if(
+    Array.isArray(
+      packedRows
+    )
+  ){
+
     return packedRows;
+
   }
 
-  return Object.keys(packedRows)
-    .sort()
-    .map(key=>packedRows[key]);
+
+  return Object.keys(
+    packedRows
+  )
+  .sort()
+  .map(
+    key =>
+      packedRows[key]
+  );
+
 }
 
-async function commitBatchOps(ops){
-  for(let i=0;i<ops.length;i+=400){
-    const batch=writeBatch(db);
 
-    ops
-      .slice(i,i+400)
-      .forEach(op=>{
-        if(op.type === "delete"){
-          batch.delete(op.ref);
-        }else{
-          batch.set(op.ref,op.data);
-        }
-      });
+/*
+  IMPORTANT:
+  Do not send hundreds of snapshot documents in one
+  Firestore WriteBatch.
 
-    await batch.commit();
+  Large atomic batches can exceed Firestore's request-size
+  limit even when every individual document is valid.
+
+  We deliberately issue independent writes/deletes with
+  small controlled concurrency. This keeps each network
+  request small while preserving the same total write count.
+*/
+async function commitBatchOps(
+  ops,
+  concurrency = 6
+){
+
+  if(
+    !ops ||
+    ops.length === 0
+  ){
+    return;
   }
+
+
+  let cursor = 0;
+
+
+  async function worker(){
+
+    while(
+      true
+    ){
+
+      const currentIndex =
+        cursor++;
+
+
+      if(
+        currentIndex >=
+        ops.length
+      ){
+        return;
+      }
+
+
+      const op =
+        ops[
+          currentIndex
+        ];
+
+
+      if(
+        op.type ===
+        "delete"
+      ){
+
+        await deleteDoc(
+          op.ref
+        );
+
+      }
+      else{
+
+        await setDoc(
+          op.ref,
+          op.data
+        );
+
+      }
+
+    }
+
+  }
+
+
+  const workerCount =
+    Math.min(
+      concurrency,
+      ops.length
+    );
+
+
+  await Promise.all(
+    Array.from(
+      {
+        length:
+          workerCount
+      },
+      () =>
+        worker()
+    )
+  );
+
 }
+
 
 window.getDailySnapshotMeta = async function(reportDate){
   const ref=doc(db,"daily_snapshots",reportDate);
