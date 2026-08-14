@@ -652,6 +652,137 @@ body{
   }
 }
 
+
+
+/* ======================================================
+   DASHBOARD / MODULE VIEW SYSTEM
+====================================================== */
+
+.app-view{
+  display:none !important;
+}
+
+.app-view.active{
+  display:block !important;
+}
+
+.app-view.grid-two.active{
+  display:grid !important;
+}
+
+.dashboard-card{
+  cursor:pointer;
+  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.dashboard-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(15,23,42,.09);
+  border-color:#cbd5e1;
+}
+
+.dashboard-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  font-weight:700;
+  color:#2563eb;
+  background:#eff6ff;
+  border-radius:999px;
+  padding:6px 9px;
+  margin-bottom:10px;
+}
+
+.module-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:18px;
+  margin-bottom:20px;
+}
+
+.marketplace-module{
+  background:white;
+  border:1px solid var(--ws-border);
+  border-radius:16px;
+  padding:20px;
+}
+
+.marketplace-module h3{
+  margin-bottom:5px;
+}
+
+.disparity-option-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:15px;
+}
+
+.disparity-option{
+  border:1px solid #e5e7eb;
+  background:#f8fafc;
+  border-radius:12px;
+  padding:14px 12px;
+  cursor:pointer;
+  text-align:left;
+}
+
+.disparity-option:hover{
+  background:#f1f5f9;
+}
+
+.disparity-option strong{
+  display:block;
+  font-size:22px;
+  margin-top:7px;
+}
+
+.disparity-option span{
+  color:#6b7280;
+  font-size:11px;
+  line-height:1.35;
+}
+
+.compact-table{
+  min-width:780px;
+}
+
+.module-summary{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:12px 0 16px;
+}
+
+.module-chip{
+  border:1px solid #e5e7eb;
+  background:#f8fafc;
+  color:#4b5563;
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:11px;
+  font-weight:600;
+}
+
+.field-note{
+  color:#6b7280;
+  font-size:11px;
+  line-height:1.45;
+  margin-top:-12px;
+  margin-bottom:18px;
+}
+
+#businessReportDaysField{
+  display:none;
+}
+
+@media(max-width:760px){
+  .disparity-option-grid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 
@@ -663,13 +794,14 @@ body{
   <div class="tag">Marketplace Intelligence</div>
 
   <div class="side-nav">
-    <button onclick="goToSection('dashboard')">Dashboard</button>
-    <button onclick="goToSection('masterPricingSection')">Master Pricing</button>
-    <button onclick="goToSection('uploadSection')">Upload Center</button>
-    <button onclick="goToSection('auditSection')">Audit Health</button>
-    <button onclick="goToSection('engineSection')">Marketplace Engines</button>
-    <button onclick="goToSection('amazonPriceDisparitySection')">Amazon Results</button>
-    <button onclick="goToSection('flipkartPriceDisparitySection')">Flipkart Results</button>
+    <button onclick="showView('dashboardHome')">Dashboard</button>
+    <button onclick="openDisparityHub()">Price Disparity</button>
+    <button onclick="openAmazonSuppressionModule()">Amazon Suppressions</button>
+    <button onclick="openAmazonBuyBoxModule()">Amazon Buy Box</button>
+    <button onclick="showView('uploadSection')">Upload Center</button>
+    <button onclick="showView('masterPricingSection')">Master Pricing</button>
+    <button onclick="showView('auditSection')">Audit Health</button>
+    <button onclick="showView('engineSection')">Marketplace Engines</button>
   </div>
 
   <div class="side-note">
@@ -684,8 +816,8 @@ body{
   <div class="page-header section-anchor" id="dashboard">
 
     <div>
-      <div class="title">Marketplace Control Center</div>
-      <div class="subtitle" style="margin-bottom:0">
+      <div class="title" id="pageTitle">Marketplace Control Center</div>
+      <div class="subtitle" id="pageSubtitle" style="margin-bottom:0">
         Wakefit Amazon + Flipkart pricing, audit, suppression, buy box and revenue-impact analysis
       </div>
     </div>
@@ -700,50 +832,164 @@ body{
 
   <!-- DASHBOARD -->
 
-  <div class="cards">
+  <div id="dashboardHome" class="app-view active">
 
-    <div class="card">
-      <div class="card-label">Amazon Price Disparity</div>
-      <div class="metric" id="amazonPriceDisparityCount">0</div>
-      <div class="card-note">Eligible live-price disparities</div>
+    <div class="dashboard-kicker">LIVE OPERATIONS DASHBOARD</div>
+
+    <div class="cards">
+
+      <div class="card dashboard-card" onclick="openDisparityHub()">
+        <div class="card-label">Price Disparity</div>
+        <div class="metric" id="totalLiveDisparityCount">0</div>
+        <div class="card-note">Amazon + Flipkart · Listing / Live / MRP</div>
+      </div>
+
+      <div class="card dashboard-card" onclick="openAmazonSuppressionModule()">
+        <div class="card-label">Amazon Suppressions</div>
+        <div class="metric" id="amazonSuppressedCount">0</div>
+        <div class="card-note" id="amazonSuppressionImpactNote">Active + in-stock ASINs only</div>
+      </div>
+
+      <div class="card dashboard-card" onclick="openAmazonBuyBoxModule()">
+        <div class="card-label">Amazon Buy Box</div>
+        <div class="metric" id="amazonBuyBoxSuppressedCount">0</div>
+        <div class="card-note" id="amazonBuyBoxImpactNote">Active + in-stock ASINs only</div>
+      </div>
+
+      <div class="card dashboard-card" onclick="openFlipkartNoBuyBox()">
+        <div class="card-label">Flipkart No Buy Box</div>
+        <div class="metric" id="flipkartNoBuyBoxCount">0</div>
+        <div class="card-note">Audit Buy Now = false</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Combined Daily Price Impact</div>
+        <div class="metric" id="combinedDailyImpact">₹0</div>
+        <div class="card-note">Underpricing impact from both marketplaces</div>
+      </div>
+
+      <div class="card dashboard-card" onclick="showView('uploadSection')">
+        <div class="card-label">Reports Loaded</div>
+        <div class="metric" id="dashboardReportsLoaded">0</div>
+        <div class="card-note">Current browser session</div>
+      </div>
+
     </div>
 
-    <div class="card">
-      <div class="card-label">Flipkart Price Disparity</div>
-      <div class="metric" id="flipkartPriceDisparityCount">0</div>
-      <div class="card-note">Eligible live-price disparities</div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Amazon Suppressed</div>
-      <div class="metric" id="amazonSuppressedCount">0</div>
-      <div class="card-note">Unique ASINs from Audit</div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Amazon Buy Box Suppressed</div>
-      <div class="metric" id="amazonBuyBoxSuppressedCount">0</div>
-      <div class="card-note">Audit rule match</div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Flipkart No Buy Box</div>
-      <div class="metric" id="flipkartNoBuyBoxCount">0</div>
-      <div class="card-note">Buy Now = false</div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Combined Daily Impact</div>
-      <div class="metric" id="combinedDailyImpact">₹0</div>
-      <div class="card-note">Amazon + Flipkart underpricing</div>
+    <div class="panel" style="max-width:none">
+      <h2>How to use WakeSuite</h2>
+      <div class="panel-subtitle">
+        Connect Master Pricing, load the required reports, run the marketplace engines, then use the dashboard cards to open operational views.
+      </div>
+      <div class="engine-buttons">
+        <button class="action-button" onclick="showView('uploadSection')">Open Upload Center</button>
+        <button class="secondary-button" onclick="showView('engineSection')">Open Processing Engines</button>
+      </div>
     </div>
 
   </div>
 
 
+  <!-- PRICE DISPARITY HUB -->
+
+  <div id="disparityHubSection" class="app-view">
+
+    <div class="module-grid">
+
+      <div class="marketplace-module">
+        <h3>Amazon</h3>
+        <div class="panel-subtitle" style="margin-bottom:0">Active + in-stock Amazon records.</div>
+        <div class="disparity-option-grid">
+          <button class="disparity-option" onclick="openMarketplaceDisparity('amazon','listing')">
+            <span>Listing Price Disparity</span>
+            <strong id="amazonListingDisparityCount">0</strong>
+          </button>
+          <button class="disparity-option" onclick="openMarketplaceDisparity('amazon','live')">
+            <span>Live Price Disparity</span>
+            <strong id="amazonLiveDisparityCount">0</strong>
+          </button>
+          <button class="disparity-option" onclick="openMarketplaceDisparity('amazon','mrp')">
+            <span>MRP Disparity</span>
+            <strong id="amazonMrpDisparityCount">0</strong>
+          </button>
+        </div>
+      </div>
+
+      <div class="marketplace-module">
+        <h3>Flipkart</h3>
+        <div class="panel-subtitle" style="margin-bottom:0">ACTIVE + System Stock &gt; 0 records.</div>
+        <div class="disparity-option-grid">
+          <button class="disparity-option" onclick="openMarketplaceDisparity('flipkart','listing')">
+            <span>Listing Price Disparity</span>
+            <strong id="flipkartListingDisparityCount">0</strong>
+          </button>
+          <button class="disparity-option" onclick="openMarketplaceDisparity('flipkart','live')">
+            <span>Live Price Disparity</span>
+            <strong id="flipkartLiveDisparityCount">0</strong>
+          </button>
+          <button class="disparity-option" onclick="openMarketplaceDisparity('flipkart','mrp')">
+            <span>MRP Disparity</span>
+            <strong id="flipkartMrpDisparityCount">0</strong>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="result-section" style="display:block">
+      <h2 id="disparityDetailTitle">Select a disparity type</h2>
+      <div class="result-note" id="disparityDetailNote">
+        Listing Price uses the marketplace listing file. Live Price uses eligible Audit live price. MRP compares marketplace MRP against WF MRP.
+      </div>
+      <div class="table-wrap">
+        <table id="disparityDetailTable" class="result-table"></table>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- AMAZON SUPPRESSIONS -->
+
+  <div id="amazonSuppressionSection" class="app-view">
+    <div class="panel" style="max-width:none">
+      <h2>Amazon Suppressions</h2>
+      <div class="panel-subtitle">
+        Only Amazon ASINs that are Active in All Listings and have final inventory above 0 are shown. Revenue Impact / Day = ASIN Business Report Revenue ÷ Business Report days.
+      </div>
+      <div class="module-summary">
+        <div class="module-chip" id="suppressionSummaryCount">0 ASINs</div>
+        <div class="module-chip" id="suppressionSummaryImpact">₹0 / day</div>
+      </div>
+      <div class="table-wrap">
+        <table id="amazonSuppressionTable" class="result-table compact-table"></table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- AMAZON BUY BOX -->
+
+  <div id="amazonBuyBoxSection" class="app-view">
+    <div class="panel" style="max-width:none">
+      <h2>Amazon Buy Box Suppressed</h2>
+      <div class="panel-subtitle">
+        Only Active + in-stock ASINs matching the Audit Buy Box suppression rule are shown. Price is the Amazon All Listings price because Audit live price is intentionally ignored when Buy Now is false.
+      </div>
+      <div class="module-summary">
+        <div class="module-chip" id="buyBoxSummaryCount">0 ASINs</div>
+        <div class="module-chip" id="buyBoxSummaryImpact">₹0 / day</div>
+      </div>
+      <div class="table-wrap">
+        <table id="amazonBuyBoxTable" class="result-table compact-table"></table>
+      </div>
+    </div>
+  </div>
+
+
   <!-- MASTER PRICING -->
 
-  <div class="panel section-anchor" id="masterPricingSection">
+  <div class="panel section-anchor app-view" id="masterPricingSection">
 
     <h2>Master Pricing</h2>
 
@@ -828,7 +1074,7 @@ body{
 
   <!-- UPLOAD CENTER -->
 
-  <div class="grid-two section-anchor" id="uploadSection">
+  <div class="grid-two section-anchor app-view" id="uploadSection">
 
     <div class="upload">
 
@@ -840,6 +1086,12 @@ body{
 
       <label>Report Date</label>
       <input type="date" id="reportDate">
+
+      <div id="businessReportDaysField">
+        <label>Amazon Business Report Period (Days)</label>
+        <input type="number" id="businessReportDaysInput" min="1" value="60">
+        <div class="field-note">The current Amazon Business Report CSV has no date column, so WakeSuite uses this period for Revenue Impact / Day. Keep 60 for the current 60-day report.</div>
+      </div>
 
       <label>Menu</label>
       <select id="menu">
@@ -906,6 +1158,11 @@ body{
             <div class="summary-metric-value" id="businessOrderItems">0</div>
           </div>
 
+          <div class="summary-metric">
+            <div class="summary-metric-label">Report Days</div>
+            <div class="summary-metric-value" id="businessReportDaysSummary">60</div>
+          </div>
+
         </div>
 
       </div>
@@ -964,7 +1221,7 @@ body{
 
   <!-- AUDIT HEALTH -->
 
-  <div class="panel section-anchor" id="auditSection">
+  <div class="panel section-anchor app-view" id="auditSection">
 
     <h2>Shared Audit Health</h2>
 
@@ -1040,7 +1297,7 @@ body{
 
   <!-- ENGINES -->
 
-  <div class="grid-two section-anchor" id="engineSection">
+  <div class="grid-two section-anchor app-view" id="engineSection">
 
     <div class="panel">
 
@@ -1116,7 +1373,7 @@ body{
 
   <!-- AMAZON RESULTS -->
 
-  <div id="amazonPriceDisparitySection" class="result-section section-anchor">
+  <div id="amazonPriceDisparitySection" class="result-section section-anchor app-view">
 
     <h2>Amazon Results</h2>
 
@@ -1158,7 +1415,7 @@ body{
 
   <!-- FLIPKART RESULTS -->
 
-  <div id="flipkartPriceDisparitySection" class="result-section section-anchor">
+  <div id="flipkartPriceDisparitySection" class="result-section section-anchor app-view">
 
     <h2>Flipkart Results</h2>
 
@@ -1247,7 +1504,7 @@ let sheetsAccessToken = null;
 ====================================================== */
 
 const PRICE_THRESHOLD = 5;
-const AMAZON_BUSINESS_REPORT_DAYS = 60;
+const DEFAULT_AMAZON_BUSINESS_REPORT_DAYS = 60;
 
 const BUILTIN_AUDIT_CONFIG = {
   id:"marketplace_audit_report",
@@ -1522,12 +1779,186 @@ function pill(text,type="neutral"){
 
 function goToSection(id){
 
+  showView(id);
+
+}
+
+
+const APP_VIEW_META = {
+  dashboardHome:[
+    "Marketplace Control Center",
+    "Wakefit Amazon + Flipkart pricing, audit, suppression, buy box and revenue-impact analysis"
+  ],
+  disparityHubSection:[
+    "Price Disparity",
+    "Amazon and Flipkart Listing Price, Live Price and MRP disparity"
+  ],
+  amazonSuppressionSection:[
+    "Amazon Suppressions",
+    "Active + in-stock suppressed ASINs with daily revenue impact"
+  ],
+  amazonBuyBoxSection:[
+    "Amazon Buy Box",
+    "Active + in-stock Buy Box suppressed ASINs with daily revenue impact"
+  ],
+  uploadSection:[
+    "Upload Center",
+    "Validate and load marketplace reports into the current browser session"
+  ],
+  masterPricingSection:[
+    "Master Pricing",
+    "Live Amazon and Flipkart mapping from Google Sheets"
+  ],
+  auditSection:[
+    "Audit Health",
+    "Shared Amazon + Flipkart live audit status"
+  ],
+  engineSection:[
+    "Marketplace Engines",
+    "Run Amazon and Flipkart processing after required inputs are loaded"
+  ],
+  amazonPriceDisparitySection:[
+    "Amazon Results",
+    "Detailed Amazon processing output"
+  ],
+  flipkartPriceDisparitySection:[
+    "Flipkart Results",
+    "Detailed Flipkart processing output"
+  ]
+};
+
+
+function showView(id){
+
   document
-  .getElementById(id)
-  ?.scrollIntoView({
-    behavior:"smooth",
-    block:"start"
+  .querySelectorAll(
+    ".app-view"
+  )
+  .forEach(
+    element =>
+      element.classList.remove(
+        "active"
+      )
+  );
+
+  const target =
+    document.getElementById(id);
+
+  if(!target){
+    return;
+  }
+
+  target.classList.add(
+    "active"
+  );
+
+  const meta =
+    APP_VIEW_META[id];
+
+  if(meta){
+
+    const title =
+      document.getElementById(
+        "pageTitle"
+      );
+
+    const subtitle =
+      document.getElementById(
+        "pageSubtitle"
+      );
+
+    if(title){
+      title.textContent =
+        meta[0];
+    }
+
+    if(subtitle){
+      subtitle.textContent =
+        meta[1];
+    }
+
+  }
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
   });
+
+}
+
+
+function getBusinessReportDays(){
+
+  const sessionDays =
+    Number(
+      window
+      .wakeSuiteSessionReports
+      ?.amazon_business_reports
+      ?.businessReportDays
+    );
+
+  if(
+    Number.isFinite(sessionDays) &&
+    sessionDays > 0
+  ){
+    return sessionDays;
+  }
+
+  const inputDays =
+    Number(
+      document
+      .getElementById(
+        "businessReportDaysInput"
+      )
+      ?.value
+    );
+
+  if(
+    Number.isFinite(inputDays) &&
+    inputDays > 0
+  ){
+    return inputDays;
+  }
+
+  return DEFAULT_AMAZON_BUSINESS_REPORT_DAYS;
+
+}
+
+
+function updateBusinessDaysVisibility(){
+
+  const menu =
+    document
+    .getElementById(
+      "menu"
+    )
+    ?.value;
+
+  const folder =
+    document
+    .getElementById(
+      "folder"
+    )
+    ?.value;
+
+  const config =
+    getSelectedConfig(
+      menu,
+      folder
+    );
+
+  const field =
+    document.getElementById(
+      "businessReportDaysField"
+    );
+
+  if(field){
+    field.style.display =
+      config?.id ===
+      "amazon_business_reports"
+      ? "block"
+      : "none";
+  }
 
 }
 
@@ -1647,6 +2078,16 @@ function updateReadiness(){
 
   }
 
+  const dashboardLoaded =
+    document.getElementById(
+      "dashboardReportsLoaded"
+    );
+
+  if(dashboardLoaded){
+    dashboardLoaded.textContent =
+      formatNumber(loaded);
+  }
+
   updateRunButtons();
 
 }
@@ -1668,12 +2109,17 @@ function resetSession(){
   window.currentAuditSummary = null;
 
   [
-    ["amazonPriceDisparityCount","0"],
-    ["flipkartPriceDisparityCount","0"],
+    ["totalLiveDisparityCount","0"],
     ["amazonSuppressedCount","0"],
     ["amazonBuyBoxSuppressedCount","0"],
     ["flipkartNoBuyBoxCount","0"],
-    ["combinedDailyImpact","₹0"]
+    ["combinedDailyImpact","₹0"],
+    ["amazonListingDisparityCount","0"],
+    ["amazonLiveDisparityCount","0"],
+    ["amazonMrpDisparityCount","0"],
+    ["flipkartListingDisparityCount","0"],
+    ["flipkartLiveDisparityCount","0"],
+    ["flipkartMrpDisparityCount","0"]
   ].forEach(
     ([id,value]) => {
 
@@ -1709,6 +2155,8 @@ function resetSession(){
     "none";
 
   updateReadiness();
+  renderDashboardModules();
+  showView("dashboardHome");
 
   setUploadStatus(
     "Session cleared. Master Pricing remains connected.",
@@ -2760,7 +3208,17 @@ document
 .getElementById("menu")
 .addEventListener(
   "change",
-  populateFolders
+  () => {
+    populateFolders();
+    updateBusinessDaysVisibility();
+  }
+);
+
+document
+.getElementById("folder")
+.addEventListener(
+  "change",
+  updateBusinessDaysVisibility
 );
 
 
@@ -3198,7 +3656,8 @@ function buildBusinessReportAsinMap(rows){
 
 
 function processBusinessReport(
-  parsedFile
+  parsedFile,
+  reportDays = DEFAULT_AMAZON_BUSINESS_REPORT_DAYS
 ){
 
   const asinMap =
@@ -3238,6 +3697,7 @@ function processBusinessReport(
     totalOrderedProductSales:
       totalRevenue,
     totalOrderItems,
+    reportDays,
     asinRows,
     asinMap
   };
@@ -3292,6 +3752,18 @@ function showBusinessReportSummary(
     summary
     .totalOrderItems
     .toLocaleString("en-IN");
+
+  const daysEl =
+    document.getElementById(
+      "businessReportDaysSummary"
+    );
+
+  if(daysEl){
+    daysEl.textContent =
+      formatNumber(
+        summary.reportDays
+      );
+  }
 
 }
 
@@ -3641,18 +4113,6 @@ function showAuditSummary(summary){
     auditHealthRows:
       formatNumber(
         summary.rowCount
-      ),
-    amazonSuppressedCount:
-      formatNumber(
-        summary.amazonSuppressed
-      ),
-    amazonBuyBoxSuppressedCount:
-      formatNumber(
-        summary.amazonBuyBoxSuppressed
-      ),
-    flipkartNoBuyBoxCount:
-      formatNumber(
-        summary.flipkartNoBuyBox
       )
   };
 
@@ -3922,9 +4382,13 @@ async function uploadData(){
       "amazon_business_reports"
     ){
 
+      const reportDays =
+        getBusinessReportDays();
+
       businessSummary =
         processBusinessReport(
-          parsedFile
+          parsedFile,
+          reportDays
         );
 
       showBusinessReportSummary(
@@ -3959,6 +4423,10 @@ async function uploadData(){
       file,
       parsedFile,
       businessSummary,
+      businessReportDays:
+        businessSummary
+        ? businessSummary.reportDays
+        : null,
       auditSummary
     };
 
@@ -4000,7 +4468,9 @@ async function uploadData(){
         totalOrderedProductSales:
           businessSummary.totalOrderedProductSales,
         totalOrderItems:
-          businessSummary.totalOrderItems
+          businessSummary.totalOrderItems,
+        reportDays:
+          businessSummary.reportDays
       };
 
     }
@@ -4722,7 +5192,8 @@ function resolveAmazonLiveState(
 
 function allocateAmazonAsinRevenueImpact(
   rows,
-  businessMap
+  businessMap,
+  businessReportDays
 ){
 
   const asinGroups =
@@ -4847,9 +5318,97 @@ function allocateAmazonAsinRevenueImpact(
         *
         priceGapPercent
         /
-        AMAZON_BUSINESS_REPORT_DAYS;
+        businessReportDays;
 
     }
+  );
+
+}
+
+
+
+/* ======================================================
+   AMAZON OPERATIONAL ISSUE TABLES
+====================================================== */
+
+function buildAmazonAsinIssueRows(
+  rows,
+  businessMap,
+  businessReportDays,
+  predicate
+){
+
+  const grouped =
+    new Map();
+
+  rows
+  .filter(predicate)
+  .forEach(
+    row => {
+
+      if(!row.asin){
+        return;
+      }
+
+      const existing =
+        grouped.get(
+          row.asin
+        );
+
+      /*
+        One ASIN only once. If multiple active/in-stock
+        AZ SKUs map to the ASIN, use the lowest positive
+        All Listings price as the representative row.
+      */
+
+      if(
+        !existing ||
+        (
+          row.listingPrice > 0 &&
+          (
+            existing.listingPrice <= 0 ||
+            row.listingPrice <
+            existing.listingPrice
+          )
+        )
+      ){
+        grouped.set(
+          row.asin,
+          row
+        );
+      }
+
+    }
+  );
+
+  return Array.from(
+    grouped.values()
+  )
+  .map(
+    row => {
+
+      const revenue =
+        businessMap.get(
+          row.asin
+        )?.revenue
+        ||
+        0;
+
+      return {
+        ...row,
+        businessRevenue:
+          revenue,
+        revenueImpactPerDay:
+          revenue /
+          businessReportDays
+      };
+
+    }
+  )
+  .sort(
+    (a,b) =>
+      b.revenueImpactPerDay -
+      a.revenueImpactPerDay
   );
 
 }
@@ -4938,6 +5497,15 @@ function buildAmazonPriceDisparity(){
       .parsedFile
       .rows
     );
+
+  const businessReportDays =
+    Number(
+      reports
+      .amazon_business_reports
+      .businessReportDays
+    )
+    ||
+    DEFAULT_AMAZON_BUSINESS_REPORT_DAYS;
 
   const auditSummary =
     reports
@@ -5055,6 +5623,29 @@ function buildAmazonPriceDisparity(){
         ||
         listing.asin;
 
+      const listingAction =
+        listing.azPrice > 0
+        ? calculatePriceAction(
+            wf.wfPrice,
+            listing.azPrice,
+            "Amazon"
+          )
+        : {
+            requiredAction:
+              "No Listing Price",
+            disparity:false,
+            allowedPrice:null
+          };
+
+      const mrpDiff =
+        listing.azMrp -
+        wf.wfMrp;
+
+      const mrpDisparity =
+        listing.azMrp > 0 &&
+        wf.wfMrp > 0 &&
+        Math.abs(mrpDiff) > 0.01;
+
       const liveState =
         resolveAmazonLiveState(
           asin,
@@ -5147,9 +5738,29 @@ function buildAmazonPriceDisparity(){
           liveState.finalLivePrice,
         priceSource:
           liveState.priceSource,
-        mrpDiff:
-          listing.azMrp -
-          wf.wfMrp,
+        mrpDiff,
+        mrpDisparity,
+        listingPriceDiff:
+          listing.azPrice > 0
+          ? listing.azPrice -
+            wf.wfPrice
+          : null,
+        listingPriceAction:
+          listingAction.requiredAction,
+        listingPriceDisparity:
+          listingAction.disparity,
+        livePriceDiff:
+          liveState.finalLivePrice !==
+          null
+          ?
+          liveState.finalLivePrice -
+          wf.wfPrice
+          :
+          null,
+        livePriceAction:
+          requiredAction,
+        livePriceDisparity:
+          disparity,
         priceDiff:
           liveState.finalLivePrice !==
           null
@@ -5178,24 +5789,46 @@ function buildAmazonPriceDisparity(){
 
   allocateAmazonAsinRevenueImpact(
     output,
-    businessMap
+    businessMap,
+    businessReportDays
   );
 
-  const disparityRows =
+  const listingPriceDisparityRows =
     output.filter(
       row =>
-        row.disparity
+        row.listingPriceDisparity
     );
 
-  const suppressedRows =
+  const livePriceDisparityRows =
     output.filter(
+      row =>
+        row.livePriceDisparity
+    );
+
+  const mrpDisparityRows =
+    output.filter(
+      row =>
+        row.mrpDisparity
+    );
+
+  const disparityRows =
+    livePriceDisparityRows;
+
+  const suppressionRows =
+    buildAmazonAsinIssueRows(
+      output,
+      businessMap,
+      businessReportDays,
       row =>
         row.suppressionStatus ===
         "Suppressed"
     );
 
   const buyBoxSuppressedRows =
-    output.filter(
+    buildAmazonAsinIssueRows(
+      output,
+      businessMap,
+      businessReportDays,
       row =>
         row.buyBoxStatus ===
         "Buy Box Suppressed"
@@ -5226,20 +5859,46 @@ function buildAmazonPriceDisparity(){
   const result = {
     generatedAt:new Date(),
     threshold:PRICE_THRESHOLD,
-    businessReportDays:
-      AMAZON_BUSINESS_REPORT_DAYS,
+    businessReportDays,
     rows:output,
     disparityRows,
+    listingPriceDisparityRows,
+    livePriceDisparityRows,
+    mrpDisparityRows,
+    suppressionRows,
+    buyBoxSuppressedRows,
     issues,
     summary:{
       totalActiveInStockSkus:
         output.length,
       disparitySkus:
-        disparityRows.length,
+        livePriceDisparityRows.length,
+      listingPriceDisparitySkus:
+        listingPriceDisparityRows.length,
+      livePriceDisparitySkus:
+        livePriceDisparityRows.length,
+      mrpDisparitySkus:
+        mrpDisparityRows.length,
       suppressedSkus:
-        suppressedRows.length,
+        suppressionRows.length,
+      suppressedAsins:
+        suppressionRows.length,
       buyBoxSuppressedSkus:
         buyBoxSuppressedRows.length,
+      buyBoxSuppressedAsins:
+        buyBoxSuppressedRows.length,
+      suppressionRevenueImpactPerDay:
+        suppressionRows.reduce(
+          (sum,row) =>
+            sum + row.revenueImpactPerDay,
+          0
+        ),
+      buyBoxRevenueImpactPerDay:
+        buyBoxSuppressedRows.reduce(
+          (sum,row) =>
+            sum + row.revenueImpactPerDay,
+          0
+        ),
       increasePriceRequired:
         increaseRows.length,
       decreasePriceRequired:
@@ -5540,6 +6199,637 @@ function renderAmazonResults(){
 }
 
 
+
+/* ======================================================
+   DASHBOARD + OPERATIONAL MODULES
+====================================================== */
+
+function setText(id,value){
+
+  const element =
+    document.getElementById(id);
+
+  if(element){
+    element.textContent = value;
+  }
+
+}
+
+
+function updateDashboardMetrics(){
+
+  const amazon =
+    window.amazonPriceDisparityResult;
+
+  const flipkart =
+    window.flipkartPriceDisparityResult;
+
+  const amazonLive =
+    amazon?.summary?.livePriceDisparitySkus
+    ||
+    0;
+
+  const flipkartLive =
+    flipkart?.summary?.livePriceDisparitySkus
+    ||
+    0;
+
+  setText(
+    "totalLiveDisparityCount",
+    formatNumber(
+      amazonLive +
+      flipkartLive
+    )
+  );
+
+  setText(
+    "amazonListingDisparityCount",
+    formatNumber(
+      amazon?.summary?.listingPriceDisparitySkus
+      ||
+      0
+    )
+  );
+
+  setText(
+    "amazonLiveDisparityCount",
+    formatNumber(
+      amazonLive
+    )
+  );
+
+  setText(
+    "amazonMrpDisparityCount",
+    formatNumber(
+      amazon?.summary?.mrpDisparitySkus
+      ||
+      0
+    )
+  );
+
+  setText(
+    "flipkartListingDisparityCount",
+    formatNumber(
+      flipkart?.summary?.listingPriceDisparitySkus
+      ||
+      0
+    )
+  );
+
+  setText(
+    "flipkartLiveDisparityCount",
+    formatNumber(
+      flipkartLive
+    )
+  );
+
+  setText(
+    "flipkartMrpDisparityCount",
+    formatNumber(
+      flipkart?.summary?.mrpDisparitySkus
+      ||
+      0
+    )
+  );
+
+  setText(
+    "amazonSuppressedCount",
+    formatNumber(
+      amazon?.summary?.suppressedAsins
+      ||
+      0
+    )
+  );
+
+  setText(
+    "amazonBuyBoxSuppressedCount",
+    formatNumber(
+      amazon?.summary?.buyBoxSuppressedAsins
+      ||
+      0
+    )
+  );
+
+  setText(
+    "flipkartNoBuyBoxCount",
+    formatNumber(
+      flipkart?.summary?.noBuyBoxSkus
+      ||
+      0
+    )
+  );
+
+  setText(
+    "amazonSuppressionImpactNote",
+    amazon
+    ? formatINR(
+        amazon.summary
+        .suppressionRevenueImpactPerDay
+      ) + " revenue / day"
+    : "Active + in-stock ASINs only"
+  );
+
+  setText(
+    "amazonBuyBoxImpactNote",
+    amazon
+    ? formatINR(
+        amazon.summary
+        .buyBoxRevenueImpactPerDay
+      ) + " revenue / day"
+    : "Active + in-stock ASINs only"
+  );
+
+  updateCombinedDailyImpact();
+
+}
+
+
+function renderDashboardModules(){
+
+  updateDashboardMetrics();
+  renderAmazonSuppressionTable();
+  renderAmazonBuyBoxTable();
+
+}
+
+
+function openDisparityHub(){
+
+  showView(
+    "disparityHubSection"
+  );
+
+  updateDashboardMetrics();
+
+}
+
+
+function getDisparityRows(
+  marketplace,
+  type
+){
+
+  const result =
+    marketplace === "amazon"
+    ? window.amazonPriceDisparityResult
+    : window.flipkartPriceDisparityResult;
+
+  if(!result){
+    return null;
+  }
+
+  if(type === "listing"){
+    return result.listingPriceDisparityRows;
+  }
+
+  if(type === "mrp"){
+    return result.mrpDisparityRows;
+  }
+
+  return result.livePriceDisparityRows;
+
+}
+
+
+function openMarketplaceDisparity(
+  marketplace,
+  type
+){
+
+  const rows =
+    getDisparityRows(
+      marketplace,
+      type
+    );
+
+  if(rows === null){
+
+    alert(
+      "Run the " +
+      (
+        marketplace === "amazon"
+        ? "Amazon"
+        : "Flipkart"
+      ) +
+      " engine first."
+    );
+
+    return;
+
+  }
+
+  showView(
+    "disparityHubSection"
+  );
+
+  const marketLabel =
+    marketplace === "amazon"
+    ? "Amazon"
+    : "Flipkart";
+
+  const typeLabel =
+    type === "listing"
+    ? "Listing Price Disparity"
+    : type === "mrp"
+    ? "MRP Disparity"
+    : "Live Price Disparity";
+
+  setText(
+    "disparityDetailTitle",
+    marketLabel +
+    " · " +
+    typeLabel
+  );
+
+  setText(
+    "disparityDetailNote",
+    type === "listing"
+    ? "Listing price is compared with WF Price using the ±₹5 tolerance."
+    : type === "live"
+    ? "Only eligible Audit live prices are compared with WF Price using the ±₹5 tolerance."
+    : "Marketplace MRP is compared directly against WF MRP; any non-zero MRP difference is shown."
+  );
+
+  renderMarketplaceDisparityTable(
+    marketplace,
+    type,
+    rows
+  );
+
+}
+
+
+function renderMarketplaceDisparityTable(
+  marketplace,
+  type,
+  rows
+){
+
+  const table =
+    document.getElementById(
+      "disparityDetailTable"
+    );
+
+  const isAmazon =
+    marketplace === "amazon";
+
+  const skuHeader =
+    isAmazon
+    ? "AZ SKU"
+    : "FK SKU";
+
+  const idHeader =
+    isAmazon
+    ? "ASIN"
+    : "FSN";
+
+  let html = "";
+
+  if(type === "mrp"){
+
+    html = `
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>${idHeader}</th>
+          <th>WF SKU</th>
+          <th>${skuHeader}</th>
+          <th>WF MRP</th>
+          <th>${isAmazon ? "Amazon MRP" : "Flipkart MRP"}</th>
+          <th>MRP Diff</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    rows.forEach(
+      row => {
+
+        html += `
+          <tr>
+            <td>${escapeHtml(row.category)}</td>
+            <td>${escapeHtml(isAmazon ? row.asin : row.fsn)}</td>
+            <td>${escapeHtml(row.wfSku)}</td>
+            <td>${escapeHtml(isAmazon ? row.azSku : row.fkSku)}</td>
+            <td>${formatINR(row.wfMrp)}</td>
+            <td>${formatINR(isAmazon ? row.azMrp : row.fkMrp)}</td>
+            <td>${formatINR(row.mrpDiff)}</td>
+          </tr>
+        `;
+
+      }
+    );
+
+  }
+  else{
+
+    const priceHeader =
+      type === "listing"
+      ? "Listing Price"
+      : "Live Price";
+
+    html = `
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>${idHeader}</th>
+          <th>WF SKU</th>
+          <th>${skuHeader}</th>
+          <th>WF Price</th>
+          <th>${priceHeader}</th>
+          <th>Price Diff</th>
+          <th>Required Action</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    rows.forEach(
+      row => {
+
+        const price =
+          type === "listing"
+          ? row.listingPrice
+          : row.finalLivePrice;
+
+        const diff =
+          type === "listing"
+          ? row.listingPriceDiff
+          : row.livePriceDiff;
+
+        const action =
+          type === "listing"
+          ? row.listingPriceAction
+          : row.livePriceAction;
+
+        html += `
+          <tr>
+            <td>${escapeHtml(row.category)}</td>
+            <td>${escapeHtml(isAmazon ? row.asin : row.fsn)}</td>
+            <td>${escapeHtml(row.wfSku)}</td>
+            <td>${escapeHtml(isAmazon ? row.azSku : row.fkSku)}</td>
+            <td>${formatINR(row.wfPrice)}</td>
+            <td>${price === null ? "—" : formatINR(price)}</td>
+            <td>${diff === null ? "—" : formatINR(diff)}</td>
+            <td>${escapeHtml(action)}</td>
+          </tr>
+        `;
+
+      }
+    );
+
+  }
+
+  if(rows.length === 0){
+
+    const cols =
+      type === "mrp"
+      ? 7
+      : 8;
+
+    html += `
+      <tr>
+        <td colspan="${cols}">
+          <div class="empty-state">No disparity rows found.</div>
+        </td>
+      </tr>
+    `;
+
+  }
+
+  html += "</tbody>";
+
+  table.innerHTML = html;
+
+}
+
+
+function renderAmazonSuppressionTable(){
+
+  const result =
+    window.amazonPriceDisparityResult;
+
+  const rows =
+    result?.suppressionRows
+    ||
+    [];
+
+  setText(
+    "suppressionSummaryCount",
+    formatNumber(rows.length) +
+    " ASINs"
+  );
+
+  const impact =
+    rows.reduce(
+      (sum,row) =>
+        sum +
+        row.revenueImpactPerDay,
+      0
+    );
+
+  setText(
+    "suppressionSummaryImpact",
+    formatINR(impact) +
+    " / day"
+  );
+
+  const table =
+    document.getElementById(
+      "amazonSuppressionTable"
+    );
+
+  if(!table){
+    return;
+  }
+
+  let html = `
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>ASIN</th>
+        <th>Rev Impact / Day</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  if(rows.length === 0){
+
+    html += `
+      <tr>
+        <td colspan="3">
+          <div class="empty-state">Run the Amazon engine to populate active + in-stock suppressions.</div>
+        </td>
+      </tr>
+    `;
+
+  }
+  else{
+
+    rows.forEach(
+      row => {
+
+        html += `
+          <tr>
+            <td>${escapeHtml(row.category)}</td>
+            <td>${escapeHtml(row.asin)}</td>
+            <td>${formatINR(row.revenueImpactPerDay)}</td>
+          </tr>
+        `;
+
+      }
+    );
+
+  }
+
+  html += "</tbody>";
+  table.innerHTML = html;
+
+}
+
+
+function renderAmazonBuyBoxTable(){
+
+  const result =
+    window.amazonPriceDisparityResult;
+
+  const rows =
+    result?.buyBoxSuppressedRows
+    ||
+    [];
+
+  setText(
+    "buyBoxSummaryCount",
+    formatNumber(rows.length) +
+    " ASINs"
+  );
+
+  const impact =
+    rows.reduce(
+      (sum,row) =>
+        sum +
+        row.revenueImpactPerDay,
+      0
+    );
+
+  setText(
+    "buyBoxSummaryImpact",
+    formatINR(impact) +
+    " / day"
+  );
+
+  const table =
+    document.getElementById(
+      "amazonBuyBoxTable"
+    );
+
+  if(!table){
+    return;
+  }
+
+  let html = `
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>ASIN</th>
+        <th>WF SKU</th>
+        <th>Price</th>
+        <th>Rev Impact / Day</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  if(rows.length === 0){
+
+    html += `
+      <tr>
+        <td colspan="5">
+          <div class="empty-state">Run the Amazon engine to populate active + in-stock Buy Box suppressions.</div>
+        </td>
+      </tr>
+    `;
+
+  }
+  else{
+
+    rows.forEach(
+      row => {
+
+        html += `
+          <tr>
+            <td>${escapeHtml(row.category)}</td>
+            <td>${escapeHtml(row.asin)}</td>
+            <td>${escapeHtml(row.wfSku)}</td>
+            <td>${formatINR(row.listingPrice)}</td>
+            <td>${formatINR(row.revenueImpactPerDay)}</td>
+          </tr>
+        `;
+
+      }
+    );
+
+  }
+
+  html += "</tbody>";
+  table.innerHTML = html;
+
+}
+
+
+function openAmazonSuppressionModule(){
+
+  renderAmazonSuppressionTable();
+  showView(
+    "amazonSuppressionSection"
+  );
+
+}
+
+
+function openAmazonBuyBoxModule(){
+
+  renderAmazonBuyBoxTable();
+  showView(
+    "amazonBuyBoxSection"
+  );
+
+}
+
+
+function openFlipkartNoBuyBox(){
+
+  if(
+    !window.flipkartPriceDisparityResult
+  ){
+
+    alert(
+      "Run the Flipkart engine first."
+    );
+
+    return;
+
+  }
+
+  const filter =
+    document.getElementById(
+      "flipkartResultFilter"
+    );
+
+  if(filter){
+    filter.value =
+      "nobuybox";
+  }
+
+  renderFlipkartResults();
+  showView(
+    "flipkartPriceDisparitySection"
+  );
+
+}
+
+
 /* ======================================================
    RUN AMAZON ENGINE
 ====================================================== */
@@ -5553,15 +6843,6 @@ function runAmazonPriceDisparity(){
 
     document
     .getElementById(
-      "amazonPriceDisparityCount"
-    )
-    .textContent =
-      formatNumber(
-        result.summary.disparitySkus
-      );
-
-    document
-    .getElementById(
       "amazonResultSummary"
     )
     .textContent =
@@ -5569,9 +6850,17 @@ function runAmazonPriceDisparity(){
       formatNumber(
         result.summary.totalActiveInStockSkus
       ) +
-      " · Disparity: " +
+      " · Listing Disparity: " +
       formatNumber(
-        result.summary.disparitySkus
+        result.summary.listingPriceDisparitySkus
+      ) +
+      " · Live Disparity: " +
+      formatNumber(
+        result.summary.livePriceDisparitySkus
+      ) +
+      " · MRP Disparity: " +
+      formatNumber(
+        result.summary.mrpDisparitySkus
       ) +
       " · Suppressed: " +
       formatNumber(
@@ -5586,19 +6875,12 @@ function runAmazonPriceDisparity(){
         result.summary.totalDailyRevenueImpact
       );
 
-    document
-    .getElementById(
-      "amazonPriceDisparitySection"
-    )
-    .style.display =
-      "block";
-
     renderAmazonResults();
+    renderDashboardModules();
+    updateDashboardMetrics();
 
-    updateCombinedDailyImpact();
-
-    goToSection(
-      "amazonPriceDisparitySection"
+    showView(
+      "dashboardHome"
     );
 
   }
@@ -6452,6 +7734,29 @@ function buildFlipkartPriceDisparity(){
 
       }
 
+      const listingAction =
+        listing.fkPrice > 0
+        ? calculatePriceAction(
+            wf.wfPrice,
+            listing.fkPrice,
+            "Flipkart"
+          )
+        : {
+            requiredAction:
+              "No Listing Price",
+            disparity:false,
+            allowedPrice:null
+          };
+
+      const mrpDiff =
+        listing.fkMrp -
+        wf.wfMrp;
+
+      const mrpDisparity =
+        listing.fkMrp > 0 &&
+        wf.wfMrp > 0 &&
+        Math.abs(mrpDiff) > 0.01;
+
       const liveState =
         resolveFlipkartLiveState(
           fsn,
@@ -6603,9 +7908,29 @@ function buildFlipkartPriceDisparity(){
           liveState.finalLivePrice,
         priceSource:
           liveState.priceSource,
-        mrpDiff:
-          listing.fkMrp -
-          wf.wfMrp,
+        mrpDiff,
+        mrpDisparity,
+        listingPriceDiff:
+          listing.fkPrice > 0
+          ? listing.fkPrice -
+            wf.wfPrice
+          : null,
+        listingPriceAction:
+          listingAction.requiredAction,
+        listingPriceDisparity:
+          listingAction.disparity,
+        livePriceDiff:
+          liveState.finalLivePrice !==
+          null
+          ?
+          liveState.finalLivePrice -
+          wf.wfPrice
+          :
+          null,
+        livePriceAction:
+          requiredAction,
+        livePriceDisparity:
+          disparity,
         priceDiff:
           liveState.finalLivePrice !==
           null
@@ -6633,11 +7958,26 @@ function buildFlipkartPriceDisparity(){
     }
   );
 
-  const disparityRows =
+  const listingPriceDisparityRows =
     output.filter(
       row =>
-        row.disparity
+        row.listingPriceDisparity
     );
+
+  const livePriceDisparityRows =
+    output.filter(
+      row =>
+        row.livePriceDisparity
+    );
+
+  const mrpDisparityRows =
+    output.filter(
+      row =>
+        row.mrpDisparity
+    );
+
+  const disparityRows =
+    livePriceDisparityRows;
 
   const noBuyBoxRows =
     output.filter(
@@ -6693,12 +8033,21 @@ function buildFlipkartPriceDisparity(){
     },
     rows:output,
     disparityRows,
+    listingPriceDisparityRows,
+    livePriceDisparityRows,
+    mrpDisparityRows,
     issues,
     summary:{
       totalActiveInStockSkus:
         output.length,
       disparitySkus:
-        disparityRows.length,
+        livePriceDisparityRows.length,
+      listingPriceDisparitySkus:
+        listingPriceDisparityRows.length,
+      livePriceDisparitySkus:
+        livePriceDisparityRows.length,
+      mrpDisparitySkus:
+        mrpDisparityRows.length,
       noBuyBoxSkus:
         noBuyBoxRows.length,
       increasePriceRequired:
@@ -6975,15 +8324,6 @@ function runFlipkartPriceDisparity(){
 
     document
     .getElementById(
-      "flipkartPriceDisparityCount"
-    )
-    .textContent =
-      formatNumber(
-        result.summary.disparitySkus
-      );
-
-    document
-    .getElementById(
       "flipkartResultNote"
     )
     .textContent =
@@ -7005,9 +8345,17 @@ function runFlipkartPriceDisparity(){
       formatNumber(
         result.summary.totalActiveInStockSkus
       ) +
-      " · Disparity: " +
+      " · Listing Disparity: " +
       formatNumber(
-        result.summary.disparitySkus
+        result.summary.listingPriceDisparitySkus
+      ) +
+      " · Live Disparity: " +
+      formatNumber(
+        result.summary.livePriceDisparitySkus
+      ) +
+      " · MRP Disparity: " +
+      formatNumber(
+        result.summary.mrpDisparitySkus
       ) +
       " · No Buy Box: " +
       formatNumber(
@@ -7018,19 +8366,11 @@ function runFlipkartPriceDisparity(){
         result.summary.totalDailyRevenueImpact
       );
 
-    document
-    .getElementById(
-      "flipkartPriceDisparitySection"
-    )
-    .style.display =
-      "block";
-
     renderFlipkartResults();
+    updateDashboardMetrics();
 
-    updateCombinedDailyImpact();
-
-    goToSection(
-      "flipkartPriceDisparitySection"
+    showView(
+      "dashboardHome"
     );
 
   }
@@ -7327,6 +8667,16 @@ window.downloadFlipkartResults =
 
 window.goToSection =
   goToSection;
+
+window.showView = showView;
+window.openDisparityHub = openDisparityHub;
+window.openMarketplaceDisparity = openMarketplaceDisparity;
+window.openAmazonSuppressionModule = openAmazonSuppressionModule;
+window.openAmazonBuyBoxModule = openAmazonBuyBoxModule;
+window.openFlipkartNoBuyBox = openFlipkartNoBuyBox;
+
+renderDashboardModules();
+updateBusinessDaysVisibility();
 
 window.resetSession =
   resetSession;
