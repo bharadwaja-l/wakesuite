@@ -1,1940 +1,441 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WakeSuite</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WakeSuite</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
-    rel="stylesheet"
-  >
-
-  <!-- Spreadsheet parser -->
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  
 <style>
 :root{
-  --bg:#f3f6fb;
-  --surface:#ffffff;
-  --surface-2:#f8fafc;
-  --surface-3:#eef3f8;
-  --text:#0f172a;
-  --muted:#64748b;
-  --muted-2:#94a3b8;
-  --line:#e2e8f0;
-  --line-strong:#cbd5e1;
-  --nav:#0a1020;
-  --nav-2:#111a2f;
-  --nav-text:#cbd5e1;
-  --accent:#2563eb;
-  --accent-2:#4f46e5;
-  --accent-soft:#eff6ff;
-  --success:#059669;
-  --success-soft:#ecfdf5;
-  --danger:#dc2626;
-  --danger-soft:#fef2f2;
-  --warning:#d97706;
-  --warning-soft:#fffbeb;
-  --shadow:0 12px 35px rgba(15,23,42,.08);
-  --shadow-sm:0 5px 16px rgba(15,23,42,.06);
-  --radius:18px;
+  --wake:#4c2c92;
+  --wake-2:#6847b7;
+  --nav:#111827;
+  --nav-2:#0b1220;
+  --bg:#f4f6f9;
+  --panel:#ffffff;
+  --text:#111827;
+  --muted:#667085;
+  --line:#e5e7eb;
+  --success:#15803d;
+  --danger:#c62828;
+  --warning:#b45309;
+  --blue:#1d4ed8;
+  --shadow:0 8px 24px rgba(15,23,42,.06);
 }
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-html{
-  scroll-behavior:smooth;
-}
-
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 body{
-  font-family:'Inter',Arial,sans-serif;
-  background:
-    radial-gradient(circle at 82% -10%, rgba(37,99,235,.08), transparent 28%),
-    radial-gradient(circle at 10% 20%, rgba(79,70,229,.05), transparent 25%),
-    var(--bg);
-  color:var(--text);
   min-height:100vh;
+  font-family:'Inter',Arial,sans-serif;
+  color:var(--text);
+  background:var(--bg);
 }
+button,input,select{font:inherit}
+button{cursor:pointer}
 
-/* ---------- SIDEBAR ---------- */
-
+/* Sidebar */
 .sidebar{
   position:fixed;
-  inset:0 auto 0 0;
-  width:264px;
-  min-height:100vh;
-  padding:28px 18px 22px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.025), transparent 22%),
-    linear-gradient(180deg,var(--nav),var(--nav-2));
-  border-right:1px solid rgba(255,255,255,.06);
-  box-shadow:12px 0 40px rgba(2,6,23,.12);
+  left:0;top:0;bottom:0;
+  width:270px;
+  background:linear-gradient(180deg,var(--nav),var(--nav-2));
+  color:#fff;
+  border-right:1px solid rgba(255,255,255,.05);
+  overflow:auto;
   z-index:50;
-  display:flex;
-  flex-direction:column;
 }
-
-.brand-wrap{
+.sidebar-brand{
+  height:78px;
   display:flex;
   align-items:center;
   gap:12px;
-  padding:0 8px 26px;
+  padding:0 20px;
+  border-bottom:1px solid rgba(255,255,255,.07);
 }
-
-.brand-mark{
-  width:42px;
-  height:42px;
-  display:grid;
-  place-items:center;
-  border-radius:13px;
-  background:linear-gradient(135deg,#3b82f6,#4f46e5);
-  color:white;
-  font-size:18px;
-  font-weight:800;
-  box-shadow:0 10px 24px rgba(37,99,235,.28);
-}
-
-.logo{
-  font-size:22px;
-  line-height:1.1;
-  font-weight:750;
-  letter-spacing:-.02em;
-  color:#fff;
-  margin:0;
-}
-
-.tag{
-  color:#7f8ca3;
-  font-size:11px;
-  letter-spacing:.04em;
-  margin:4px 0 0;
-}
-
-.nav-label{
-  color:#64748b;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  padding:0 12px;
-  margin:6px 0 8px;
-}
-
-.side-nav{
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-}
-
-.side-nav button{
-  width:100%;
-  display:flex;
-  align-items:center;
-  gap:11px;
-  border:0;
-  background:transparent;
-  color:var(--nav-text);
-  padding:11px 12px;
+.sidebar-logo{
+  width:42px;height:42px;
+  object-fit:contain;
+  background:#fff;
   border-radius:11px;
-  font:inherit;
-  font-size:13px;
-  font-weight:560;
-  text-align:left;
-  cursor:pointer;
-  transition:.18s ease;
+  padding:6px;
 }
-
-.side-nav button:hover,
-.side-nav button:focus-visible{
-  background:rgba(255,255,255,.075);
-  color:#fff;
-  transform:translateX(2px);
-  outline:none;
-}
-
-.nav-icon{
-  width:28px;
-  height:28px;
-  flex:0 0 28px;
-  display:grid;
-  place-items:center;
-  border-radius:8px;
-  background:rgba(255,255,255,.055);
-  border:1px solid rgba(255,255,255,.06);
-  color:#a5b4fc;
-  font-size:10px;
+.sidebar-brand strong{display:block;font-size:17px;letter-spacing:-.02em}
+.sidebar-brand span{display:block;margin-top:2px;color:#8792a7;font-size:10px}
+.nav-scroll{padding:16px 12px 28px}
+.nav-section-label{
+  padding:10px 10px 7px;
+  color:#657087;
+  font-size:9px;
   font-weight:800;
-  letter-spacing:.02em;
-}
-
-.side-note{
-  margin-top:auto;
-  padding:14px;
-  border-radius:13px;
-  background:rgba(255,255,255,.045);
-  border:1px solid rgba(255,255,255,.06);
-  color:#8793a8;
-  font-size:10px;
-  line-height:1.55;
-}
-
-.side-note strong{
-  display:block;
-  color:#cbd5e1;
-  font-size:11px;
-  margin-bottom:4px;
-}
-
-/* ---------- MAIN ---------- */
-
-.main{
-  margin-left:264px;
-  padding:28px 34px 44px;
-  width:calc(100% - 264px);
-}
-
-.page-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:24px;
-  padding:4px 2px 22px;
-  border-bottom:1px solid rgba(203,213,225,.7);
-  margin-bottom:26px;
-}
-
-.page-header-copy{
-  min-width:0;
-}
-
-.header-kicker{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  color:var(--accent);
-  font-size:10px;
-  font-weight:750;
   letter-spacing:.13em;
   text-transform:uppercase;
-  margin-bottom:8px;
 }
-
-.header-kicker::before{
-  content:"";
-  width:7px;
-  height:7px;
-  border-radius:999px;
-  background:var(--success);
-  box-shadow:0 0 0 4px rgba(5,150,105,.10);
-}
-
-.title{
-  font-size:30px;
-  line-height:1.12;
-  font-weight:760;
-  letter-spacing:-.035em;
-  color:#0b1220;
-}
-
-.subtitle{
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.55;
-  margin-top:6px;
-  max-width:860px;
-}
-
-.page-header-actions{
+.nav-link,.nav-group>summary,.nav-child-group>summary{
+  width:100%;
+  min-height:40px;
   display:flex;
   align-items:center;
-  gap:9px;
-  flex-shrink:0;
-}
-
-.session-chip{
-  padding:9px 12px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.8);
-  border-radius:999px;
-  font-size:11px;
-  color:#475569;
-  font-weight:650;
-  box-shadow:0 2px 10px rgba(15,23,42,.035);
-}
-
-.small-button,
-.secondary-button,
-.action-button{
-  font-family:inherit;
-  cursor:pointer;
-  transition:.18s ease;
-}
-
-.small-button{
-  border:1px solid var(--line);
-  background:white;
-  color:#334155;
-  padding:9px 12px;
-  border-radius:10px;
-  font-size:11px;
-  font-weight:650;
-}
-
-.small-button:hover{
-  border-color:var(--line-strong);
-  transform:translateY(-1px);
-  box-shadow:var(--shadow-sm);
-}
-
-.app-view{
-  display:none;
-  animation:fadeIn .22s ease;
-}
-
-.app-view.active{
-  display:block;
-}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(5px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* ---------- DASHBOARD ---------- */
-
-.dashboard-kicker{
-  color:var(--muted);
-  font-size:10px;
-  font-weight:750;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  margin-bottom:12px;
-}
-
-.dashboard-hero{
-  position:relative;
-  overflow:hidden;
-  display:grid;
-  grid-template-columns:minmax(0,1.45fr) minmax(300px,.55fr);
-  gap:26px;
-  padding:26px 28px;
-  margin-bottom:20px;
-  background:
-    radial-gradient(circle at 95% 10%, rgba(99,102,241,.22), transparent 32%),
-    linear-gradient(135deg,#0f172a 0%,#172554 72%,#1e3a8a 130%);
-  color:white;
-  border-radius:22px;
-  box-shadow:0 18px 45px rgba(15,23,42,.18);
-}
-
-.dashboard-hero::after{
-  content:"";
-  position:absolute;
-  width:220px;
-  height:220px;
-  border-radius:50%;
-  right:-80px;
-  bottom:-120px;
-  border:1px solid rgba(255,255,255,.1);
-}
-
-.hero-eyebrow{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  color:#93c5fd;
-  font-size:10px;
-  font-weight:750;
-  text-transform:uppercase;
-  letter-spacing:.14em;
-  margin-bottom:11px;
-}
-
-.hero-title{
-  font-size:27px;
-  line-height:1.18;
-  font-weight:720;
-  letter-spacing:-.03em;
-  max-width:670px;
-}
-
-.hero-copy{
-  color:#b7c2d7;
-  font-size:12px;
-  line-height:1.65;
-  margin-top:10px;
-  max-width:700px;
-}
-
-.hero-actions{
-  display:flex;
-  gap:9px;
-  margin-top:19px;
-  flex-wrap:wrap;
-}
-
-.hero-button{
-  border:1px solid rgba(255,255,255,.13);
-  background:rgba(255,255,255,.10);
-  color:#fff;
-  padding:10px 13px;
-  border-radius:10px;
-  font:inherit;
-  font-size:11px;
-  font-weight:650;
-  cursor:pointer;
-  backdrop-filter:blur(8px);
-}
-
-.hero-button.primary{
-  background:white;
-  color:#172554;
-  border-color:white;
-}
-
-.hero-button:hover{
-  transform:translateY(-1px);
-}
-
-.hero-status{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
   gap:10px;
-  padding-left:14px;
-  border-left:1px solid rgba(255,255,255,.12);
-  z-index:1;
+  padding:9px 11px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#c7d0df;
+  text-decoration:none;
+  font-size:12px;
+  font-weight:600;
+  list-style:none;
+  user-select:none;
 }
+.nav-link:hover,.nav-group>summary:hover,.nav-child-group>summary:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-link.active{background:rgba(104,71,183,.28);color:#fff}
+.nav-group>summary::-webkit-details-marker,.nav-child-group>summary::-webkit-details-marker{display:none}
+.nav-group>summary::after,.nav-child-group>summary::after{content:'›';margin-left:auto;color:#667085;transition:.18s transform}
+.nav-group[open]>summary::after,.nav-child-group[open]>summary::after{transform:rotate(90deg)}
+.nav-icon{
+  width:25px;height:25px;
+  display:grid;place-items:center;
+  border-radius:7px;
+  background:rgba(255,255,255,.05);
+  color:#b8a9e7;
+  font-size:9px;
+  font-weight:800;
+  flex:0 0 auto;
+}
+.nav-children{padding:2px 0 5px 35px}
+.nav-children .nav-link,.nav-child-group>summary{min-height:34px;padding:7px 9px;font-size:11px;font-weight:500}
+.nav-child-group .nav-children{padding-left:16px}
 
-.hero-status-row{
+/* Main */
+.main{margin-left:270px;min-height:100vh;padding:24px 30px 44px}
+.topbar{
   display:flex;
+  align-items:center;
   justify-content:space-between;
   gap:18px;
-  color:#cbd5e1;
-  font-size:11px;
-}
-
-.hero-status-row strong{
-  color:#fff;
-  font-size:12px;
-}
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:14px;
   margin-bottom:20px;
 }
-
-.card{
-  position:relative;
-  overflow:hidden;
-  background:rgba(255,255,255,.94);
-  border:1px solid rgba(226,232,240,.9);
-  border-radius:16px;
-  padding:18px;
-  min-height:132px;
-  box-shadow:0 7px 22px rgba(15,23,42,.045);
-  transition:.2s ease;
-}
-
-.dashboard-card{
-  cursor:pointer;
-}
-
-.dashboard-card:hover{
-  transform:translateY(-3px);
-  border-color:#c7d2fe;
-  box-shadow:0 14px 32px rgba(15,23,42,.08);
-}
-
-.dashboard-card::after{
-  content:"";
-  position:absolute;
-  inset:auto 18px 0 18px;
-  height:2px;
-  opacity:0;
-  background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  transition:.2s ease;
-}
-
-.dashboard-card:hover::after{
-  opacity:1;
-}
-
-.card-top{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:14px;
-}
-
-.kpi-icon{
-  width:36px;
-  height:36px;
-  display:grid;
-  place-items:center;
-  border-radius:11px;
-  background:var(--accent-soft);
-  color:var(--accent);
-  border:1px solid #dbeafe;
-  font-size:10px;
-  font-weight:800;
-  letter-spacing:.03em;
-}
-
-.kpi-icon.warn{
-  background:var(--warning-soft);
-  color:var(--warning);
-  border-color:#fde68a;
-}
-
-.kpi-icon.danger{
-  background:var(--danger-soft);
-  color:var(--danger);
-  border-color:#fecaca;
-}
-
-.kpi-icon.success{
-  background:var(--success-soft);
-  color:var(--success);
-  border-color:#a7f3d0;
-}
-
-.card-label{
-  color:#64748b;
-  font-size:11px;
-  font-weight:650;
-  letter-spacing:.01em;
-}
-
-.metric{
-  font-size:27px;
-  line-height:1;
-  font-weight:760;
-  letter-spacing:-.035em;
-  color:#0f172a;
-  margin-top:16px;
-}
-
-.card-note{
-  margin-top:9px;
-  color:#94a3b8;
-  font-size:10px;
-  line-height:1.4;
-}
-
-.dashboard-lower-grid{
-  display:grid;
-  grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);
-  gap:16px;
-  margin-top:4px;
-}
-
-.quick-panel{
-  background:white;
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:19px;
-  box-shadow:var(--shadow-sm);
-}
-
-.quick-panel h3{
-  font-size:13px;
-  font-weight:700;
-  margin-bottom:5px;
-}
-
-.quick-panel p{
-  color:var(--muted);
-  font-size:11px;
-  line-height:1.55;
-}
-
-.quick-actions{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-top:15px;
-}
-
-.quick-action{
-  border:1px solid var(--line);
-  background:var(--surface-2);
-  color:#334155;
-  padding:13px;
-  border-radius:12px;
-  text-align:left;
-  font:inherit;
-  font-size:11px;
-  font-weight:650;
-  cursor:pointer;
-  transition:.18s ease;
-}
-
-.quick-action span{
-  display:block;
-  color:#94a3b8;
-  font-size:9px;
-  font-weight:500;
-  margin-top:4px;
-}
-
-.quick-action:hover{
-  background:#fff;
-  border-color:#c7d2fe;
-  transform:translateY(-1px);
-}
-
-.workflow-list{
-  display:flex;
-  flex-direction:column;
-  gap:9px;
-  margin-top:14px;
-}
-
-.workflow-step{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  color:#475569;
-  font-size:10px;
-}
-
-.workflow-step i{
-  width:22px;
-  height:22px;
-  display:grid;
-  place-items:center;
-  border-radius:7px;
-  background:#eef2ff;
-  color:#4f46e5;
-  font-style:normal;
-  font-size:9px;
-  font-weight:800;
-}
-
-/* ---------- PANELS ---------- */
-
-.panel,
-.upload,
-.result-section,
-.marketplace-module{
-  background:rgba(255,255,255,.95);
-  border:1px solid var(--line);
-  border-radius:16px;
-  box-shadow:var(--shadow-sm);
-}
-
-.panel{
-  padding:22px;
-  max-width:1040px;
-  margin-bottom:18px;
-}
-
-.panel h2,
-.result-section h2{
-  font-size:17px;
-  font-weight:720;
-  letter-spacing:-.02em;
-  color:#0f172a;
-  margin-bottom:5px;
-}
-
-.panel-subtitle,
-.result-note{
-  color:var(--muted);
-  font-size:11px;
-  line-height:1.55;
-}
-
-.action-button{
-  width:100%;
-  border:0;
-  background:linear-gradient(135deg,#2563eb,#4f46e5);
-  color:white;
-  padding:12px 15px;
-  border-radius:10px;
-  font-size:11px;
-  font-weight:700;
-  box-shadow:0 7px 16px rgba(37,99,235,.18);
-}
-
-.action-button:hover:not(:disabled){
-  transform:translateY(-1px);
-  box-shadow:0 10px 22px rgba(37,99,235,.24);
-}
-
-.action-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-  box-shadow:none;
-}
-
-.secondary-button{
-  width:100%;
-  border:1px solid var(--line);
-  background:white;
-  color:#334155;
-  padding:12px 15px;
-  border-radius:10px;
-  font-size:11px;
-  font-weight:700;
-}
-
-.secondary-button:hover{
-  border-color:#c7d2fe;
-  color:#3730a3;
-}
-
-.engine-buttons{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-top:14px;
-}
-
-.grid-two,
-.module-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px;
-}
-
-.marketplace-module{
-  padding:20px;
-}
-
-.marketplace-module h3{
-  font-size:15px;
-  letter-spacing:-.02em;
-  margin-bottom:4px;
-}
-
-.disparity-option-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:9px;
-  margin-top:15px;
-}
-
-.disparity-option{
-  border:1px solid var(--line);
-  background:var(--surface-2);
-  border-radius:12px;
-  padding:13px;
-  font:inherit;
-  cursor:pointer;
-  text-align:left;
-  transition:.18s ease;
-}
-
-.disparity-option:hover{
-  background:white;
-  border-color:#c7d2fe;
-  transform:translateY(-1px);
-  box-shadow:var(--shadow-sm);
-}
-
-.disparity-option span{
-  display:block;
-  color:#64748b;
-  font-size:10px;
-  line-height:1.35;
-}
-
-.disparity-option strong{
-  display:block;
-  margin-top:8px;
-  color:#0f172a;
-  font-size:20px;
-  letter-spacing:-.025em;
-}
-
-/* ---------- MASTER / AUDIT / READINESS ---------- */
-
-.master-status{
-  margin-top:13px;
-  padding:12px 13px;
-  border-radius:10px;
-  background:#f8fafc;
-  border:1px solid var(--line);
-  color:#475569;
-  font-size:10px;
-  line-height:1.5;
-}
-
-.master-status.success{
-  background:var(--success-soft);
-  border-color:#a7f3d0;
-  color:#047857;
-}
-
-.master-status.error{
-  background:var(--danger-soft);
-  border-color:#fecaca;
-  color:#b91c1c;
-}
-
-.master-heading{
-  margin:17px 0 9px;
-  color:#475569;
-  font-size:10px;
-  font-weight:750;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-}
-
-.master-grid{
-  display:none;
-  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
-  gap:9px;
-}
-
-.master-metric{
-  background:var(--surface-2);
-  border:1px solid #edf2f7;
-  padding:12px;
-  border-radius:11px;
-}
-
-.master-metric-label{
-  color:#94a3b8;
-  font-size:9px;
-  font-weight:650;
-}
-
-.master-metric-value{
-  margin-top:5px;
-  color:#0f172a;
-  font-size:18px;
-  font-weight:750;
-}
-
-.audit-summary,
-.summary-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
-  gap:9px;
-  margin-top:14px;
-}
-
-.audit-rule,
-.summary-metric{
-  background:var(--surface-2);
-  border:1px solid #edf2f7;
-  padding:12px;
-  border-radius:11px;
-}
-
-.audit-rule strong,
-.summary-metric-value{
-  display:block;
-  margin-top:4px;
-  color:#0f172a;
-  font-size:17px;
-  font-weight:750;
-}
-
-.summary-metric-label{
-  color:#94a3b8;
-  font-size:9px;
-  font-weight:650;
-}
-
-.readiness-list{
-  display:flex;
-  flex-direction:column;
-  gap:7px;
-  margin-top:12px;
-}
-
-.ready-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:15px;
-  padding:10px 11px;
+.page-title{font-size:26px;font-weight:750;letter-spacing:-.035em}
+.topbar-right{display:flex;align-items:center;gap:9px}
+.asof-chip,.status-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  height:34px;padding:0 11px;
+  border-radius:9px;
   border:1px solid var(--line);
   background:#fff;
-  border-radius:10px;
-  color:#475569;
-  font-size:10px;
+  color:#475467;
+  font-size:10px;font-weight:700;
 }
-
-.ready-badge,
-.pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:5px 8px;
-  border-radius:999px;
-  font-size:9px;
-  font-weight:750;
-  white-space:nowrap;
-}
-
-.ready-badge{
-  background:#f1f5f9;
-  color:#64748b;
-}
-
-.ready-badge.ready{
-  background:var(--success-soft);
-  color:#047857;
-}
-
-.pill{
+.status-dot{width:7px;height:7px;border-radius:999px;background:#94a3b8}
+.status-chip.ready .status-dot{background:#16a34a}
+.icon-button{
+  height:34px;padding:0 11px;
   border:1px solid var(--line);
-  background:white;
-  color:#475569;
+  background:#fff;color:#475467;
+  border-radius:9px;
+  font-size:10px;font-weight:700;
 }
+.app-view{display:none}
+.app-view.active{display:block;animation:fade .16s ease}
+@keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 
-/* ---------- UPLOAD ---------- */
-
-.upload{
-  padding:22px;
-  max-width:760px;
-  margin-bottom:18px;
-}
-
-.upload h2{
-  font-size:17px;
-  font-weight:720;
-  letter-spacing:-.02em;
-  margin-bottom:17px;
-}
-
-.upload label{
-  display:block;
-  color:#475569;
-  font-size:10px;
-  font-weight:700;
-  margin-bottom:6px;
-}
-
-.upload input,
-.upload select{
-  width:100%;
-  padding:11px 12px;
-  margin:0 0 15px;
-  border:1px solid var(--line);
-  border-radius:10px;
-  background:#fff;
-  color:#0f172a;
-  font-family:inherit;
-  font-size:11px;
-  outline:none;
-  transition:.15s ease;
-}
-
-.upload input:focus,
-.upload select:focus{
-  border-color:#93c5fd;
-  box-shadow:0 0 0 3px rgba(37,99,235,.08);
-}
-
-.upload button{
-  width:100%;
-  padding:12px;
-  border:0;
-  border-radius:10px;
-  background:linear-gradient(135deg,#2563eb,#4f46e5);
-  color:white;
-  font-family:inherit;
-  font-size:11px;
-  font-weight:700;
-  cursor:pointer;
-}
-
-.upload button:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
-
-.upload-status{
-  display:none;
-  margin-top:13px;
-  padding:11px 12px;
-  border-radius:10px;
-  font-size:10px;
-  line-height:1.5;
-}
-
-.upload-status.success{
-  display:block;
-  background:var(--success-soft);
-  color:#047857;
-  border:1px solid #a7f3d0;
-}
-
-.upload-status.error{
-  display:block;
-  background:var(--danger-soft);
-  color:#b91c1c;
-  border:1px solid #fecaca;
-}
-
-.file-info{
-  display:none;
-  margin-top:13px;
-  padding:13px;
-  background:var(--surface-2);
-  border:1px solid var(--line);
-  border-radius:11px;
-}
-
-.file-info-title{
-  font-size:11px;
-  font-weight:750;
-  margin-bottom:7px;
-}
-
-.file-info-row{
-  color:#64748b;
-  margin-top:5px;
-  font-size:9px;
-  line-height:1.45;
-  word-break:break-word;
-}
-
-.validation-success{
-  color:#047857;
-  font-weight:700;
-}
-
-.validation-error{
-  color:#b91c1c;
-  font-weight:700;
-}
-
-.business-summary{
-  display:none;
-  margin-top:13px;
-  padding:14px;
-  background:#eff6ff;
-  border:1px solid #bfdbfe;
-  border-radius:11px;
-}
-
-.business-summary h3{
-  color:#1d4ed8;
-  font-size:12px;
-  margin-bottom:8px;
-}
-
-/* ---------- RESULT TABLES ---------- */
-
-.result-section{
-  padding:20px;
-  margin-bottom:18px;
-}
-
-.result-note{
-  margin-top:3px;
-  margin-bottom:12px;
-}
-
-.table-wrap{
-  width:100%;
-  overflow:auto;
-  border:1px solid var(--line);
-  border-radius:11px;
-  background:white;
-}
-
-.result-table{
-  width:100%;
-  min-width:1120px;
-  border-collapse:separate;
-  border-spacing:0;
-}
-
-.result-table th{
-  position:sticky;
-  top:0;
-  z-index:2;
-  background:#f8fafc;
-  color:#64748b;
-  padding:10px 11px;
-  text-align:left;
-  border-bottom:1px solid var(--line);
-  font-size:9px;
-  font-weight:750;
-  text-transform:uppercase;
-  letter-spacing:.045em;
-  white-space:nowrap;
-}
-
-.result-table td{
-  color:#334155;
-  padding:10px 11px;
-  border-bottom:1px solid #f1f5f9;
-  font-size:10px;
-  white-space:nowrap;
-}
-
-.result-table tbody tr:hover td{
-  background:#fafcff;
-}
-
-.result-table tbody tr:last-child td{
-  border-bottom:0;
-}
-
-.result-toolbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin:12px 0;
-}
-
-.empty-state{
-  padding:28px;
-  text-align:center;
-  color:#94a3b8;
-  font-size:10px;
-}
-
-.compact-table{
-  min-width:760px;
-}
-
-.module-summary{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  margin:11px 0 14px;
-}
-
-.module-chip{
-  border:1px solid var(--line);
-  background:var(--surface-2);
-  color:#475569;
-  border-radius:999px;
-  padding:6px 9px;
-  font-size:9px;
-  font-weight:700;
-}
-
-.field-note{
-  color:#94a3b8;
-  font-size:9px;
-  line-height:1.45;
-  margin-top:-10px;
+/* Dashboard */
+.dashboard-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
   margin-bottom:14px;
 }
-
-#businessReportDaysField{
-  display:none;
+.dashboard-date{color:#667085;font-size:11px;font-weight:600}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.kpi-card{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:17px 18px;box-shadow:var(--shadow);min-height:112px;
 }
+.kpi-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.kpi-label{color:#667085;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.045em}
+.kpi-badge{min-width:29px;height:29px;display:grid;place-items:center;border-radius:8px;background:#f2effa;color:var(--wake);font-size:9px;font-weight:800}
+.kpi-value{margin-top:15px;font-size:25px;font-weight:780;letter-spacing:-.035em}
+.kpi-value.small{font-size:20px}
+.section-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.market-panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.market-panel-head{display:flex;align-items:center;justify-content:space-between;padding:15px 17px;border-bottom:1px solid var(--line)}
+.market-panel-head strong{font-size:13px}
+.market-panel-head button{border:0;background:none;color:var(--wake);font-size:10px;font-weight:750}
+.market-metrics{display:grid;grid-template-columns:repeat(3,1fr)}
+.market-metric{padding:16px 17px;border-right:1px solid var(--line)}
+.market-metric:last-child{border-right:0}
+.market-metric span{display:block;color:#667085;font-size:9px;font-weight:700;text-transform:uppercase}
+.market-metric strong{display:block;margin-top:7px;font-size:19px}
 
-.footer{
-  margin-top:30px;
-  padding-top:18px;
-  border-top:1px solid var(--line);
-  color:#94a3b8;
-  font-size:9px;
+/* Panels / controls */
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:15px}
+.panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.panel-title-row h2{font-size:15px;font-weight:740;letter-spacing:-.02em}
+.control-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.control-row select,.control-row input{
+  height:36px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#344054;padding:0 10px;font-size:10px;outline:none
 }
-
-/* ---------- RESPONSIVE ---------- */
-
-@media(max-width:1180px){
-  .cards{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-
-  .dashboard-hero,
-  .dashboard-lower-grid{
-    grid-template-columns:1fr;
-  }
-
-  .hero-status{
-    padding-left:0;
-    padding-top:14px;
-    border-left:0;
-    border-top:1px solid rgba(255,255,255,.12);
-  }
-
-  .module-grid,
-  .grid-two{
-    grid-template-columns:1fr;
-  }
+.control-row select:focus,.control-row input:focus{border-color:#b6a6e5;box-shadow:0 0 0 3px rgba(76,44,146,.07)}
+.primary-btn,.secondary-btn{
+  height:36px;padding:0 13px;border-radius:9px;font-size:10px;font-weight:750
 }
+.primary-btn{border:1px solid var(--wake);background:var(--wake);color:#fff}
+.secondary-btn{border:1px solid var(--line);background:#fff;color:#344054}
+.primary-btn:disabled{opacity:.45;cursor:not-allowed}
+.summary-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0 14px}
+.summary-box{border:1px solid var(--line);background:#fafbfc;border-radius:10px;padding:11px 12px}
+.summary-box span{display:block;color:#667085;font-size:9px;font-weight:700;text-transform:uppercase}
+.summary-box strong{display:block;margin-top:5px;font-size:17px}
 
-@media(max-width:900px){
-  .sidebar{
-    position:relative;
-    width:100%;
-    min-height:auto;
-    padding:18px;
-  }
+/* Tables */
+.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.result-table{width:100%;border-collapse:collapse;min-width:900px}
+.result-table th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#667085;text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.result-table td{padding:9px 10px;border-bottom:1px solid #f0f2f5;color:#344054;font-size:10px;white-space:nowrap}
+.result-table tbody tr:hover td{background:#fcfcfd}
+.parity{color:var(--success);font-weight:750}.disparity{color:var(--danger);font-weight:750}.warning{color:var(--warning);font-weight:750}
+.empty-row{text-align:center!important;color:#98a2b3!important;padding:28px!important}
 
-  .brand-wrap{
-    padding-bottom:14px;
-  }
+/* Upload */
+.upload-layout{display:grid;grid-template-columns:minmax(0,560px) minmax(320px,1fr);gap:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-field{margin-bottom:12px}.form-field.full{grid-column:1/-1}
+.form-field label{display:block;margin-bottom:5px;color:#475467;font-size:9px;font-weight:750;text-transform:uppercase;letter-spacing:.04em}
+.form-field input,.form-field select{width:100%;height:37px;border:1px solid var(--line);border-radius:9px;padding:0 10px;background:#fff;color:#344054;font-size:10px;outline:none}
+.upload-status{display:none;margin-top:10px;padding:10px 11px;border-radius:9px;font-size:10px}
+.upload-status.success{display:block;background:#ecfdf3;color:#166534;border:1px solid #bbf7d0}
+.upload-status.error{display:block;background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.readiness-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.readiness-head strong{font-size:12px}.readiness-head span{font-size:10px;color:#667085}
+.readiness-list{display:flex;flex-direction:column;gap:6px}
+.ready-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:10px;color:#475467}
+.ready-badge{padding:4px 7px;border-radius:999px;background:#f2f4f7;color:#667085;font-size:8px;font-weight:800;text-transform:uppercase}.ready-badge.ready,.ready-badge.ok{background:#dcfce7;color:#166534}
+.file-info,.business-summary,.audit-summary{display:none}
+.master-status{margin-top:10px;padding:10px 11px;border:1px solid var(--line);border-radius:9px;color:#475467;font-size:10px}.master-status.success{background:#ecfdf3;border-color:#bbf7d0;color:#166534}.master-status.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+.master-grid{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}.master-metric{border:1px solid var(--line);border-radius:9px;padding:10px}.master-metric-label{color:#667085;font-size:8px;font-weight:750;text-transform:uppercase}.master-metric-value{margin-top:4px;font-size:16px;font-weight:750}
 
-  .side-nav{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
+/* Insights */
+.insights-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.insight-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.insight-card span{color:#667085;font-size:9px;font-weight:700;text-transform:uppercase}.insight-card strong{display:block;margin-top:8px;font-size:20px}
 
-  .side-note{
-    margin-top:14px;
-  }
+.hidden-compat{display:none!important}
+.footer{margin-top:22px;color:#98a2b3;font-size:9px;text-align:right}
 
-  .main{
-    margin-left:0;
-    width:100%;
-    padding:22px 18px 36px;
-  }
-
-  .page-header{
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
-  .page-header-actions{
-    width:100%;
-  }
-
-  .session-chip{
-    flex:1;
-  }
-
-  .disparity-option-grid{
-    grid-template-columns:1fr;
-  }
-}
-
-@media(max-width:620px){
-  .cards,
-  .quick-actions,
-  .engine-buttons{
-    grid-template-columns:1fr;
-  }
-
-  .dashboard-hero{
-    padding:22px;
-  }
-
-  .hero-title{
-    font-size:23px;
-  }
-
-  .title{
-    font-size:26px;
-  }
-
-  .side-nav{
-    grid-template-columns:1fr;
-  }
-
-  .page-header-actions{
-    flex-direction:column;
-    align-items:stretch;
-  }
-}
+@media(max-width:1180px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.section-grid{grid-template-columns:1fr}.upload-layout{grid-template-columns:1fr}}
+@media(max-width:860px){.sidebar{position:relative;width:100%;height:auto}.main{margin-left:0;padding:18px}.kpi-grid,.summary-strip,.insights-grid{grid-template-columns:repeat(2,1fr)}.market-metrics{grid-template-columns:1fr}.market-metric{border-right:0;border-bottom:1px solid var(--line)}.form-grid{grid-template-columns:1fr}.form-field.full{grid-column:auto}}
 </style>
 
 </head>
 
 <body>
 
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <img class="sidebar-logo" src="data:image/png;base64,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" alt="Wakefit">
+    <div><strong>WakeSuite</strong><span>Marketplace Intelligence</span></div>
+  </div>
 
-<div class="sidebar">
+  <div class="nav-scroll">
+    <div class="nav-section-label">Dashboard</div>
+    <a class="nav-link" href="#" onclick="showView('dashboardHome');return false"><span class="nav-icon">OV</span>Overview</a>
+    <a class="nav-link" href="#" onclick="showView('marketplaceInsightsSection');loadMarketplaceInsights();return false"><span class="nav-icon">IN</span>Marketplace Insights</a>
 
-  <div class="brand-wrap">
-    <div class="brand-mark">W</div>
-    <div>
-      <div class="logo">WakeSuite</div>
-      <div class="tag">Marketplace Intelligence</div>
+    <div class="nav-section-label">Amazon</div>
+    <details class="nav-group" open>
+      <summary><span class="nav-icon">PD</span>Price Disparity</summary>
+      <div class="nav-children">
+        <a class="nav-link" href="#" onclick="openHistoricalModule('amazon_listing');return false">Listing Price Disparity</a>
+        <a class="nav-link" href="#" onclick="openHistoricalModule('amazon_live');return false">Live Price Disparity</a>
+        <a class="nav-link" href="#" onclick="openHistoricalModule('amazon_mrp');return false">MRP Disparity</a>
+      </div>
+    </details>
+    <details class="nav-group">
+      <summary><span class="nav-icon">SP</span>Suppressions</summary>
+      <div class="nav-children">
+        <a class="nav-link" href="#" onclick="openHistoricalModule('amazon_suppression');return false">ASIN Suppression</a>
+        <a class="nav-link" href="#" onclick="openHistoricalModule('amazon_buybox');return false">Buy Box Suppression</a>
+      </div>
+    </details>
+
+    <div class="nav-section-label">Flipkart</div>
+    <details class="nav-group" open>
+      <summary><span class="nav-icon">PD</span>Price Disparity</summary>
+      <div class="nav-children">
+        <a class="nav-link" href="#" onclick="openHistoricalModule('flipkart_listing');return false">Listing Price Disparity</a>
+        <a class="nav-link" href="#" onclick="openHistoricalModule('flipkart_live');return false">Live Price Disparity</a>
+        <a class="nav-link" href="#" onclick="openHistoricalModule('flipkart_mrp');return false">MRP Disparity</a>
+      </div>
+    </details>
+    <details class="nav-group">
+      <summary><span class="nav-icon">BB</span>Buy Box</summary>
+      <div class="nav-children">
+        <a class="nav-link" href="#" onclick="openHistoricalModule('flipkart_buybox');return false">Buy Box Unavailable</a>
+      </div>
+    </details>
+
+    <div class="nav-section-label">Data &amp; Processing</div>
+    <a class="nav-link" href="#" onclick="showView('uploadSection');return false"><span class="nav-icon">UP</span>Upload Center</a>
+    <a class="nav-link" href="#" onclick="showView('masterPricingSection');return false"><span class="nav-icon">MP</span>Master Pricing</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <div class="asof-chip" id="latestCompletedDateDisplay">As of —</div>
+      <div class="status-chip" id="sessionChip"><span class="status-dot"></span><span id="sessionChipText">0 / 7 Ready</span></div>
     </div>
   </div>
+  <div id="pageSubtitle" class="hidden-compat"></div>
 
-  <div class="nav-label">Workspace</div>
-
-  <div class="side-nav">
-    <button onclick="showView('dashboardHome')"><span class="nav-icon">OV</span>Overview</button>
-    <button onclick="openDisparityHub()"><span class="nav-icon">PD</span>Price Disparity</button>
-    <button onclick="openAmazonSuppressionModule()"><span class="nav-icon">SP</span>Amazon Suppressions</button>
-    <button onclick="openAmazonBuyBoxModule()"><span class="nav-icon">BB</span>Amazon Buy Box</button>
-  </div>
-
-  <div class="nav-label" style="margin-top:18px">Data & Processing</div>
-
-  <div class="side-nav">
-    <button onclick="showView('uploadSection')"><span class="nav-icon">UP</span>Upload Center</button>
-    <button onclick="showView('masterPricingSection')"><span class="nav-icon">MP</span>Master Pricing</button>
-    <button onclick="showView('auditSection')"><span class="nav-icon">AU</span>Audit Health</button>
-    <button onclick="showView('engineSection')"><span class="nav-icon">EN</span>Processing Engines</button>
-  </div>
-
-  <div class="side-note">
-    <strong>Session storage</strong>
-    Raw files stay in this browser tab until processing is complete. Avoid refreshing after report uploads.
-  </div>
-
-</div>
-
-
-<div class="main">
-
-  <div class="page-header section-anchor" id="dashboard">
-
-    <div>
-      <div class="title" id="pageTitle">Marketplace Control Center</div>
-      <div class="subtitle" id="pageSubtitle" style="margin-bottom:0">
-        Wakefit Amazon + Flipkart pricing, audit, suppression, buy box and revenue-impact analysis
-      </div>
+  <!-- DASHBOARD OVERVIEW -->
+  <section id="dashboardHome" class="app-view active">
+    <div class="dashboard-toolbar">
+      <div class="dashboard-date" id="dashboardStatusText">No completed snapshot</div>
+      <button class="secondary-btn" onclick="showView('marketplaceInsightsSection');loadMarketplaceInsights()">Marketplace Insights</button>
     </div>
 
-    <div class="page-header-actions">
-      <div class="session-chip" id="sessionChip">0 reports loaded</div>
-      <button class="small-button" onclick="resetSession()">Reset Session</button>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Amazon Live Parity</div><div class="kpi-badge">AZ</div></div><div class="kpi-value" id="amazonLiveParityPercent">0%</div></div>
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Amazon Live Disparity</div><div class="kpi-badge">PD</div></div><div class="kpi-value" id="amazonLiveDisparityCount">0</div></div>
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Amazon Suppressions</div><div class="kpi-badge">SP</div></div><div class="kpi-value" id="amazonSuppressedCount">0</div></div>
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Amazon Buy Box Suppression</div><div class="kpi-badge">BB</div></div><div class="kpi-value" id="amazonBuyBoxSuppressedCount">0</div></div>
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Flipkart Live Parity</div><div class="kpi-badge">FK</div></div><div class="kpi-value" id="flipkartLiveParityPercent">0%</div></div>
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Flipkart Live Disparity</div><div class="kpi-badge">PD</div></div><div class="kpi-value" id="flipkartLiveDisparityCount">0</div></div>
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Flipkart Buy Box Unavailable</div><div class="kpi-badge">BB</div></div><div class="kpi-value" id="flipkartNoBuyBoxCount">0</div></div>
+      <div class="kpi-card"><div class="kpi-head"><div class="kpi-label">Daily Revenue Impact</div><div class="kpi-badge">₹</div></div><div class="kpi-value small" id="combinedDailyImpact">₹0</div></div>
     </div>
 
-  </div>
-
-
-  <!-- DASHBOARD -->
-
-  <div id="dashboardHome" class="app-view active">
-
-    <div class="dashboard-kicker">LIVE OPERATIONS DASHBOARD</div>
-
-    <div class="cards">
-
-      <div class="card dashboard-card" onclick="openDisparityHub()">
-        <div class="card-label">Price Disparity</div>
-        <div class="metric" id="totalLiveDisparityCount">0</div>
-        <div class="card-note">Amazon + Flipkart · Listing / Live / MRP</div>
-      </div>
-
-      <div class="card dashboard-card" onclick="openAmazonSuppressionModule()">
-        <div class="card-label">Amazon Suppressions</div>
-        <div class="metric" id="amazonSuppressedCount">0</div>
-        <div class="card-note" id="amazonSuppressionImpactNote">Active + in-stock ASINs only</div>
-      </div>
-
-      <div class="card dashboard-card" onclick="openAmazonBuyBoxModule()">
-        <div class="card-label">Amazon Buy Box</div>
-        <div class="metric" id="amazonBuyBoxSuppressedCount">0</div>
-        <div class="card-note" id="amazonBuyBoxImpactNote">Active + in-stock ASINs only</div>
-      </div>
-
-      <div class="card dashboard-card" onclick="openFlipkartNoBuyBox()">
-        <div class="card-label">Flipkart No Buy Box</div>
-        <div class="metric" id="flipkartNoBuyBoxCount">0</div>
-        <div class="card-note">Audit Buy Now = false</div>
-      </div>
-
-      <div class="card">
-        <div class="card-label">Combined Daily Price Impact</div>
-        <div class="metric" id="combinedDailyImpact">₹0</div>
-        <div class="card-note">Underpricing impact from both marketplaces</div>
-      </div>
-
-      <div class="card dashboard-card" onclick="showView('uploadSection')">
-        <div class="card-label">Reports Loaded</div>
-        <div class="metric" id="dashboardReportsLoaded">0</div>
-        <div class="card-note">Current browser session</div>
-      </div>
-
-    </div>
-
-    <div class="panel" style="max-width:none">
-      <h2>How to use WakeSuite</h2>
-      <div class="panel-subtitle">
-        Connect Master Pricing, load the required reports, run the marketplace engines, then use the dashboard cards to open operational views.
-      </div>
-      <div class="engine-buttons">
-        <button class="action-button" onclick="showView('uploadSection')">Open Upload Center</button>
-        <button class="secondary-button" onclick="showView('engineSection')">Open Processing Engines</button>
-      </div>
-    </div>
-
-  </div>
-
-
-  <!-- PRICE DISPARITY HUB -->
-
-  <div id="disparityHubSection" class="app-view">
-
-    <div class="module-grid">
-
-      <div class="marketplace-module">
-        <h3>Amazon</h3>
-        <div class="panel-subtitle" style="margin-bottom:0">Active + in-stock Amazon records.</div>
-        <div class="disparity-option-grid">
-          <button class="disparity-option" onclick="openMarketplaceDisparity('amazon','listing')">
-            <span>Listing Price Disparity</span>
-            <strong id="amazonListingDisparityCount">0</strong>
-          </button>
-          <button class="disparity-option" onclick="openMarketplaceDisparity('amazon','live')">
-            <span>Live Price Disparity</span>
-            <strong id="amazonLiveDisparityCount">0</strong>
-          </button>
-          <button class="disparity-option" onclick="openMarketplaceDisparity('amazon','mrp')">
-            <span>MRP Disparity</span>
-            <strong id="amazonMrpDisparityCount">0</strong>
-          </button>
+    <div class="section-grid">
+      <div class="market-panel">
+        <div class="market-panel-head"><strong>Amazon Price Health</strong><button onclick="openHistoricalModule('amazon_live')">Open</button></div>
+        <div class="market-metrics">
+          <div class="market-metric"><span>Listing Parity</span><strong id="amazonListingParityPercent">0%</strong></div>
+          <div class="market-metric"><span>Live Parity</span><strong id="amazonLiveParityPercent2">0%</strong></div>
+          <div class="market-metric"><span>MRP Parity</span><strong id="amazonMrpParityPercent">0%</strong></div>
         </div>
       </div>
-
-      <div class="marketplace-module">
-        <h3>Flipkart</h3>
-        <div class="panel-subtitle" style="margin-bottom:0">ACTIVE + System Stock &gt; 0 records.</div>
-        <div class="disparity-option-grid">
-          <button class="disparity-option" onclick="openMarketplaceDisparity('flipkart','listing')">
-            <span>Listing Price Disparity</span>
-            <strong id="flipkartListingDisparityCount">0</strong>
-          </button>
-          <button class="disparity-option" onclick="openMarketplaceDisparity('flipkart','live')">
-            <span>Live Price Disparity</span>
-            <strong id="flipkartLiveDisparityCount">0</strong>
-          </button>
-          <button class="disparity-option" onclick="openMarketplaceDisparity('flipkart','mrp')">
-            <span>MRP Disparity</span>
-            <strong id="flipkartMrpDisparityCount">0</strong>
-          </button>
+      <div class="market-panel">
+        <div class="market-panel-head"><strong>Flipkart Price Health</strong><button onclick="openHistoricalModule('flipkart_live')">Open</button></div>
+        <div class="market-metrics">
+          <div class="market-metric"><span>Listing Parity</span><strong id="flipkartListingParityPercent">0%</strong></div>
+          <div class="market-metric"><span>Live Parity</span><strong id="flipkartLiveParityPercent2">0%</strong></div>
+          <div class="market-metric"><span>MRP Parity</span><strong id="flipkartMrpParityPercent">0%</strong></div>
         </div>
       </div>
-
     </div>
+  </section>
 
-    <div class="result-section" style="display:block">
-      <h2 id="disparityDetailTitle">Select a disparity type</h2>
-      <div class="result-note" id="disparityDetailNote">
-        Listing Price uses the marketplace listing file. Live Price uses eligible Audit live price. MRP compares marketplace MRP against WF MRP.
-      </div>
-      <div class="table-wrap">
-        <table id="disparityDetailTable" class="result-table"></table>
-      </div>
-    </div>
-
-  </div>
-
-
-  <!-- AMAZON SUPPRESSIONS -->
-
-  <div id="amazonSuppressionSection" class="app-view">
-    <div class="panel" style="max-width:none">
-      <h2>Amazon Suppressions</h2>
-      <div class="panel-subtitle">
-        Only Amazon ASINs that are Active in All Listings and have final inventory above 0 are shown. Revenue Impact / Day = ASIN Business Report Revenue ÷ Business Report days.
-      </div>
-      <div class="module-summary">
-        <div class="module-chip" id="suppressionSummaryCount">0 ASINs</div>
-        <div class="module-chip" id="suppressionSummaryImpact">₹0 / day</div>
-      </div>
-      <div class="table-wrap">
-        <table id="amazonSuppressionTable" class="result-table compact-table"></table>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- AMAZON BUY BOX -->
-
-  <div id="amazonBuyBoxSection" class="app-view">
-    <div class="panel" style="max-width:none">
-      <h2>Amazon Buy Box Suppressed</h2>
-      <div class="panel-subtitle">
-        Only Active + in-stock ASINs matching the Audit Buy Box suppression rule are shown. Price is the Amazon All Listings price because Audit live price is intentionally ignored when Buy Now is false.
-      </div>
-      <div class="module-summary">
-        <div class="module-chip" id="buyBoxSummaryCount">0 ASINs</div>
-        <div class="module-chip" id="buyBoxSummaryImpact">₹0 / day</div>
-      </div>
-      <div class="table-wrap">
-        <table id="amazonBuyBoxTable" class="result-table compact-table"></table>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- MASTER PRICING -->
-
-  <div class="panel section-anchor app-view" id="masterPricingSection">
-
-    <h2>Master Pricing</h2>
-
-    <div class="panel-subtitle">
-      Reads Amazon and Flipkart mapping tabs directly from Google Sheets.
-    </div>
-
-    <button
-      id="masterPricingButton"
-      class="action-button"
-      onclick="connectMasterPricing()"
-    >
-      Connect Master Pricing
-    </button>
-
-    <div id="masterPricingStatus" class="master-status">
-      Not connected
-    </div>
-
-    <div class="grid-two" style="margin-top:18px">
-
-      <div>
-        <div class="master-heading">Amazon Mapping</div>
-
-        <div id="amazonMasterMetrics" class="master-grid">
-
-          <div class="master-metric">
-            <div class="master-metric-label">Rows</div>
-            <div class="master-metric-value" id="amazonMasterRowCount">0</div>
-          </div>
-
-          <div class="master-metric">
-            <div class="master-metric-label">AZ SKUs</div>
-            <div class="master-metric-value" id="amazonMasterSkuCount">0</div>
-          </div>
-
-          <div class="master-metric">
-            <div class="master-metric-label">ASINs</div>
-            <div class="master-metric-value" id="amazonMasterAsinCount">0</div>
-          </div>
-
-          <div class="master-metric">
-            <div class="master-metric-label">Categories</div>
-            <div class="master-metric-value" id="amazonMasterCategoryCount">0</div>
-          </div>
-
+  <!-- MARKETPLACE INSIGHTS -->
+  <section id="marketplaceInsightsSection" class="app-view">
+    <div class="panel">
+      <div class="panel-title-row">
+        <h2>Marketplace Insights</h2>
+        <div class="control-row">
+          <select id="insightsMarketplace"><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option></select>
+          <select id="insightsPeriod"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select>
+          <input type="date" id="insightsDate">
+          <button class="primary-btn" onclick="loadMarketplaceInsights()">View</button>
+          <button class="secondary-btn" onclick="downloadMarketplaceInsights()">Download Excel</button>
         </div>
       </div>
+      <div class="insights-grid">
+        <div class="insight-card"><span>Live Parity</span><strong id="insightsParity">0%</strong></div>
+        <div class="insight-card"><span>Live Disparity</span><strong id="insightsDisparity">0</strong></div>
+        <div class="insight-card"><span>Revenue Impact</span><strong id="insightsImpact">₹0</strong></div>
+        <div class="insight-card"><span>Issues</span><strong id="insightsIssues">0</strong></div>
+      </div>
+      <div class="table-wrap"><table id="insightsTable" class="result-table"></table></div>
+    </div>
+  </section>
 
-      <div>
-        <div class="master-heading">Flipkart Mapping</div>
-
-        <div id="flipkartMasterMetrics" class="master-grid">
-
-          <div class="master-metric">
-            <div class="master-metric-label">Rows</div>
-            <div class="master-metric-value" id="flipkartMasterRowCount">0</div>
-          </div>
-
-          <div class="master-metric">
-            <div class="master-metric-label">FK SKUs</div>
-            <div class="master-metric-value" id="flipkartMasterSkuCount">0</div>
-          </div>
-
-          <div class="master-metric">
-            <div class="master-metric-label">FSNs</div>
-            <div class="master-metric-value" id="flipkartMasterFsnCount">0</div>
-          </div>
-
-          <div class="master-metric">
-            <div class="master-metric-label">Categories</div>
-            <div class="master-metric-value" id="flipkartMasterCategoryCount">0</div>
-          </div>
-
+  <!-- GENERIC DAILY/WEEKLY/MONTHLY REPORT MODULE -->
+  <section id="reportModuleSection" class="app-view">
+    <div class="panel">
+      <div class="panel-title-row">
+        <h2 id="reportModuleTitle">Report</h2>
+        <div class="control-row">
+          <select id="reportPeriod"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select>
+          <input type="date" id="reportAnchorDate">
+          <button class="primary-btn" onclick="loadHistoricalModule()">View</button>
+          <button class="secondary-btn" onclick="downloadHistoricalModule()">Download Excel</button>
         </div>
       </div>
-
+      <div class="summary-strip">
+        <div class="summary-box"><span id="reportKpi1Label">Total</span><strong id="reportKpi1">0</strong></div>
+        <div class="summary-box"><span id="reportKpi2Label">Parity</span><strong id="reportKpi2">0</strong></div>
+        <div class="summary-box"><span id="reportKpi3Label">Disparity</span><strong id="reportKpi3">0</strong></div>
+        <div class="summary-box"><span id="reportKpi4Label">Parity %</span><strong id="reportKpi4">0%</strong></div>
+      </div>
+      <div class="table-wrap"><table id="reportModuleTable" class="result-table"></table></div>
     </div>
-
-  </div>
-
+  </section>
 
   <!-- UPLOAD CENTER -->
-
-  <div class="grid-two section-anchor app-view" id="uploadSection">
-
-    <div class="upload">
-
-      <h2>Upload Center</h2>
-
-      <div class="panel-subtitle" style="margin-bottom:18px">
-        Audit is one shared report for Amazon and Flipkart.
-      </div>
-
-      <label>Report Date</label>
-      <input type="date" id="reportDate">
-
-      <div id="businessReportDaysField">
-        <label>Amazon Business Report Period (Days)</label>
-        <input type="number" id="businessReportDaysInput" min="1" value="60">
-        <div class="field-note">The current Amazon Business Report CSV has no date column, so WakeSuite uses this period for Revenue Impact / Day. Keep 60 for the current 60-day report.</div>
-      </div>
-
-      <label>Menu</label>
-      <select id="menu">
-        <option value="">Loading from Firebase...</option>
-      </select>
-
-      <label>Folder</label>
-      <select id="folder">
-        <option value="">Select Menu first</option>
-      </select>
-
-      <label>File</label>
-      <input
-        type="file"
-        id="file"
-        accept=".csv,.txt,.tsv,.xlsx,.xls"
-      >
-
-      <button
-        id="uploadButton"
-        onclick="uploadData()"
-      >
-        Validate & Load Report
-      </button>
-
-      <div id="uploadStatus" class="upload-status"></div>
-
-      <div id="fileInfo" class="file-info">
-
-        <div class="file-info-title">Parsed Report</div>
-
-        <div class="file-info-row" id="parsedFileName"></div>
-        <div class="file-info-row" id="parsedSheetName"></div>
-        <div class="file-info-row" id="parsedRowCount"></div>
-        <div class="file-info-row" id="parsedHeaders"></div>
-        <div class="file-info-row" id="detectedReport"></div>
-        <div class="file-info-row" id="validationResult"></div>
-
-      </div>
-
-      <div id="businessSummary" class="business-summary">
-
-        <h3>Amazon Business Report Summary</h3>
-
-        <div class="summary-grid">
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">ASINs</div>
-            <div class="summary-metric-value" id="businessAsinCount">0</div>
-          </div>
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Units Ordered</div>
-            <div class="summary-metric-value" id="businessUnits">0</div>
-          </div>
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Revenue</div>
-            <div class="summary-metric-value" id="businessRevenue">₹0</div>
-          </div>
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Order Items</div>
-            <div class="summary-metric-value" id="businessOrderItems">0</div>
-          </div>
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Report Days</div>
-            <div class="summary-metric-value" id="businessReportDaysSummary">60</div>
-          </div>
-
+  <section id="uploadSection" class="app-view">
+    <div class="upload-layout">
+      <div class="panel">
+        <div class="panel-title-row"><h2>Upload Center</h2></div>
+        <div class="form-grid">
+          <div class="form-field"><label>Report Date</label><input type="date" id="reportDate"></div>
+          <div class="form-field"><label>Menu</label><select id="menu"><option value="">Loading...</option></select></div>
+          <div class="form-field"><label>Folder</label><select id="folder"><option value="">Select Menu</option></select></div>
+          <div class="form-field"><label>File</label><input type="file" id="file" accept=".csv,.txt,.tsv,.xlsx,.xls"></div>
+          <div class="form-field full"><button class="primary-btn" style="width:100%" id="uploadButton" onclick="uploadData()">Upload</button></div>
         </div>
-
+        <div id="uploadStatus" class="upload-status"></div>
+        <div id="fileInfo" class="file-info"><div id="parsedFileName"></div><div id="parsedSheetName"></div><div id="parsedRowCount"></div><div id="parsedHeaders"></div><div id="detectedReport"></div><div id="validationResult"></div></div>
+        <div id="businessSummary" class="business-summary"><div id="businessAsinCount"></div><div id="businessUnits"></div><div id="businessRevenue"></div><div id="businessOrderItems"></div><div id="businessReportDaysSummary"></div></div>
+        <div id="auditUploadSummary" class="audit-summary"></div>
       </div>
 
-      <div id="auditUploadSummary" class="audit-summary">
-
-        <h3>Shared Audit Report Summary</h3>
-
-        <div class="summary-grid">
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Amazon ASINs</div>
-            <div class="summary-metric-value" id="auditAmazonAsins">0</div>
-          </div>
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Amazon Suppressed</div>
-            <div class="summary-metric-value" id="auditAmazonSuppressed">0</div>
-          </div>
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Flipkart FSNs</div>
-            <div class="summary-metric-value" id="auditFlipkartFsns">0</div>
-          </div>
-
-          <div class="summary-metric">
-            <div class="summary-metric-label">Flipkart No Buy Box</div>
-            <div class="summary-metric-value" id="auditFlipkartNoBuyBox">0</div>
-          </div>
-
-        </div>
-
+      <div class="panel">
+        <div class="readiness-head"><strong id="readinessTitle">Daily Readiness</strong><span id="readinessCounter">0 / 7</span></div>
+        <div id="readinessList" class="readiness-list"></div>
       </div>
-
     </div>
+  </section>
 
-
+  <!-- MASTER PRICING -->
+  <section id="masterPricingSection" class="app-view">
     <div class="panel">
-
-      <h2>Processing Readiness</h2>
-
-      <div class="panel-subtitle">
-        Green means that report is loaded in the current browser session.
+      <div class="panel-title-row"><h2>Master Pricing</h2><button id="masterPricingButton" class="primary-btn" onclick="connectMasterPricing()">Connect Master Pricing</button></div>
+      <div id="masterPricingStatus" class="master-status">Not connected</div>
+      <div id="amazonMasterMetrics" class="master-grid">
+        <div class="master-metric"><div class="master-metric-label">Amazon Rows</div><div class="master-metric-value" id="amazonMasterRowCount">0</div></div>
+        <div class="master-metric"><div class="master-metric-label">AZ SKUs</div><div class="master-metric-value" id="amazonMasterSkuCount">0</div></div>
+        <div class="master-metric"><div class="master-metric-label">ASINs</div><div class="master-metric-value" id="amazonMasterAsinCount">0</div></div>
+        <div class="master-metric"><div class="master-metric-label">Categories</div><div class="master-metric-value" id="amazonMasterCategoryCount">0</div></div>
       </div>
-
-      <div class="readiness-list" id="readinessList"></div>
-
-      <div class="master-status" style="margin-top:16px">
-        Refreshing or closing the page clears parsed report data. Firestore stores upload metadata only.
+      <div id="flipkartMasterMetrics" class="master-grid">
+        <div class="master-metric"><div class="master-metric-label">Flipkart Rows</div><div class="master-metric-value" id="flipkartMasterRowCount">0</div></div>
+        <div class="master-metric"><div class="master-metric-label">FK SKUs</div><div class="master-metric-value" id="flipkartMasterSkuCount">0</div></div>
+        <div class="master-metric"><div class="master-metric-label">FSNs</div><div class="master-metric-value" id="flipkartMasterFsnCount">0</div></div>
+        <div class="master-metric"><div class="master-metric-label">Categories</div><div class="master-metric-value" id="flipkartMasterCategoryCount">0</div></div>
       </div>
-
     </div>
+  </section>
 
+  <!-- Compatibility nodes used by the proven processing engine; hidden from the final UI. -->
+  <div class="hidden-compat">
+    <input id="businessReportDaysInput" value="60"><div id="businessReportDaysField"></div>
+    <button id="runAmazonButton"></button><button id="runFlipkartButton"></button>
+    <div id="auditSection"></div><div id="engineSection"></div><div id="disparityHubSection"></div>
+    <div id="amazonPriceDisparitySection"><div id="amazonResultSummary"></div><select id="amazonResultFilter"><option value="all">All</option></select><input id="amazonSearch"><table id="amazonPriceDisparityTable"></table></div>
+    <div id="flipkartPriceDisparitySection"><div id="flipkartResultNote"></div><select id="flipkartResultFilter"><option value="all">All</option></select><input id="flipkartSearch"><table id="flipkartPriceDisparityTable"></table></div>
+    <table id="amazonSuppressionTable"></table><table id="amazonBuyBoxTable"></table><table id="disparityDetailTable"></table>
+    <div id="totalLiveDisparityCount"></div><div id="dashboardReportsLoaded"></div>
+    <div id="amazonListingDisparityCount"></div><div id="amazonMrpDisparityCount"></div><div id="flipkartListingDisparityCount"></div><div id="flipkartMrpDisparityCount"></div>
+    <div id="amazonSuppressionImpactNote"></div><div id="amazonBuyBoxImpactNote"></div>
+    <div id="suppressionSummaryCount"></div><div id="suppressionSummaryImpact"></div><div id="buyBoxSummaryCount"></div><div id="buyBoxSummaryImpact"></div>
+    <div id="auditAmazonAsins"></div><div id="auditAmazonSuppressed"></div><div id="auditFlipkartFsns"></div><div id="auditFlipkartNoBuyBox"></div>
+    <div id="auditHealthAmazonAsins"></div><div id="auditHealthAmazonSuppressed"></div><div id="auditHealthAmazonBuyBox"></div><div id="auditHealthAmazonLive"></div><div id="auditHealthFlipkartFsns"></div><div id="auditHealthFlipkartNoBuyBox"></div><div id="auditHealthFlipkartLive"></div><div id="auditHealthRows"></div>
   </div>
 
-
-  <!-- AUDIT HEALTH -->
-
-  <div class="panel section-anchor app-view" id="auditSection">
-
-    <h2>Shared Audit Health</h2>
-
-    <div class="panel-subtitle">
-      Amazon joins by ASIN. Flipkart joins by FSN. Audit live price becomes the final live price only when the marketplace state is eligible.
-    </div>
-
-    <div class="grid-two" style="margin-top:14px">
-
-      <div class="audit-rule">
-        <strong>Amazon</strong><br><br>
-        Suppressed = amazon_has_supersede_issue is True.<br><br>
-        Price comparison = suppression False + Buy Now True + valid amazon_selling_price.<br><br>
-        Buy Box Suppressed = suppression False + Buy Now False + amazon_edd blank + amazon_deliver_to nonblank.<br><br>
-        No OOS/currently-unavailable classification is used.
-      </div>
-
-      <div class="audit-rule">
-        <strong>Flipkart</strong><br><br>
-        No suppression status.<br><br>
-        Price comparison = Buy Now True + valid flipkart_selling_price.<br><br>
-        Buy Now False = No Buy Box. Any scraped Flipkart selling price is ignored because it may belong to another product.
-      </div>
-
-    </div>
-
-    <div class="master-grid" id="auditHealthMetrics" style="display:grid;margin-top:16px">
-
-      <div class="master-metric">
-        <div class="master-metric-label">Amazon ASINs</div>
-        <div class="master-metric-value" id="auditHealthAmazonAsins">0</div>
-      </div>
-
-      <div class="master-metric">
-        <div class="master-metric-label">Amazon Suppressed</div>
-        <div class="master-metric-value" id="auditHealthAmazonSuppressed">0</div>
-      </div>
-
-      <div class="master-metric">
-        <div class="master-metric-label">Amazon Buy Box Suppressed</div>
-        <div class="master-metric-value" id="auditHealthAmazonBuyBox">0</div>
-      </div>
-
-      <div class="master-metric">
-        <div class="master-metric-label">Amazon Valid Live Prices</div>
-        <div class="master-metric-value" id="auditHealthAmazonLive">0</div>
-      </div>
-
-      <div class="master-metric">
-        <div class="master-metric-label">Flipkart FSNs</div>
-        <div class="master-metric-value" id="auditHealthFlipkartFsns">0</div>
-      </div>
-
-      <div class="master-metric">
-        <div class="master-metric-label">Flipkart No Buy Box</div>
-        <div class="master-metric-value" id="auditHealthFlipkartNoBuyBox">0</div>
-      </div>
-
-      <div class="master-metric">
-        <div class="master-metric-label">Flipkart Valid Live Prices</div>
-        <div class="master-metric-value" id="auditHealthFlipkartLive">0</div>
-      </div>
-
-      <div class="master-metric">
-        <div class="master-metric-label">Audit Rows</div>
-        <div class="master-metric-value" id="auditHealthRows">0</div>
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- ENGINES -->
-
-  <div class="grid-two section-anchor app-view" id="engineSection">
-
-    <div class="panel">
-
-      <h2>Amazon Price Disparity</h2>
-
-      <div class="panel-subtitle">
-        Master Pricing + Daily Pricing + All Listings + FBA + Business Reports + Shared Audit.
-      </div>
-
-      <div class="audit-rule">
-        ±₹5 tolerance. Audit Live Price is final when Amazon is not suppressed and Buy Now is True. 60-day Business Report revenue stays once per ASIN.
-      </div>
-
-      <div class="engine-buttons">
-
-        <button
-          id="runAmazonButton"
-          class="action-button"
-          onclick="runAmazonPriceDisparity()"
-          disabled
-        >
-          Run Amazon Engine
-        </button>
-
-        <button
-          class="secondary-button"
-          onclick="downloadAmazonResults()"
-        >
-          Download Results
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <div class="panel">
-
-      <h2>Flipkart Price Disparity</h2>
-
-      <div class="panel-subtitle">
-        Master Pricing + Daily Pricing + Listing File + Order Report + Shared Audit.
-      </div>
-
-      <div class="audit-rule">
-        ±₹5 tolerance. System Stock only. Orders join by FSN. CANCELLED quantity is excluded from revenue. Audit price is ignored whenever Buy Now is False.
-      </div>
-
-      <div class="engine-buttons">
-
-        <button
-          id="runFlipkartButton"
-          class="action-button"
-          onclick="runFlipkartPriceDisparity()"
-          disabled
-        >
-          Run Flipkart Engine
-        </button>
-
-        <button
-          class="secondary-button"
-          onclick="downloadFlipkartResults()"
-        >
-          Download Results
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- AMAZON RESULTS -->
-
-  <div id="amazonPriceDisparitySection" class="result-section section-anchor app-view">
-
-    <h2>Amazon Results</h2>
-
-    <div class="result-note" id="amazonResultSummary">
-      Run the Amazon engine to populate results.
-    </div>
-
-    <div class="result-toolbar">
-
-      <select id="amazonResultFilter" onchange="renderAmazonResults()">
-        <option value="disparity">Price Disparity</option>
-        <option value="suppressed">Suppressed</option>
-        <option value="buybox">Buy Box Suppressed</option>
-        <option value="all">All Active / In-stock</option>
-      </select>
-
-      <input
-        type="search"
-        id="amazonSearch"
-        placeholder="Search ASIN / SKU / Category"
-        oninput="renderAmazonResults()"
-      >
-
-      <button
-        class="secondary-button"
-        onclick="downloadAmazonResults()"
-      >
-        Download CSV
-      </button>
-
-    </div>
-
-    <div class="table-wrap">
-      <table id="amazonPriceDisparityTable" class="result-table"></table>
-    </div>
-
-  </div>
-
-
-  <!-- FLIPKART RESULTS -->
-
-  <div id="flipkartPriceDisparitySection" class="result-section section-anchor app-view">
-
-    <h2>Flipkart Results</h2>
-
-    <div class="result-note" id="flipkartResultNote">
-      Run the Flipkart engine to populate results.
-    </div>
-
-    <div class="result-toolbar">
-
-      <select id="flipkartResultFilter" onchange="renderFlipkartResults()">
-        <option value="disparity">Price Disparity</option>
-        <option value="nobuybox">No Buy Box</option>
-        <option value="all">All Active / In-stock</option>
-      </select>
-
-      <input
-        type="search"
-        id="flipkartSearch"
-        placeholder="Search FSN / SKU / Category"
-        oninput="renderFlipkartResults()"
-      >
-
-      <button
-        class="secondary-button"
-        onclick="downloadFlipkartResults()"
-      >
-        Download CSV
-      </button>
-
-    </div>
-
-    <div class="table-wrap">
-      <table id="flipkartPriceDisparityTable" class="result-table"></table>
-    </div>
-
-  </div>
-
-
-  <div class="footer">
-    WakeSuite © 2026 · Browser-side processing · Firebase Auth & Firestore metadata · Google Sheets API Master Pricing
-  </div>
-
-</div>
+  <div class="footer">WakeSuite © 2026</div>
+</main>
 
 <script>
 
@@ -9113,6 +7614,669 @@ function downloadFlipkartResults(){
 }
 
 
+
+
+/* ======================================================
+   FINAL WAKESUITE ARCHITECTURE
+   - same-date gate
+   - IndexedDB local persistence
+   - automatic one-time daily processing
+   - Firestore daily snapshot history
+   - daily / weekly / monthly reporting
+====================================================== */
+
+const FINAL_REQUIRED_REPORTS = [
+  ["wakefit_daily_pricing","Wakefit · Daily Pricing"],
+  ["amazon_all_listings","Amazon · All Listings"],
+  ["amazon_fba_inventory","Amazon · FBA Inventory"],
+  ["amazon_business_reports","Amazon · Business Reports"],
+  ["flipkart_listing_file","Flipkart · Listing File"],
+  ["flipkart_order_report","Flipkart · Order Report"],
+  ["marketplace_audit_report","Shared · Audit Report"]
+];
+
+const FINAL_VIEW_TITLES = {
+  dashboardHome:"Dashboard",
+  marketplaceInsightsSection:"Marketplace Insights",
+  reportModuleSection:"Report",
+  uploadSection:"Upload Center",
+  masterPricingSection:"Master Pricing"
+};
+
+let currentHistoricalViewKey = "amazon_live";
+let currentHistoricalReport = null;
+let currentInsightsReport = null;
+let processingLock = false;
+let currentSessionDate = null;
+const snapshotCache = new Map();
+
+function finalSetText(id,value){
+  const el = document.getElementById(id);
+  if(el){ el.textContent = value; }
+}
+
+function todayIso(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function showView(id){
+  document.querySelectorAll(".app-view").forEach(el=>el.classList.remove("active"));
+  const target = document.getElementById(id);
+  if(!target){ return; }
+  target.classList.add("active");
+  finalSetText("pageTitle",FINAL_VIEW_TITLES[id] || "WakeSuite");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function updateRunButtons(){
+  // Manual processing is intentionally disabled in the final workflow.
+}
+
+function getBusinessReportDays(){
+  return DEFAULT_AMAZON_BUSINESS_REPORT_DAYS;
+}
+
+function updateBusinessDaysVisibility(){
+  const field = document.getElementById("businessReportDaysField");
+  if(field){ field.style.display = "none"; }
+}
+
+/* ---------- IndexedDB ---------- */
+
+function openWakeSuiteDb(){
+  return new Promise((resolve,reject)=>{
+    const request = indexedDB.open("WakeSuite_Local",1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if(!db.objectStoreNames.contains("reports")){
+        const store = db.createObjectStore("reports",{keyPath:"key"});
+        store.createIndex("reportDate","reportDate",{unique:false});
+      }
+    };
+    request.onsuccess = ()=>resolve(request.result);
+    request.onerror = ()=>reject(request.error);
+  });
+}
+
+async function idbPutReport(reportDate,configId,record){
+  const db = await openWakeSuiteDb();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction("reports","readwrite");
+    tx.objectStore("reports").put({
+      key:`${reportDate}::${configId}`,
+      reportDate,
+      configId,
+      record
+    });
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+async function idbGetReportsForDate(reportDate){
+  const db = await openWakeSuiteDb();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction("reports","readonly");
+    const index = tx.objectStore("reports").index("reportDate");
+    const req = index.getAll(reportDate);
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function persistCurrentUploadedReport(reportDate,configId){
+  const current = window.wakeSuiteSessionReports?.[configId];
+  if(!current || current.reportDate !== reportDate){ return; }
+  const clone = {
+    ...current,
+    file:null,
+    fileName:current.parsedFile?.fileName || "",
+    fileSize:current.parsedFile?.fileSize || 0,
+    lastModified:current.lastModified || current.file?.lastModified || 0
+  };
+  await idbPutReport(reportDate,configId,clone);
+}
+
+async function restoreSessionForDate(reportDate){
+  if(!reportDate){ return; }
+  const items = await idbGetReportsForDate(reportDate);
+  const restored = {};
+  items.forEach(item=>{ restored[item.configId] = item.record; });
+  window.wakeSuiteSessionReports = restored;
+  currentSessionDate = reportDate;
+  updateReadiness();
+}
+
+function getSelectedReportDate(){
+  return document.getElementById("reportDate")?.value || currentSessionDate || todayIso();
+}
+
+function reportsAllSameDate(date){
+  return FINAL_REQUIRED_REPORTS.every(([id])=>{
+    const r = window.wakeSuiteSessionReports?.[id];
+    return !!r && r.reportDate === date;
+  });
+}
+
+function buildInputFingerprint(date){
+  const payload = FINAL_REQUIRED_REPORTS.map(([id])=>{
+    const r = window.wakeSuiteSessionReports?.[id];
+    return [
+      id,
+      r?.reportDate || "",
+      r?.parsedFile?.fileName || r?.fileName || "",
+      Number(r?.parsedFile?.fileSize || r?.fileSize || 0),
+      Number(r?.lastModified || 0),
+      Number(r?.parsedFile?.rowCount || 0)
+    ];
+  });
+  return btoa(unescape(encodeURIComponent(JSON.stringify([date,payload]))));
+}
+
+function updateReadiness(){
+  const date = getSelectedReportDate();
+  let loaded = 0;
+  let html = "";
+  FINAL_REQUIRED_REPORTS.forEach(([id,label])=>{
+    const report = window.wakeSuiteSessionReports?.[id];
+    const ready = !!report && report.reportDate === date;
+    if(ready){ loaded += 1; }
+    html += `<div class="ready-row"><span>${escapeHtml(label)}</span><span class="ready-badge ${ready ? "ready" : ""}">${ready ? "Ready" : "Pending"}</span></div>`;
+  });
+  const box = document.getElementById("readinessList");
+  if(box){ box.innerHTML = html; }
+  finalSetText("readinessCounter",`${loaded} / ${FINAL_REQUIRED_REPORTS.length}`);
+  finalSetText("readinessTitle",date ? `Daily Readiness · ${date}` : "Daily Readiness");
+  finalSetText("sessionChipText",`${loaded} / ${FINAL_REQUIRED_REPORTS.length} Ready`);
+  const chip = document.getElementById("sessionChip");
+  if(chip){ chip.classList.toggle("ready",loaded === FINAL_REQUIRED_REPORTS.length); }
+  const old = document.getElementById("dashboardReportsLoaded");
+  if(old){ old.textContent = String(loaded); }
+}
+
+/* ---------- Compact history serialization ---------- */
+
+function compactAmazonRow(r){
+  return [r.category,r.wfSku,r.azSku,r.asin,r.wfMrp,r.wfPrice,r.azMrp,r.listingPrice,r.finalLivePrice,r.inventory,r.suppressionStatus,r.buyBoxStatus,!!r.listingPriceDisparity,!!r.livePriceDisparity,!!r.mrpDisparity,r.listingPriceDiff,r.livePriceDiff,r.mrpDiff,r.dailyRevenueImpact,r.requiredAction,r.listingPriceAction,!!r.eligibleForComparison];
+}
+function expandAmazonRow(a){
+  return {category:a[0],wfSku:a[1],azSku:a[2],asin:a[3],wfMrp:a[4],wfPrice:a[5],azMrp:a[6],listingPrice:a[7],finalLivePrice:a[8],inventory:a[9],suppressionStatus:a[10],buyBoxStatus:a[11],listingPriceDisparity:!!a[12],livePriceDisparity:!!a[13],mrpDisparity:!!a[14],listingPriceDiff:a[15],livePriceDiff:a[16],mrpDiff:a[17],dailyRevenueImpact:a[18]||0,requiredAction:a[19],listingPriceAction:a[20],eligibleForComparison:!!a[21]};
+}
+function compactAmazonIssueRow(r){
+  return [r.category,r.asin,r.wfSku,r.listingPrice,r.businessRevenue,r.revenueImpactPerDay,r.azSku];
+}
+function expandAmazonIssueRow(a){
+  return {category:a[0],asin:a[1],wfSku:a[2],listingPrice:a[3],businessRevenue:a[4],revenueImpactPerDay:a[5],azSku:a[6]};
+}
+function compactFlipkartRow(r){
+  return [r.category,r.wfSku,r.fkSku,r.fsn,r.wfMrp,r.wfPrice,r.fkMrp,r.listingPrice,r.finalLivePrice,r.inventory,r.buyBoxStatus,!!r.listingPriceDisparity,!!r.livePriceDisparity,!!r.mrpDisparity,r.listingPriceDiff,r.livePriceDiff,r.mrpDiff,r.dailyRevenueImpact,r.calculatedRevenue,r.ordersReceived,r.revenueQuantity,r.requiredAction,r.listingPriceAction,!!r.eligibleForComparison];
+}
+function expandFlipkartRow(a){
+  return {category:a[0],wfSku:a[1],fkSku:a[2],fsn:a[3],wfMrp:a[4],wfPrice:a[5],fkMrp:a[6],listingPrice:a[7],finalLivePrice:a[8],inventory:a[9],buyBoxStatus:a[10],listingPriceDisparity:!!a[11],livePriceDisparity:!!a[12],mrpDisparity:!!a[13],listingPriceDiff:a[14],livePriceDiff:a[15],mrpDiff:a[16],dailyRevenueImpact:a[17]||0,calculatedRevenue:a[18]||0,ordersReceived:a[19]||0,revenueQuantity:a[20]||0,requiredAction:a[21],listingPriceAction:a[22],eligibleForComparison:!!a[23]};
+}
+
+function calcParityStats(rows,kind,marketplace){
+  let eligible = [];
+  let disparityCount = 0;
+  if(kind === "listing"){
+    eligible = rows.filter(r=>Number(r.listingPrice)>0);
+    disparityCount = eligible.filter(r=>r.listingPriceDisparity).length;
+  }else if(kind === "live"){
+    eligible = rows.filter(r=>r.eligibleForComparison && Number(r.finalLivePrice)>0);
+    disparityCount = eligible.filter(r=>r.livePriceDisparity).length;
+  }else{
+    const marketMrpKey = marketplace === "amazon" ? "azMrp" : "fkMrp";
+    eligible = rows.filter(r=>Number(r.wfMrp)>0 && Number(r[marketMrpKey])>0);
+    disparityCount = eligible.filter(r=>r.mrpDisparity).length;
+  }
+  return {
+    eligible:eligible.length,
+    disparity:disparityCount,
+    parity:Math.max(0,eligible.length-disparityCount),
+    parityPct:eligible.length ? (eligible.length-disparityCount)/eligible.length : 0
+  };
+}
+
+function buildSnapshotInsights(amazon,flipkart){
+  const azListing = calcParityStats(amazon.rows,"listing","amazon");
+  const azLive = calcParityStats(amazon.rows,"live","amazon");
+  const azMrp = calcParityStats(amazon.rows,"mrp","amazon");
+  const fkListing = calcParityStats(flipkart.rows,"listing","flipkart");
+  const fkLive = calcParityStats(flipkart.rows,"live","flipkart");
+  const fkMrp = calcParityStats(flipkart.rows,"mrp","flipkart");
+  return {
+    amazon:{listing:azListing,live:azLive,mrp:azMrp,suppressions:amazon.suppressionRows.length,buyBox:amazon.buyBoxSuppressedRows.length,suppressionImpact:amazon.summary.suppressionRevenueImpactPerDay||0,buyBoxImpact:amazon.summary.buyBoxRevenueImpactPerDay||0,priceImpact:amazon.summary.totalDailyRevenueImpact||0},
+    flipkart:{listing:fkListing,live:fkLive,mrp:fkMrp,noBuyBox:flipkart.rows.filter(r=>r.buyBoxStatus === "No Buy Box").length,priceImpact:flipkart.summary.totalDailyRevenueImpact||0}
+  };
+}
+
+function makePersistedSnapshot(date,fingerprint,amazon,flipkart){
+  return {
+    reportDate:date,
+    fingerprint,
+    insights:buildSnapshotInsights(amazon,flipkart),
+    amazonSummary:amazon.summary,
+    flipkartSummary:flipkart.summary,
+    flipkartOrderPeriod:flipkart.orderPeriod || null,
+    amazonRows:amazon.rows.map(compactAmazonRow),
+    amazonSuppressions:amazon.suppressionRows.map(compactAmazonIssueRow),
+    amazonBuyBox:amazon.buyBoxSuppressedRows.map(compactAmazonIssueRow),
+    flipkartRows:flipkart.rows.map(compactFlipkartRow)
+  };
+}
+
+function hydrateSnapshot(snapshot){
+  const amazonRows = (snapshot.amazonRows||[]).map(row=>Array.isArray(row)?expandAmazonRow(row):row);
+  const suppressionRows = (snapshot.amazonSuppressions||[]).map(row=>Array.isArray(row)?expandAmazonIssueRow(row):row);
+  const buyBoxRows = (snapshot.amazonBuyBox||[]).map(row=>Array.isArray(row)?expandAmazonIssueRow(row):row);
+  const flipkartRows = (snapshot.flipkartRows||[]).map(row=>Array.isArray(row)?expandFlipkartRow(row):row);
+  const amazonSummary = snapshot.amazonSummary || {};
+  const flipkartSummary = snapshot.flipkartSummary || {};
+  window.amazonPriceDisparityResult = {
+    rows:amazonRows,
+    listingPriceDisparityRows:amazonRows.filter(r=>r.listingPriceDisparity),
+    livePriceDisparityRows:amazonRows.filter(r=>r.livePriceDisparity),
+    mrpDisparityRows:amazonRows.filter(r=>r.mrpDisparity),
+    suppressionRows,
+    buyBoxSuppressedRows:buyBoxRows,
+    summary:amazonSummary
+  };
+  window.flipkartPriceDisparityResult = {
+    rows:flipkartRows,
+    listingPriceDisparityRows:flipkartRows.filter(r=>r.listingPriceDisparity),
+    livePriceDisparityRows:flipkartRows.filter(r=>r.livePriceDisparity),
+    mrpDisparityRows:flipkartRows.filter(r=>r.mrpDisparity),
+    summary:flipkartSummary,
+    orderPeriod:snapshot.flipkartOrderPeriod || null
+  };
+  renderFinalDashboard(snapshot);
+}
+
+async function maybeAutoProcessCurrentDate(){
+  const date = getSelectedReportDate();
+  if(!date || processingLock){ return; }
+  if(!window.masterPricingAmazon || !window.masterPricingFlipkart){ return; }
+  if(!reportsAllSameDate(date)){ return; }
+  if(typeof window.saveDailySnapshot !== "function"){ return; }
+
+  const fingerprint = buildInputFingerprint(date);
+  processingLock = true;
+  try{
+    setUploadStatus("All required reports are ready. Processing...","success");
+    const existing = await window.getDailySnapshotMeta(date);
+    if(existing?.status === "completed" && existing?.fingerprint === fingerprint){
+      const saved = await window.loadDailySnapshot(date);
+      snapshotCache.set(date,saved);
+      hydrateSnapshot(saved);
+      setUploadStatus(`All 7 reports ready. ${date} is already processed.`,"success");
+      return;
+    }
+
+    const amazon = buildAmazonPriceDisparity();
+    const flipkart = buildFlipkartPriceDisparity();
+    const snapshot = makePersistedSnapshot(date,fingerprint,amazon,flipkart);
+    const savedMeta = await window.saveDailySnapshot(date,snapshot);
+    snapshot.revision = savedMeta.revision;
+    snapshotCache.set(date,snapshot);
+    hydrateSnapshot(snapshot);
+    setUploadStatus(`7 / 7 Ready · ${date} processed and stored.`,"success");
+  }catch(error){
+    console.error("Automatic processing failed",error);
+    setUploadStatus("Automatic processing failed: " + error.message,"error");
+  }finally{
+    processingLock = false;
+    updateReadiness();
+  }
+}
+
+/* Wrap the proven upload function. */
+const coreUploadData = uploadData;
+uploadData = async function(){
+  const date = document.getElementById("reportDate")?.value;
+  if(date && currentSessionDate !== date){
+    await restoreSessionForDate(date);
+  }
+  const menu = document.getElementById("menu")?.value;
+  const folder = document.getElementById("folder")?.value;
+  const config = getSelectedConfig(menu,folder);
+  await coreUploadData();
+  if(date && config?.id && window.wakeSuiteSessionReports?.[config.id]?.reportDate === date){
+    const sessionRecord = window.wakeSuiteSessionReports[config.id];
+    sessionRecord.fileName = sessionRecord.parsedFile?.fileName || "";
+    sessionRecord.fileSize = sessionRecord.parsedFile?.fileSize || 0;
+    sessionRecord.lastModified = document.getElementById("file")?.files?.[0]?.lastModified || 0;
+    await persistCurrentUploadedReport(date,config.id);
+    updateReadiness();
+    await maybeAutoProcessCurrentDate();
+  }
+};
+
+const coreLoadAllMasterPricing = loadAllMasterPricing;
+loadAllMasterPricing = async function(){
+  const result = await coreLoadAllMasterPricing();
+  updateReadiness();
+  await maybeAutoProcessCurrentDate();
+  return result;
+};
+
+/* ---------- Dashboard ---------- */
+
+function renderFinalDashboard(snapshot){
+  const insights = snapshot?.insights || buildSnapshotInsights(window.amazonPriceDisparityResult || {rows:[],suppressionRows:[],buyBoxSuppressedRows:[],summary:{}},window.flipkartPriceDisparityResult || {rows:[],summary:{}});
+  const az = insights.amazon || {};
+  const fk = insights.flipkart || {};
+  const azLive = az.live || {parityPct:0,disparity:0};
+  const fkLive = fk.live || {parityPct:0,disparity:0};
+  finalSetText("amazonLiveParityPercent",formatPercent(azLive.parityPct||0));
+  finalSetText("amazonLiveParityPercent2",formatPercent(azLive.parityPct||0));
+  finalSetText("amazonLiveDisparityCount",formatNumber(azLive.disparity||0));
+  finalSetText("amazonSuppressedCount",formatNumber(az.suppressions||0));
+  finalSetText("amazonBuyBoxSuppressedCount",formatNumber(az.buyBox||0));
+  finalSetText("flipkartLiveParityPercent",formatPercent(fkLive.parityPct||0));
+  finalSetText("flipkartLiveParityPercent2",formatPercent(fkLive.parityPct||0));
+  finalSetText("flipkartLiveDisparityCount",formatNumber(fkLive.disparity||0));
+  finalSetText("flipkartNoBuyBoxCount",formatNumber(fk.noBuyBox||0));
+  finalSetText("amazonListingParityPercent",formatPercent(az.listing?.parityPct||0));
+  finalSetText("amazonMrpParityPercent",formatPercent(az.mrp?.parityPct||0));
+  finalSetText("flipkartListingParityPercent",formatPercent(fk.listing?.parityPct||0));
+  finalSetText("flipkartMrpParityPercent",formatPercent(fk.mrp?.parityPct||0));
+  finalSetText("combinedDailyImpact",formatINR((az.priceImpact||0)+(fk.priceImpact||0)));
+  const date = snapshot?.reportDate || "";
+  if(date){
+    finalSetText("latestCompletedDateDisplay",`As of ${date}`);
+    finalSetText("dashboardStatusText",`Latest completed data · ${date}`);
+  }
+}
+
+async function initializeWakeSuiteHistory(){
+  const today = todayIso();
+  const reportDate = document.getElementById("reportDate");
+  const insightsDate = document.getElementById("insightsDate");
+  const reportAnchor = document.getElementById("reportAnchorDate");
+  if(reportDate && !reportDate.value){ reportDate.value = today; }
+  if(insightsDate && !insightsDate.value){ insightsDate.value = today; }
+  if(reportAnchor && !reportAnchor.value){ reportAnchor.value = today; }
+  await restoreSessionForDate(reportDate?.value || today);
+  try{
+    const latest = await window.getLatestCompletedSnapshot();
+    if(latest){
+      snapshotCache.set(latest.reportDate,latest);
+      hydrateSnapshot(latest);
+      if(insightsDate){ insightsDate.value = latest.reportDate; }
+      if(reportAnchor){ reportAnchor.value = latest.reportDate; }
+    }
+  }catch(error){
+    console.warn("Historical dashboard unavailable",error);
+  }
+  updateReadiness();
+  await maybeAutoProcessCurrentDate();
+}
+
+/* ---------- Historical report engine ---------- */
+
+const HISTORICAL_VIEWS = {
+  amazon_listing:{title:"Amazon · Listing Price Disparity",type:"price",marketplace:"amazon",kind:"listing"},
+  amazon_live:{title:"Amazon · Live Price Disparity",type:"price",marketplace:"amazon",kind:"live"},
+  amazon_mrp:{title:"Amazon · MRP Disparity",type:"price",marketplace:"amazon",kind:"mrp"},
+  amazon_suppression:{title:"Amazon · ASIN Suppression",type:"suppression",marketplace:"amazon"},
+  amazon_buybox:{title:"Amazon · Buy Box Suppression",type:"amazon_buybox",marketplace:"amazon"},
+  flipkart_listing:{title:"Flipkart · Listing Price Disparity",type:"price",marketplace:"flipkart",kind:"listing"},
+  flipkart_live:{title:"Flipkart · Live Price Disparity",type:"price",marketplace:"flipkart",kind:"live"},
+  flipkart_mrp:{title:"Flipkart · MRP Disparity",type:"price",marketplace:"flipkart",kind:"mrp"},
+  flipkart_buybox:{title:"Flipkart · Buy Box Unavailable",type:"flipkart_buybox",marketplace:"flipkart"}
+};
+
+function openHistoricalModule(viewKey){
+  currentHistoricalViewKey = viewKey;
+  const def = HISTORICAL_VIEWS[viewKey];
+  finalSetText("reportModuleTitle",def?.title || "Report");
+  showView("reportModuleSection");
+  const latestDate = document.getElementById("latestCompletedDateDisplay")?.textContent?.replace("As of ","");
+  const input = document.getElementById("reportAnchorDate");
+  if(input && latestDate && latestDate !== "—"){ input.value = latestDate; }
+  loadHistoricalModule();
+}
+
+function getWeekBounds(dateString){
+  const d = new Date(dateString + "T00:00:00");
+  const day = d.getDay();
+  const delta = day === 0 ? -6 : 1-day;
+  const start = new Date(d); start.setDate(d.getDate()+delta);
+  const end = new Date(start); end.setDate(start.getDate()+6);
+  const toIso = x=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;
+  return [toIso(start),toIso(end)];
+}
+
+function filterMetasForPeriod(metas,period,anchor){
+  if(period === "daily"){
+    return metas.filter(m=>m.reportDate === anchor);
+  }
+  if(period === "weekly"){
+    const [start,end] = getWeekBounds(anchor);
+    return metas.filter(m=>m.reportDate >= start && m.reportDate <= end);
+  }
+  const month = anchor.slice(0,7);
+  return metas.filter(m=>String(m.reportDate||"").startsWith(month));
+}
+
+async function loadSnapshotCached(date){
+  if(snapshotCache.has(date)){ return snapshotCache.get(date); }
+  const snap = await window.loadDailySnapshot(date);
+  if(snap){ snapshotCache.set(date,snap); }
+  return snap;
+}
+
+function priceRowsForSnapshot(snapshot,def){
+  const source = def.marketplace === "amazon"
+    ? (snapshot.amazonRows||[]).map(a=>Array.isArray(a)?expandAmazonRow(a):a)
+    : (snapshot.flipkartRows||[]).map(a=>Array.isArray(a)?expandFlipkartRow(a):a);
+  return source.filter(r=>{
+    if(def.kind === "listing") return Number(r.listingPrice)>0;
+    if(def.kind === "live") return r.eligibleForComparison && Number(r.finalLivePrice)>0;
+    const marketMrp = def.marketplace === "amazon" ? r.azMrp : r.fkMrp;
+    return Number(r.wfMrp)>0 && Number(marketMrp)>0;
+  }).map(r=>{
+    const disparity = def.kind === "listing" ? r.listingPriceDisparity : def.kind === "live" ? r.livePriceDisparity : r.mrpDisparity;
+    return {...r,reportDate:snapshot.reportDate,parityStatus:disparity ? "Disparity" : "Parity"};
+  });
+}
+
+function compileHistoricalView(def,snapshots){
+  let rows = [];
+  if(def.type === "price"){
+    snapshots.forEach(s=>rows.push(...priceRowsForSnapshot(s,def)));
+    const disparity = rows.filter(r=>r.parityStatus === "Disparity").length;
+    const parity = rows.length-disparity;
+    return {rows,summary:{k1Label:"Observations",k1:rows.length,k2Label:"Parity",k2:parity,k3Label:"Disparity",k3:disparity,k4Label:"Parity %",k4:rows.length ? parity/rows.length : 0}};
+  }
+  if(def.type === "suppression"){
+    snapshots.forEach(s=>{
+      (s.amazonSuppressions||[]).forEach(a=>rows.push({...((Array.isArray(a)?expandAmazonIssueRow(a):a)),reportDate:s.reportDate}));
+    });
+    const unique = new Set(rows.map(r=>r.asin)).size;
+    const exposure = rows.reduce((sum,r)=>sum+Number(r.revenueImpactPerDay||0),0);
+    const days = new Set(rows.map(r=>r.reportDate)).size;
+    return {rows,summary:{k1Label:"Unique ASINs",k1:unique,k2Label:"Suppression Days",k2:rows.length,k3Label:"Avg / Day",k3:days ? rows.length/days : 0,k4Label:"Revenue Exposure",k4Money:exposure}};
+  }
+  if(def.type === "amazon_buybox"){
+    snapshots.forEach(s=>{
+      (s.amazonBuyBox||[]).forEach(a=>rows.push({...((Array.isArray(a)?expandAmazonIssueRow(a):a)),reportDate:s.reportDate}));
+    });
+    const unique = new Set(rows.map(r=>r.asin)).size;
+    const exposure = rows.reduce((sum,r)=>sum+Number(r.revenueImpactPerDay||0),0);
+    const days = new Set(rows.map(r=>r.reportDate)).size;
+    return {rows,summary:{k1Label:"Unique ASINs",k1:unique,k2Label:"Buy Box Days",k2:rows.length,k3Label:"Avg / Day",k3:days ? rows.length/days : 0,k4Label:"Revenue Exposure",k4Money:exposure}};
+  }
+  snapshots.forEach(s=>{
+    const source=(s.flipkartRows||[]).map(a=>Array.isArray(a)?expandFlipkartRow(a):a);
+    source.filter(r=>r.buyBoxStatus === "No Buy Box").forEach(r=>rows.push({...r,reportDate:s.reportDate}));
+  });
+  const unique = new Set(rows.map(r=>r.fsn)).size;
+  const days = new Set(rows.map(r=>r.reportDate)).size;
+  return {rows,summary:{k1Label:"Unique FSNs",k1:unique,k2Label:"No Buy Box Days",k2:rows.length,k3Label:"Avg / Day",k3:days ? rows.length/days : 0,k4Label:"Affected Dates",k4:days}};
+}
+
+function renderHistoricalSummary(summary){
+  finalSetText("reportKpi1Label",summary.k1Label||"Total"); finalSetText("reportKpi1",formatNumber(summary.k1||0));
+  finalSetText("reportKpi2Label",summary.k2Label||"Parity"); finalSetText("reportKpi2",formatNumber(summary.k2||0));
+  finalSetText("reportKpi3Label",summary.k3Label||"Disparity"); finalSetText("reportKpi3",Number.isInteger(summary.k3) ? formatNumber(summary.k3||0) : Number(summary.k3||0).toFixed(1));
+  finalSetText("reportKpi4Label",summary.k4Label||"Parity %");
+  if(summary.k4Money !== undefined) finalSetText("reportKpi4",formatINR(summary.k4Money||0));
+  else if((summary.k4Label||"").includes("%")) finalSetText("reportKpi4",formatPercent(summary.k4||0));
+  else finalSetText("reportKpi4",formatNumber(summary.k4||0));
+}
+
+function renderHistoricalTable(def,rows){
+  const table = document.getElementById("reportModuleTable");
+  if(!table){ return; }
+  if(!rows.length){ table.innerHTML = `<tbody><tr><td class="empty-row">No data</td></tr></tbody>`; return; }
+  let columns=[];
+  if(def.type === "price"){
+    const isAz = def.marketplace === "amazon";
+    if(def.kind === "mrp"){
+      columns=[
+        ["Date",r=>r.reportDate],["Category",r=>r.category],["WF SKU",r=>r.wfSku],[isAz?"AZ SKU":"FK SKU",r=>isAz?r.azSku:r.fkSku],[isAz?"ASIN":"FSN",r=>isAz?r.asin:r.fsn],["WF MRP",r=>formatINR(r.wfMrp)],[isAz?"AZ MRP":"FK MRP",r=>formatINR(isAz?r.azMrp:r.fkMrp)],["Difference",r=>formatINR(r.mrpDiff)],["Status",r=>r.parityStatus]
+      ];
+    }else{
+      const live=def.kind === "live";
+      columns=[
+        ["Date",r=>r.reportDate],["Category",r=>r.category],["WF SKU",r=>r.wfSku],[isAz?"AZ SKU":"FK SKU",r=>isAz?r.azSku:r.fkSku],[isAz?"ASIN":"FSN",r=>isAz?r.asin:r.fsn],["WF Price",r=>formatINR(r.wfPrice)],[live?"Live Price":"Listing Price",r=>formatINR(live?r.finalLivePrice:r.listingPrice)],["Difference",r=>formatINR(live?r.livePriceDiff:r.listingPriceDiff)],["Status",r=>r.parityStatus],["Inventory",r=>formatNumber(r.inventory)]
+      ];
+      if(live){ columns.push(["Rev Impact / Day",r=>formatINR(r.dailyRevenueImpact||0)]); }
+    }
+  }else if(def.type === "suppression"){
+    columns=[["Date",r=>r.reportDate],["Category",r=>r.category],["ASIN",r=>r.asin],["Rev Impact / Day",r=>formatINR(r.revenueImpactPerDay||0)]];
+  }else if(def.type === "amazon_buybox"){
+    columns=[["Date",r=>r.reportDate],["Category",r=>r.category],["ASIN",r=>r.asin],["WF SKU",r=>r.wfSku],["Price",r=>formatINR(r.listingPrice||0)],["Rev Impact / Day",r=>formatINR(r.revenueImpactPerDay||0)]];
+  }else{
+    columns=[["Date",r=>r.reportDate],["Category",r=>r.category],["FSN",r=>r.fsn],["WF SKU",r=>r.wfSku],["FK SKU",r=>r.fkSku],["Listing Price",r=>formatINR(r.listingPrice||0)]];
+  }
+  let html="<thead><tr>"+columns.map(c=>`<th>${escapeHtml(c[0])}</th>`).join("")+"</tr></thead><tbody>";
+  rows.forEach(r=>{
+    html += "<tr>"+columns.map(c=>{
+      const v=c[1](r);
+      const cls = c[0] === "Status" ? (v === "Parity" ? "parity" : "disparity") : "";
+      return `<td class="${cls}">${escapeHtml(v)}</td>`;
+    }).join("")+"</tr>";
+  });
+  html += "</tbody>";
+  table.innerHTML=html;
+}
+
+async function loadHistoricalModule(){
+  const def = HISTORICAL_VIEWS[currentHistoricalViewKey];
+  if(!def || typeof window.listDailySnapshotMetas !== "function"){ return; }
+  const period = document.getElementById("reportPeriod")?.value || "daily";
+  const anchor = document.getElementById("reportAnchorDate")?.value || todayIso();
+  const metas = (await window.listDailySnapshotMetas()).filter(m=>m.status === "completed");
+  const selected = filterMetasForPeriod(metas,period,anchor).sort((a,b)=>a.reportDate.localeCompare(b.reportDate));
+  const snapshots=[];
+  for(const meta of selected){
+    const snap=await loadSnapshotCached(meta.reportDate);
+    if(snap){ snapshots.push(snap); }
+  }
+  const compiled=compileHistoricalView(def,snapshots);
+  currentHistoricalReport={def,period,anchor,snapshots,rows:compiled.rows,summary:compiled.summary};
+  renderHistoricalSummary(compiled.summary);
+  renderHistoricalTable(def,compiled.rows);
+}
+
+function reportFilename(prefix,period,anchor){
+  if(period === "daily") return `${prefix}_${anchor}.xlsx`;
+  if(period === "weekly"){
+    const [s,e]=getWeekBounds(anchor); return `${prefix}_${s}_to_${e}.xlsx`;
+  }
+  return `${prefix}_${anchor.slice(0,7)}.xlsx`;
+}
+
+function writeExcelReport(filename,summary,rows){
+  if(typeof XLSX === "undefined"){ alert("Excel library not loaded."); return; }
+  const wb=XLSX.utils.book_new();
+  const summaryRows=Object.entries(summary).map(([Metric,Value])=>({Metric,Value:typeof Value === "object" ? JSON.stringify(Value) : Value}));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(summaryRows),"Summary");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"Data");
+  XLSX.writeFile(wb,filename);
+}
+
+function downloadHistoricalModule(){
+  if(!currentHistoricalReport){ loadHistoricalModule().then(downloadHistoricalModule); return; }
+  const {def,period,anchor,rows,summary}=currentHistoricalReport;
+  const cleanRows=rows.map(r=>{
+    if(def.type === "price"){
+      const isAz=def.marketplace === "amazon";
+      const base={Date:r.reportDate,Category:r.category,"WF SKU":r.wfSku,[isAz?"AZ SKU":"FK SKU"]:isAz?r.azSku:r.fkSku,[isAz?"ASIN":"FSN"]:isAz?r.asin:r.fsn,Status:r.parityStatus,Inventory:r.inventory};
+      if(def.kind === "mrp") return {...base,"WF MRP":r.wfMrp,[isAz?"AZ MRP":"FK MRP"]:isAz?r.azMrp:r.fkMrp,"MRP Diff":r.mrpDiff};
+      const live=def.kind === "live";
+      return {...base,"WF Price":r.wfPrice,[live?"Live Price":"Listing Price"]:live?r.finalLivePrice:r.listingPrice,"Price Diff":live?r.livePriceDiff:r.listingPriceDiff,"Rev Impact / Day":live?(r.dailyRevenueImpact||0):0};
+    }
+    if(def.type === "suppression") return {Date:r.reportDate,Category:r.category,ASIN:r.asin,"Rev Impact / Day":r.revenueImpactPerDay||0};
+    if(def.type === "amazon_buybox") return {Date:r.reportDate,Category:r.category,ASIN:r.asin,"WF SKU":r.wfSku,Price:r.listingPrice||0,"Rev Impact / Day":r.revenueImpactPerDay||0};
+    return {Date:r.reportDate,Category:r.category,FSN:r.fsn,"WF SKU":r.wfSku,"FK SKU":r.fkSku,"Listing Price":r.listingPrice||0};
+  });
+  writeExcelReport(reportFilename(def.title.replace(/[^A-Za-z0-9]+/g,"_"),period,anchor),summary,cleanRows);
+}
+
+/* ---------- Marketplace Insights uses stored daily summaries only ---------- */
+
+async function loadMarketplaceInsights(){
+  if(typeof window.listDailySnapshotMetas !== "function"){ return; }
+  const market=document.getElementById("insightsMarketplace")?.value||"amazon";
+  const period=document.getElementById("insightsPeriod")?.value||"daily";
+  const anchor=document.getElementById("insightsDate")?.value||todayIso();
+  const metas=filterMetasForPeriod((await window.listDailySnapshotMetas()).filter(m=>m.status === "completed"),period,anchor).sort((a,b)=>a.reportDate.localeCompare(b.reportDate));
+  let liveEligible=0,liveParity=0,liveDisparity=0,impact=0,issues=0;
+  const rows=[];
+  metas.forEach(m=>{
+    const x=m.insights?.[market]||{};
+    const live=x.live||{};
+    liveEligible += Number(live.eligible||0);
+    liveParity += Number(live.parity||0);
+    liveDisparity += Number(live.disparity||0);
+    impact += Number(x.priceImpact||0);
+    const issueCount = market === "amazon" ? Number(x.suppressions||0)+Number(x.buyBox||0) : Number(x.noBuyBox||0);
+    issues += issueCount;
+    rows.push({Date:m.reportDate,Parity:Number(live.parity||0),Disparity:Number(live.disparity||0),"Parity %":formatPercent(live.parityPct||0),"Revenue Impact":Number(x.priceImpact||0),Issues:issueCount});
+  });
+  finalSetText("insightsParity",formatPercent(liveEligible ? liveParity/liveEligible : 0));
+  finalSetText("insightsDisparity",formatNumber(liveDisparity));
+  finalSetText("insightsImpact",formatINR(impact));
+  finalSetText("insightsIssues",formatNumber(issues));
+  const table=document.getElementById("insightsTable");
+  let html="<thead><tr><th>Date</th><th>Parity</th><th>Disparity</th><th>Parity %</th><th>Revenue Impact</th><th>Issues</th></tr></thead><tbody>";
+  if(!rows.length) html += `<tr><td class="empty-row" colspan="6">No data</td></tr>`;
+  rows.forEach(r=>{html+=`<tr><td>${escapeHtml(r.Date)}</td><td>${formatNumber(r.Parity)}</td><td>${formatNumber(r.Disparity)}</td><td>${escapeHtml(r["Parity %"])}</td><td>${formatINR(r["Revenue Impact"])}</td><td>${formatNumber(r.Issues)}</td></tr>`;});
+  html+="</tbody>"; if(table) table.innerHTML=html;
+  currentInsightsReport={market,period,anchor,rows,summary:{"Live Parity %":liveEligible ? liveParity/liveEligible : 0,"Live Disparity":liveDisparity,"Revenue Impact":impact,Issues:issues}};
+}
+
+function downloadMarketplaceInsights(){
+  if(!currentInsightsReport){ loadMarketplaceInsights().then(downloadMarketplaceInsights); return; }
+  const r=currentInsightsReport;
+  writeExcelReport(reportFilename(`${r.market}_Marketplace_Insights`,r.period,r.anchor),r.summary,r.rows);
+}
+
+/* ---------- date changes ---------- */
+
+document.getElementById("reportDate")?.addEventListener("change",async event=>{
+  await restoreSessionForDate(event.target.value);
+  await maybeAutoProcessCurrentDate();
+});
+
+window.openHistoricalModule=openHistoricalModule;
+window.loadHistoricalModule=loadHistoricalModule;
+window.downloadHistoricalModule=downloadHistoricalModule;
+window.loadMarketplaceInsights=loadMarketplaceInsights;
+window.downloadMarketplaceInsights=downloadMarketplaceInsights;
+window.initializeWakeSuiteHistory=initializeWakeSuiteHistory;
+window.maybeAutoProcessCurrentDate=maybeAutoProcessCurrentDate;
+window.restoreSessionForDate=restoreSessionForDate;
+
+
+
 /* ======================================================
    EXPOSE BUTTON FUNCTIONS
 ====================================================== */
@@ -9160,10 +8324,6 @@ window.resetSession =
 updateReadiness();
 
 </script>
-
-
-<!-- FIREBASE -->
-
 <script type="module">
 
 import {
@@ -9184,7 +8344,11 @@ import {
   collection,
   addDoc,
   getDocsFromServer,
-  serverTimestamp
+  serverTimestamp,
+  doc,
+  getDoc,
+  setDoc,
+  writeBatch
 }
 from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
@@ -9440,6 +8604,7 @@ onAuthStateChanged(
       try{
 
         await loadUploadConfigFromFirestore();
+        if(typeof window.initializeWakeSuiteHistory === "function"){ await window.initializeWakeSuiteHistory(); }
 
       }
       catch(error){
@@ -9506,6 +8671,126 @@ async function(metadata){
 };
 
 
+
+
+/* ======================================================
+   HISTORICAL DAILY SNAPSHOTS
+====================================================== */
+
+function cleanForFirestore(value){
+  return JSON.parse(JSON.stringify(value));
+}
+
+function chunkRows(rows,size=180){
+  const out=[];
+  for(let i=0;i<rows.length;i+=size){ out.push(rows.slice(i,i+size)); }
+  return out;
+}
+
+async function commitBatchOps(ops){
+  for(let i=0;i<ops.length;i+=400){
+    const batch=writeBatch(db);
+    ops.slice(i,i+400).forEach(op=>{
+      if(op.type === "delete") batch.delete(op.ref);
+      else batch.set(op.ref,op.data);
+    });
+    await batch.commit();
+  }
+}
+
+window.getDailySnapshotMeta = async function(reportDate){
+  const ref=doc(db,"daily_snapshots",reportDate);
+  const snap=await getDoc(ref);
+  return snap.exists() ? {id:snap.id,...snap.data()} : null;
+};
+
+window.saveDailySnapshot = async function(reportDate,snapshot){
+  const user=auth.currentUser;
+  if(!user) throw new Error("You must be signed in to WakeSuite.");
+
+  const metaRef=doc(db,"daily_snapshots",reportDate);
+  const existing=await getDoc(metaRef);
+  const previous=existing.exists()?existing.data():null;
+  const revision=Number(previous?.revision||0)+1;
+
+  await setDoc(metaRef,{
+    reportDate,
+    status:"processing",
+    revision,
+    fingerprint:snapshot.fingerprint,
+    insights:cleanForFirestore(snapshot.insights),
+    amazonSummary:cleanForFirestore(snapshot.amazonSummary),
+    flipkartSummary:cleanForFirestore(snapshot.flipkartSummary),
+    flipkartOrderPeriod:cleanForFirestore(snapshot.flipkartOrderPeriod),
+    updatedBy:user.email||"",
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
+  const chunkCollection=collection(db,"daily_snapshots",reportDate,"chunks");
+  const old=await getDocsFromServer(chunkCollection);
+  const deleteOps=[];
+  old.forEach(d=>deleteOps.push({type:"delete",ref:d.ref}));
+  if(deleteOps.length) await commitBatchOps(deleteOps);
+
+  const groups={
+    amazonRows:snapshot.amazonRows||[],
+    amazonSuppressions:snapshot.amazonSuppressions||[],
+    amazonBuyBox:snapshot.amazonBuyBox||[],
+    flipkartRows:snapshot.flipkartRows||[]
+  };
+  const writeOps=[];
+  Object.entries(groups).forEach(([type,rows])=>{
+    chunkRows(rows).forEach((chunk,index)=>{
+      const id=`${type}_${String(index).padStart(4,"0")}`;
+      writeOps.push({type:"set",ref:doc(db,"daily_snapshots",reportDate,"chunks",id),data:{type,index,rows:cleanForFirestore(chunk)}});
+    });
+  });
+  if(writeOps.length) await commitBatchOps(writeOps);
+
+  await setDoc(metaRef,{
+    reportDate,
+    status:"completed",
+    revision,
+    fingerprint:snapshot.fingerprint,
+    insights:cleanForFirestore(snapshot.insights),
+    amazonSummary:cleanForFirestore(snapshot.amazonSummary),
+    flipkartSummary:cleanForFirestore(snapshot.flipkartSummary),
+    flipkartOrderPeriod:cleanForFirestore(snapshot.flipkartOrderPeriod),
+    completedAt:serverTimestamp(),
+    updatedBy:user.email||"",
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
+  return {revision};
+};
+
+window.loadDailySnapshot = async function(reportDate){
+  const meta=await window.getDailySnapshotMeta(reportDate);
+  if(!meta || meta.status !== "completed") return null;
+  const chunks=await getDocsFromServer(collection(db,"daily_snapshots",reportDate,"chunks"));
+  const groups={amazonRows:[],amazonSuppressions:[],amazonBuyBox:[],flipkartRows:[]};
+  const ordered=[];
+  chunks.forEach(d=>ordered.push(d.data()));
+  ordered.sort((a,b)=>String(a.type).localeCompare(String(b.type))||Number(a.index)-Number(b.index));
+  ordered.forEach(c=>{ if(groups[c.type]) groups[c.type].push(...(c.rows||[])); });
+  return {...meta,...groups};
+};
+
+window.listDailySnapshotMetas = async function(){
+  const snap=await getDocsFromServer(collection(db,"daily_snapshots"));
+  const rows=[];
+  snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  return rows.sort((a,b)=>String(a.reportDate||"").localeCompare(String(b.reportDate||"")));
+};
+
+window.getLatestCompletedSnapshot = async function(){
+  const metas=(await window.listDailySnapshotMetas()).filter(m=>m.status === "completed");
+  if(!metas.length) return null;
+  const latest=metas[metas.length-1];
+  return window.loadDailySnapshot(latest.reportDate);
+};
+
+
 window.wakeSuiteFirebase = {
   app,
   auth,
@@ -9513,6 +8798,5 @@ window.wakeSuiteFirebase = {
 };
 
 </script>
-
 </body>
 </html>
