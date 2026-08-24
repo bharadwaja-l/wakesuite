@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>WakeSuite</title>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script async="" defer="" src="https://accounts.google.com/gsi/client"></script>
+<link href="./css/wakesuite.css" rel="stylesheet"/>
+<link href="./css/wakesuite-responsive.css" rel="stylesheet"/>
+<link href="./css/wakesuite-v9.3.css" rel="stylesheet"/></head>
+<body>
+<div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop" onclick="closeMobileSidebar()"></div>
+<aside class="sidebar" id="mainSidebar">
+<div class="sidebar-brand">
+<img alt="Wakefit" class="sidebar-logo" src="data:image/png;base64,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"/>
+<div class="sidebar-brand-text"><strong>WakeSuite</strong></div><button aria-label="Collapse navigation" class="sidebar-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" type="button">‹</button>
+</div>
+<div class="nav-scroll">
+<div class="nav-section-label">Workspace</div>
+<a class="nav-link" href="#" onclick="showView('dashboardHome');loadDashboardOverview();return false"><span class="nav-icon" data-nav-icon="dashboard"></span><span class="nav-text">Dashboard</span></a>
+<a class="nav-link" data-ws-module="marketplaceInsights" href="#" onclick="openMarketplaceInsights('overview');return false"><span class="nav-icon" data-nav-icon="insights"></span><span class="nav-text">Marketplace Insights</span></a>
+<details class="nav-group">
+<summary><span class="nav-icon" data-nav-icon="insights"></span><span class="nav-text">Business Insights</span></summary>
+<div class="nav-children">
+<a class="nav-link" data-ws-module="pricingInsights" href="#" onclick="openBusinessInsights('pricing');return false">Pricing Insights</a>
+<a class="nav-link" data-ws-module="inventoryInsights" href="#" onclick="openBusinessInsights('inventory');return false">Inventory Insights</a>
+</div>
+</details>
+<div class="nav-section-label">Amazon</div><a class="nav-link" data-ws-market="amazon" data-ws-module="amazonParity" href="#" onclick="openPriceParityReport('amazon');return false"><span class="nav-icon" data-nav-icon="parity"></span><span class="nav-text">Price Parity</span></a>
+<details class="nav-group" open="">
+<summary><span class="nav-icon" data-nav-icon="price"></span><span class="nav-text">Price Disparity</span></summary>
+<div class="nav-children">
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonListing" href="#" onclick="openHistoricalModule('amazon_listing');return false">Listing Price Disparity</a>
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonLive" href="#" onclick="openHistoricalModule('amazon_live');return false">Live Price Disparity</a>
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonMrp" href="#" onclick="openHistoricalModule('amazon_mrp');return false">MRP Disparity</a>
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonPricingIssues" href="#" onclick="openAmazonPricingIssues();return false">Pricing Issues</a>
+</div>
+</details>
+<details class="nav-group">
+<summary><span class="nav-icon" data-nav-icon="update"></span><span class="nav-text">Price Updates</span></summary>
+<div class="nav-children">
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonPriceUpdates" href="#" onclick="openPriceUpdates('amazon','price_mrp');return false">Price &amp; MRP Update</a>
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonMinMaxUpdates" href="#" onclick="openPriceUpdates('amazon','min_max');return false">Min / Max Price Update</a>
+</div>
+</details>
+<details class="nav-group">
+<summary><span class="nav-icon" data-nav-icon="suppression"></span><span class="nav-text">Suppressions</span></summary>
+<div class="nav-children">
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonSuppression" href="#" onclick="openHistoricalModule('amazon_suppression');return false">ASIN Suppression</a>
+<a class="nav-link" data-ws-market="amazon" data-ws-module="amazonBuyBox" href="#" onclick="openHistoricalModule('amazon_buybox');return false">Buy Box Suppression</a>
+<a class="nav-link" data-ws-market="amazon" data-ws-module="suppressionManagement" href="#" onclick="openSuppressionManagement();return false">Suppression Management</a>
+</div>
+</details>
+<div class="nav-section-label">Flipkart</div><a class="nav-link" data-ws-market="flipkart" data-ws-module="flipkartParity" href="#" onclick="openPriceParityReport('flipkart');return false"><span class="nav-icon" data-nav-icon="parity"></span><span class="nav-text">Price Parity</span></a>
+<details class="nav-group" open="">
+<summary><span class="nav-icon" data-nav-icon="price"></span><span class="nav-text">Price Disparity</span></summary>
+<div class="nav-children">
+<a class="nav-link" data-ws-market="flipkart" data-ws-module="flipkartListing" href="#" onclick="openHistoricalModule('flipkart_listing');return false">Listing Price Disparity</a>
+<a class="nav-link" data-ws-market="flipkart" data-ws-module="flipkartLive" href="#" onclick="openHistoricalModule('flipkart_live');return false">Live Price Disparity</a>
+<a class="nav-link" data-ws-market="flipkart" data-ws-module="flipkartMrp" href="#" onclick="openHistoricalModule('flipkart_mrp');return false">MRP Disparity</a>
+</div>
+</details>
+<details class="nav-group">
+<summary><span class="nav-icon" data-nav-icon="update"></span><span class="nav-text">Price Updates</span></summary>
+<div class="nav-children">
+<a class="nav-link" data-ws-market="flipkart" data-ws-module="flipkartPriceUpdates" href="#" onclick="openPriceUpdates('flipkart','price_mrp');return false">Price &amp; MRP Update</a>
+</div>
+</details>
+<div class="nav-section-label">Operations</div>
+<details class="nav-group" data-ws-module="pricingExceptions">
+<summary><span class="nav-icon" data-nav-icon="price"></span><span class="nav-text">Pricing Exceptions</span></summary>
+<div class="nav-children">
+<a class="nav-link" href="#" onclick="openPricingExceptions('add');return false">Add Exceptions</a>
+<a class="nav-link" href="#" onclick="openPricingExceptions('manager');return false">Exceptions Manager</a>
+</div>
+</details>
+<details class="nav-group" data-ws-history-nav="1">
+<summary><span class="nav-icon" data-nav-icon="database"></span><span class="nav-text">History</span></summary>
+<div class="nav-children">
+<a class="nav-link" href="#" onclick="openHistoryHub('pricing');return false">Pricing History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('inventory');return false">Inventory History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('suppression');return false">Suppression History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('buybox');return false">Buy Box History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('exceptions');return false">Pricing Exceptions History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('price_updates');return false">Price Update History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('mapping');return false">Marketplace / Mapping History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('uploads');return false">Upload / Source File History</a>
+<a class="nav-link" href="#" onclick="openHistoryHub('admin');return false">Data Administration / Audit</a>
+</div>
+</details><a class="nav-link" data-ws-module="dailyCommunications" href="#" onclick="openDailyCommunications();return false"><span class="nav-icon" data-nav-icon="mail"></span><span class="nav-text">Daily Communications</span></a>
+<a class="nav-link" data-ws-module="uploadCenter" href="#" onclick="showView('uploadSection');return false"><span class="nav-icon" data-nav-icon="upload"></span><span class="nav-text">Data Center</span></a>
+<a class="nav-link" data-ws-module="masterPricing" href="#" onclick="showView('masterPricingSection');return false"><span class="nav-icon" data-nav-icon="database"></span><span class="nav-text">Master Pricing</span></a>
+<a class="nav-link" data-ws-module="marketplaceData" href="#" onclick="openMarketplaceData();return false"><span class="nav-icon" data-nav-icon="table"></span><span class="nav-text">Marketplace Data</span></a>
+<div class="sidebar-settings-link">
+<a class="nav-link" href="#" onclick="openWakeSuiteSettings('access');return false"><span class="nav-icon" data-nav-icon="settings"></span><span class="nav-text">Settings</span></a>
+</div>
+</div>
+</aside>
+<main class="main">
+<div class="topbar">
+<button aria-label="Open navigation" class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+<div class="page-title" id="pageTitle">Dashboard</div>
+<div class="topbar-right">
+<div class="asof-chip" id="latestCompletedDateDisplay">As of —</div>
+<div class="status-chip" id="sessionChip"><span class="status-dot"></span><span id="sessionChipText">0 / 7 Sources</span></div>
+<div class="ws-auth-controls">
+<span class="ws-auth-user" hidden="" id="wsAuthUser"></span>
+<button class="secondary-btn" id="wsLoginButton" type="button">Login</button>
+<button class="secondary-btn" hidden="" id="wsLogoutButton" type="button">Logout</button>
+</div>
+</div>
+</div>
+<div class="hidden-compat" id="pageSubtitle"></div>
+<div aria-live="polite" class="ws-toast-stack" id="wsToastStack"></div>
+<div class="processing-ribbon" id="processingRibbon">
+<div class="processing-spinner"></div>
+<div class="processing-copy"><strong id="processingTitle">Updating WakeSuite</strong><span id="processingDetail">Preparing data…</span></div>
+<span class="processing-stage" id="processingStage">Processing</span>
+</div>
+<!-- DASHBOARD OVERVIEW -->
+<section class="app-view active" id="dashboardHome">
+<div class="command-surface">
+<div class="command-left">
+<select aria-label="Dashboard period" id="dashboardPeriod">
+<option value="today">Today</option>
+<option value="yesterday">Yesterday</option>
+<option value="last7">Last 7 Days</option>
+<option value="last15">Last 15 Days</option>
+<option value="last30">Last 30 Days</option>
+<option value="custom">Custom Range</option>
+</select>
+<div class="date-range">
+<label>From</label>
+<input aria-label="Dashboard from date" id="dashboardFromDate" type="date"/>
+<label>To</label>
+<input aria-label="Dashboard to date" id="dashboardToDate" type="date"/>
+</div>
+<select aria-label="Dashboard marketplace" id="dashboardMarketplace">
+<option value="all">All Marketplaces</option>
+<option value="amazon">Amazon</option>
+<option value="flipkart">Flipkart</option>
+</select>
+<select aria-label="Dashboard category" id="dashboardCategory">
+<option value="all">All Categories</option>
+</select>
+<span class="coverage-chip v6-hidden-compat" id="dashboardRangeCoverage">0 days</span>
+<input id="dashboardDate" type="hidden"/>
+</div>
+<div class="command-search">
+<input id="dashboardGlobalSearch" placeholder="Search ASIN / FSN / WF SKU / AZ SKU / FK SKU" type="search"/>
+<button class="primary-btn" onclick="runDashboardSearch()">Search</button>
+<button class="secondary-btn" onclick="clearDashboardSearch()">Clear</button>
+</div>
+</div>
+<div class="dashboard-toolbar">
+<div class="dashboard-date" id="dashboardStatusText">No processed data</div>
+</div>
+<div class="dashboard-action-strip" id="dashboardUtilityGrid">
+<div class="action-strip-head">
+<div><span class="utility-eyebrow">Today</span><h3>Action Center</h3></div>
+<button class="text-btn" onclick="refreshActionCenter()" type="button">Refresh</button>
+</div>
+<div class="action-center-list" id="actionCenterList"><div class="utility-empty">Loading priority actions…</div></div>
+</div>
+<div class="v6-hidden-compat">
+<div id="amazonRevenueFreshnessCard"><span id="amazonRevenueFreshnessText"></span></div>
+<div id="flipkartRevenueFreshnessCard"><span id="flipkartRevenueFreshnessText"></span></div>
+<div id="dashboardLastUpdated"></div>
+</div>
+<div class="market-dashboard-block">
+<div class="market-dashboard-head">
+<h2>Amazon</h2>
+<div class="market-dashboard-meta">
+<span class="availability-chip unavailable" id="amazonDashboardAvailability">No Data Available</span>
+<span class="coverage-chip" id="amazonDashboardCoverage">0 / 0 days</span>
+</div>
+</div>
+<div class="v8-workload-card" id="suppressionCaseWorkloadCard" onclick="openMyPendingCases()" style="display:none"><div><span>My Suppression Workload</span><strong id="pendingCaseIdWorkload">0 Pending Case IDs</strong></div><small id="pendingCaseIdWorkloadMeta">Assigned to you / your team</small></div>
+<div class="metric-card-grid">
+<div class="metric-card" onclick="openDashboardDestination('amazon','parity')">
+<div class="metric-topline"><span class="metric-label">Price Parity</span><span class="metric-symbol" data-ui-icon="parity"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="amazonParityPercent">—</strong></div>
+<div class="metric-secondary" id="amazonParityDetail">No Data Available</div>
+<div class="metric-context-link" id="amazonParityExceptionDetail" onclick="event.stopPropagation();openDashboardExceptionsNative('amazon')">0 exceptions excluded</div><div class="metric-category-breakdown" id="amazonParityCategoryBreakdown"></div><div class="metric-meter"><span id="amazonParityMeter"></span></div>
+</div>
+<div class="metric-card" onclick="openDashboardDestination('amazon','price_disparity')">
+<div class="metric-topline"><span class="metric-label">Price Disparity</span><span class="metric-symbol" data-ui-icon="disparity"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="amazonDisparityCount">—</strong></div>
+<div class="metric-secondary"><strong id="amazonPriceImpact">—</strong> <span id="amazonPriceImpactLabel">Rev Impact / Day</span></div>
+<div class="metric-foot" id="amazonDisparityDetail">No Data Available</div><div class="metric-context-link" id="amazonDisparityExceptionDetail" onclick="event.stopPropagation();openDashboardExceptionsNative('amazon')">0 approved exceptions</div><div class="metric-category-breakdown" id="amazonDisparityCategoryBreakdown"></div><div class="metric-sparkline" id="amazonDisparitySpark"></div>
+</div>
+<div class="metric-card" onclick="openDashboardDestination('amazon','amazon_suppression')">
+<div class="metric-topline"><span class="metric-label">ASIN Suppression</span><span class="metric-symbol" data-ui-icon="suppression"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="amazonSuppressedCount">—</strong></div>
+<div class="metric-secondary"><strong id="amazonSuppressionImpact">—</strong> <span id="amazonSuppressionImpactLabel">Rev Impact / Day</span></div>
+<div class="metric-foot" id="amazonSuppressionDetail">No Data Available</div><div class="metric-context-link" id="amazonSuppressionOverrideDetail" onclick="event.stopPropagation();openSuppressionManagementByState('Overridden')">0 overridden</div><div class="metric-category-breakdown" id="amazonSuppressionCategoryBreakdown"></div><div class="metric-sparkline" id="amazonSuppressionSpark"></div>
+</div>
+<div class="metric-card" onclick="openDashboardDestination('amazon','amazon_buybox')">
+<div class="metric-topline"><span class="metric-label">Buy Box Suppression</span><span class="metric-symbol" data-ui-icon="buybox"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="amazonBuyBoxSuppressedCount">—</strong></div>
+<div class="metric-secondary"><strong id="amazonBuyBoxImpact">—</strong> <span id="amazonBuyBoxImpactLabel">Rev Impact / Day</span></div>
+<div class="metric-foot" id="amazonBuyBoxDetail">No Data Available</div><div class="metric-category-breakdown" id="amazonBuyBoxCategoryBreakdown"></div><div class="metric-sparkline" id="amazonBuyBoxSpark"></div>
+</div>
+<div class="metric-card inventory-card" id="amazonInventoryRiskCard" onclick="openDashboardDestination('amazon','inventory')">
+<div class="metric-topline"><span class="metric-label">Inventory Risk</span><span class="metric-symbol" data-ui-icon="database"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="amazonInventoryRiskCount">—</strong></div>
+<div class="metric-secondary"><strong id="amazonInventoryOosCount">—</strong> <span>Currently OOS</span></div>
+<div class="metric-foot" id="amazonInventoryRiskDetail">No Data Available</div>
+<div class="metric-category-breakdown" id="amazonInventoryCategoryBreakdown"></div>
+</div><div class="metric-card total-card" onclick="openDashboardDestination('amazon','total_impact')">
+<div class="metric-topline"><span class="metric-label">Amazon Total Rev Impact</span><span class="metric-symbol" data-ui-icon="impact"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="amazonTotalImpact">—</strong></div>
+<div class="metric-secondary" id="amazonTotalImpactLabel">Rev Impact / Day</div>
+<div class="metric-foot">Deduplicated by ASIN</div><div class="metric-context-muted" id="amazonTotalExclusionDetail">Exceptions and overrides excluded</div><div class="metric-category-breakdown" id="amazonTotalCategoryBreakdown"></div><div class="metric-sparkline" id="amazonTotalSpark"></div>
+</div>
+</div>
+</div>
+<div class="market-dashboard-block">
+<div class="market-dashboard-head">
+<h2>Flipkart</h2>
+<div class="market-dashboard-meta">
+<span class="availability-chip unavailable" id="flipkartDashboardAvailability">No Data Available</span>
+<span class="coverage-chip" id="flipkartDashboardCoverage">0 / 0 days</span>
+</div>
+</div>
+<div class="metric-card-grid flipkart">
+<div class="metric-card" onclick="openDashboardDestination('flipkart','parity')">
+<div class="metric-topline"><span class="metric-label">Price Parity</span><span class="metric-symbol" data-ui-icon="parity"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="flipkartParityPercent">—</strong></div>
+<div class="metric-secondary" id="flipkartParityDetail">No Data Available</div>
+<div class="metric-context-link" id="flipkartParityExceptionDetail" onclick="event.stopPropagation();openDashboardExceptionsNative('flipkart')">0 exceptions excluded</div><div class="metric-category-breakdown" id="flipkartParityCategoryBreakdown"></div><div class="metric-meter"><span id="flipkartParityMeter"></span></div>
+</div>
+<div class="metric-card" onclick="openDashboardDestination('flipkart','price_disparity')">
+<div class="metric-topline"><span class="metric-label">Price Disparity</span><span class="metric-symbol" data-ui-icon="disparity"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="flipkartDisparityCount">—</strong></div>
+<div class="metric-secondary"><strong id="flipkartPriceImpact">—</strong> <span id="flipkartPriceImpactLabel">Rev Impact / Day</span></div>
+<div class="metric-foot" id="flipkartDisparityDetail">No Data Available</div><div class="metric-context-link" id="flipkartDisparityExceptionDetail" onclick="event.stopPropagation();openDashboardExceptionsNative('flipkart')">0 approved exceptions</div><div class="metric-category-breakdown" id="flipkartDisparityCategoryBreakdown"></div><div class="metric-sparkline" id="flipkartDisparitySpark"></div>
+</div>
+<div class="metric-card inventory-card" id="flipkartInventoryRiskCard" onclick="openDashboardDestination('flipkart','inventory')">
+<div class="metric-topline"><span class="metric-label">Inventory Risk</span><span class="metric-symbol" data-ui-icon="database"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="flipkartInventoryRiskCount">—</strong></div>
+<div class="metric-secondary"><strong id="flipkartInventoryOosCount">—</strong> <span>Currently OOS</span></div>
+<div class="metric-foot" id="flipkartInventoryRiskDetail">No Data Available</div>
+<div class="metric-category-breakdown" id="flipkartInventoryCategoryBreakdown"></div>
+</div><div class="metric-card total-card" onclick="openDashboardDestination('flipkart','total_impact')">
+<div class="metric-topline"><span class="metric-label">Flipkart Total Rev Impact</span><span class="metric-symbol" data-ui-icon="impact"></span></div>
+<div class="metric-main"><strong class="metric-value-v4" id="flipkartTotalImpact">—</strong></div>
+<div class="metric-secondary" id="flipkartTotalImpactLabel">Rev Impact / Day</div>
+<div class="metric-foot">Deduplicated by FSN</div><div class="metric-context-muted" id="flipkartTotalExclusionDetail">Exceptions excluded</div><div class="metric-category-breakdown" id="flipkartTotalCategoryBreakdown"></div><div class="metric-sparkline" id="flipkartTotalSpark"></div>
+</div>
+</div>
+</div>
+<div class="marketplace-total-strip">
+<div class="marketplace-total-card" onclick="openDashboardDestination('amazon','total_impact')">
+<span>Amazon Total Rev Impact</span>
+<strong id="amazonTotalImpactBottom">—</strong>
+</div>
+<div class="marketplace-total-card" onclick="openDashboardDestination('flipkart','total_impact')">
+<span>Flipkart Total Rev Impact</span>
+<strong id="flipkartTotalImpactBottom">—</strong>
+</div>
+<div class="marketplace-total-card hero" onclick="openDashboardDestination('combined','total_impact')">
+<span>Total Marketplace Rev Impact</span>
+<strong id="marketplaceTotalImpact">—</strong>
+</div>
+</div>
+<!-- Compatibility IDs retained for older rendering helpers. -->
+<div class="hidden-compat">
+<div id="amazonLiveParityPercent"></div>
+<div id="amazonLiveParityPercent2"></div>
+<div id="amazonLiveDisparityCount"></div>
+<div id="amazonListingParityPercent"></div>
+<div id="amazonMrpParityPercent"></div>
+<div id="flipkartLiveParityPercent"></div>
+<div id="flipkartLiveParityPercent2"></div>
+<div id="flipkartLiveDisparityCount"></div>
+<div id="flipkartListingParityPercent"></div>
+<div id="flipkartMrpParityPercent"></div>
+<div id="combinedDailyImpact"></div>
+<div id="combinedImpactLabel"></div>
+<div id="dashboardPeriodLabel"></div>
+</div>
+<div class="panel search-result-panel" hidden="" id="dashboardSearchResults">
+<div class="search-result-head">
+<h3>Product Search</h3>
+<div class="module-actions">
+<span class="search-result-count" id="dashboardSearchCount">0 results</span>
+<button class="secondary-btn" id="dashboardSearchDownload" onclick="downloadDashboardSearchResults()">Download Excel</button>
+</div>
+</div>
+<div class="table-wrap"><table class="result-table" id="dashboardSearchTable"></table></div>
+</div>
+</section>
+<!-- MARKETPLACE INSIGHTS -->
+<section class="app-view" id="priceParitySection">
+<div class="panel v93-report-panel">
+<div class="panel-title-row"><div class="v93-title-with-back"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><div><h2 id="priceParityTitle">Price Parity</h2><div class="v7-muted" id="priceParitySubtitle">Marketplace pricing health</div></div></div><div class="module-actions"><button class="secondary-btn" onclick="downloadPriceParityReport(false)">Download Visible</button><button class="secondary-btn" onclick="downloadPriceParityReport(true)">Full Export</button></div></div>
+<div class="v93-filter-grid">
+<select id="priceParityPeriod"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last14">Last 14 Days</option><option value="last30">Last 30 Days</option><option value="selected">Selected Date</option><option value="custom">Custom Range</option></select>
+<input id="priceParitySelectedDate" type="date"/><input id="priceParityFromDate" type="date"/><input id="priceParityToDate" type="date"/>
+<select id="priceParityCategory"><option value="all">All Categories</option></select>
+<select id="priceParityComponent"><option value="overall">Overall</option><option value="listing">Listing Price</option><option value="live">Live Price</option><option value="mrp">MRP</option></select>
+<select id="priceParityStatus"><option value="all">All States</option><option value="parity">Parity</option><option value="disparity">Actionable Disparity</option><option value="exception">Approved Exception</option></select>
+<input id="priceParitySearch" placeholder="Search ASIN / FSN / WF SKU / AZ SKU / FK SKU" type="search"/>
+<button class="primary-btn" onclick="loadPriceParityReport()">Apply</button><button class="secondary-btn" onclick="resetPriceParityReport()">Reset</button>
+</div>
+<div class="v93-kpi-grid" id="priceParityKpis"></div>
+<div class="insights-chart-grid"><div class="analytics-card"><div class="analytics-card-head"><strong>Daily Parity Trend</strong><span id="priceParityTrendMeta">Selected period</span></div><div class="analytics-chart" id="priceParityTrend"></div></div><div class="analytics-card"><div class="analytics-card-head"><strong>Category Parity</strong><span>Current filtered scope</span></div><div class="category-bars" id="priceParityCategoryChart"></div></div></div>
+<div class="analytics-card"><div class="analytics-card-head"><strong>Daily Parity Summary</strong><span id="priceParitySummaryMeta">—</span></div><div class="table-wrap"><table class="result-table" id="priceParityDailyTable"></table></div></div>
+<div class="analytics-card"><div class="analytics-card-head"><strong>Product Detail</strong><div class="module-actions"><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('priceParity')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('priceParity')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('priceParity')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('priceParity')" type="button">Restore Default</button></div><div id="priceParityColumns"></div></div></details><span id="priceParityRowCount">0 rows</span></div></div><div class="table-wrap"><table class="result-table" id="priceParityTable"></table></div></div>
+</div>
+</section><section class="app-view" id="revenueImpactSection">
+<div class="panel v93-report-panel">
+<div class="panel-title-row"><div class="v93-title-with-back"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><div><h2 id="revenueImpactTitle">Revenue Impact</h2><div class="v7-muted">Deduplicated actionable marketplace exposure. Exceptions and suppression overrides are excluded.</div></div></div><div class="module-actions"><button class="secondary-btn" onclick="downloadRevenueImpactReport(false)">Download Visible</button><button class="secondary-btn" onclick="downloadRevenueImpactReport(true)">Full Export</button></div></div>
+<div class="v93-filter-grid"><select id="revenueImpactPeriod"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last14">Last 14 Days</option><option value="last30">Last 30 Days</option><option value="custom">Custom Range</option></select><input id="revenueImpactFromDate" type="date"/><input id="revenueImpactToDate" type="date"/><select id="revenueImpactCategory"><option value="all">All Categories</option></select><select id="revenueImpactIssue"><option value="all">All Issue Types</option><option value="listing">Listing Price</option><option value="live">Live Price</option><option value="suppression">ASIN Suppression</option><option value="buybox">Buy Box Suppression</option></select><input id="revenueImpactSearch" placeholder="Search ASIN / FSN / WF SKU / marketplace SKU" type="search"/><button class="primary-btn" onclick="loadRevenueImpactReport()">Apply</button></div>
+<div class="v93-kpi-grid" id="revenueImpactKpis"></div>
+<div class="insights-chart-grid"><div class="analytics-card"><div class="analytics-card-head"><strong>Impact Trend</strong><span>Selected period</span></div><div class="analytics-chart" id="revenueImpactTrend"></div></div><div class="analytics-card"><div class="analytics-card-head"><strong>Category Contribution</strong><span>Deduplicated exposure</span></div><div class="category-bars" id="revenueImpactCategoryChart"></div></div></div>
+<div class="analytics-card"><div class="analytics-card-head"><strong>Impact Detail</strong><div class="module-actions"><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('revenueImpact')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('revenueImpact')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('revenueImpact')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('revenueImpact')" type="button">Restore Default</button></div><div id="revenueImpactColumns"></div></div></details><span id="revenueImpactRowCount">0 rows</span></div></div><div class="table-wrap"><table class="result-table" id="revenueImpactTable"></table></div></div>
+</div>
+</section><section class="app-view" id="marketplaceInsightsSection">
+<div class="insights-shell" id="insightsShell">
+<div class="insights-domain-tabs marketplace-focus-tabs" id="insightsDomainTabs">
+<button class="insights-domain-tab active" data-marketplace-focus="overview" onclick="setMarketplaceInsightFocus('overview')">Overview</button>
+<button class="insights-domain-tab" data-marketplace-focus="parity" onclick="setMarketplaceInsightFocus('parity')">Price Parity</button>
+<button class="insights-domain-tab" data-marketplace-focus="price_disparity" onclick="setMarketplaceInsightFocus('price_disparity')">Price Disparity</button>
+<button class="insights-domain-tab amazon-insight" data-marketplace-focus="amazon_suppression" onclick="setMarketplaceInsightFocus('amazon_suppression')">ASIN Suppression</button>
+<button class="insights-domain-tab amazon-insight" data-marketplace-focus="amazon_buybox" onclick="setMarketplaceInsightFocus('amazon_buybox')">Buy Box Suppression</button>
+<button class="insights-domain-tab" data-marketplace-focus="exceptions" onclick="setMarketplaceInsightFocus('exceptions')">Exceptions</button>
+<button class="insights-domain-tab" data-marketplace-focus="total_impact" onclick="setMarketplaceInsightFocus('total_impact')">Revenue Impact</button>
+</div>
+<div class="insights-hero" id="insightsOverviewHero">
+<div class="insights-hero-top">
+<div class="insights-heading">
+<h2>Marketplace Insights</h2>
+<span class="insights-mode-pill" id="insightsActiveMode">All Insights</span>
+</div>
+<div aria-label="Marketplace Insights view" class="v8-view-switch" id="insightsViewSwitch" role="group">
+<button class="v8-view-btn active" data-v8-insights-view="chart" onclick="setInsightsDisplayMode('chart')" type="button">Insights</button>
+<button class="v8-view-btn" data-v8-insights-view="list" onclick="setInsightsDisplayMode('list')" type="button">Detailed Data</button>
+</div>
+<div class="control-row insights-controls">
+<select aria-label="Marketplace" id="insightsMarketplace">
+<option value="combined">Combined</option>
+<option value="amazon">Amazon</option>
+<option value="flipkart">Flipkart</option>
+</select>
+<select aria-label="Insights period" id="insightsPeriod">
+<option value="today">Today</option>
+<option value="yesterday">Yesterday</option>
+<option selected="" value="last7">Last 7 Days</option>
+<option value="last15">Last 15 Days</option>
+<option value="last30">Last 30 Days</option>
+<option value="custom">Custom Range</option>
+</select>
+<input aria-label="Insights from date" id="insightsFromDate" type="date"/>
+<input aria-label="Insights to date" id="insightsToDate" type="date"/>
+<select aria-label="Insights category" id="insightsCategory">
+<option value="all">All Categories</option>
+</select>
+<select aria-label="Price disparity type" class="insights-secondary-filter" hidden="" id="insightsDisparityType">
+<option value="all">All Price Disparities</option>
+<option value="listing">Listing Price Disparity</option>
+<option value="live">Live Price Disparity</option>
+<option value="mrp">MRP Disparity</option>
+</select>
+<input id="insightsDate" type="hidden"/>
+<button class="primary-btn" onclick="loadMarketplaceInsights()">Apply</button>
+<button class="secondary-btn" onclick="downloadMarketplaceInsights()">Download Excel</button>
+</div>
+</div>
+<div class="insights-kpi-grid v6-insights-kpis">
+<button class="insights-kpi interactive" data-insight-card="parity" onclick="setMarketplaceInsightFocus('parity')">
+<span>Price Parity</span><strong id="insightsParity">—</strong><small id="insightsParitySub">—</small>
+</button>
+<button class="insights-kpi interactive" data-insight-card="price_disparity" onclick="setMarketplaceInsightFocus('price_disparity')">
+<span>Price Disparity</span><strong id="insightsDisparity">—</strong><small id="insightsDisparitySub">—</small>
+</button>
+<button class="insights-kpi interactive amazon-insight" data-insight-card="amazon_suppression" onclick="setMarketplaceInsightFocus('amazon_suppression')">
+<span>ASIN Suppression</span><strong id="insightsSuppression">—</strong><small id="insightsSuppressionSub">Amazon</small>
+</button>
+<button class="insights-kpi interactive amazon-insight" data-insight-card="amazon_buybox" onclick="setMarketplaceInsightFocus('amazon_buybox')">
+<span>Buy Box Suppression</span><strong id="insightsAmazonBuyBox">—</strong><small id="insightsAmazonBuyBoxSub">Amazon</small>
+</button>
+<button class="insights-kpi interactive" data-insight-card="exceptions" onclick="setMarketplaceInsightFocus('exceptions')">
+<span>Approved Exceptions</span><strong id="insightsExceptions">—</strong><small id="insightsExceptionsSub">Excluded from actionable pricing</small>
+</button>
+<button class="insights-kpi interactive total" data-insight-card="total_impact" onclick="setMarketplaceInsightFocus('total_impact')">
+<span>Total Rev Impact</span><strong id="insightsImpact">—</strong><small id="insightsImpactSub">Deduplicated exposure</small>
+</button>
+</div>
+<div class="insights-focus-summary" hidden="" id="insightsFocusSummary"></div>
+</div>
+
+
+<div class="v8-insights-list" id="insightsListView">
+<div class="analytics-card"><div class="analytics-card-head"><strong>Daily Snapshot</strong><span id="insightsListMeta">Selected view</span></div><div class="table-wrap"><table class="result-table" id="insightsDailySnapshotTable"></table></div></div>
+</div>
+<div class="insights-chart-grid v6-chart-grid" id="insightsChartGrid" style="display:none">
+<div class="analytics-card insight-chart-card" data-chart-focus="parity">
+<div class="analytics-card-head"><strong>Price Parity Trend</strong><span>Parity products by day</span></div>
+<div class="analytics-chart" id="insightsParityTrend"></div>
+</div>
+<div class="analytics-card insight-chart-card" data-chart-focus="price_disparity">
+<div class="analytics-card-head"><strong>Price Disparity Trend</strong><span>Disparity products by day</span></div>
+<div class="analytics-chart" id="insightsPriceDisparityTrend"></div>
+</div>
+<div class="analytics-card insight-chart-card amazon-insight" data-chart-focus="amazon_suppression">
+<div class="analytics-card-head"><strong>ASIN Suppression Trend</strong><span>Suppressed ASINs by day</span></div>
+<div class="analytics-chart" id="insightsSuppressionTrend"></div>
+</div>
+<div class="analytics-card insight-chart-card amazon-insight" data-chart-focus="amazon_buybox">
+<div class="analytics-card-head"><strong>Buy Box Suppression Trend</strong><span>Amazon ASINs by day</span></div>
+<div class="analytics-chart" id="insightsAmazonBuyBoxTrend"></div>
+</div>
+<div class="analytics-card insight-chart-card" data-chart-focus="total_impact">
+<div class="analytics-card-head"><strong>Revenue Impact Trend</strong><span id="insightsImpactTrendMeta">Deduplicated daily exposure</span></div>
+<div class="analytics-chart" id="insightsRevenueTrend"></div>
+</div>
+<div class="analytics-card insight-chart-card contribution-card" data-chart-focus="contribution">
+<div class="analytics-card-head"><strong>Category Contribution</strong><span id="insightsContributionMeta">Selected insight</span></div>
+<div class="category-bars" id="insightsCategoryContribution"></div>
+</div>
+</div>
+<div class="insights-detail-grid">
+<div class="insight-table-panel" id="insightsTopProductsPanel">
+<div class="analytics-card-head"><strong>Top Impacted Products</strong><span id="insightsTopProductsMeta">Selected view</span></div>
+<div class="table-wrap"><table class="result-table" id="insightsTopProductsTable"></table></div>
+</div>
+<div class="insight-table-panel" id="insightsDetailedDataPanel">
+<div class="analytics-card-head"><strong>Detailed Data</strong><span id="insightsDailyDetailMeta">Selected view</span></div>
+<div class="table-wrap"><table class="result-table" id="insightsTable"></table></div>
+</div>
+</div>
+<div class="v6-hidden-compat">
+<span id="insightsAvailability"></span>
+<span id="insightsCoverage"></span>
+<span id="insightsCoverageKpi"></span>
+<span id="insightsCoverageSub"></span>
+<span id="insightsFreshnessKpi"></span>
+<span id="insightsFreshnessSub"></span>
+<span id="insightsIssues"></span>
+<span id="insightsIssuesSub"></span>
+<div id="insightsParityChart"></div>
+<div id="insightsIssueTrend"></div>
+</div>
+</div>
+</section>
+<!-- PRICE DISPARITY EXPLORER -->
+<section class="app-view" id="priceDisparityExplorerSection">
+<div class="panel v6-report-panel">
+<div class="panel-title-row v6-report-head">
+<div>
+<h2 id="disparityExplorerTitle">Price Disparity</h2>
+<span class="report-context-pill" id="disparityExplorerModeBadge">All Price Disparities</span>
+</div>
+<div class="module-actions v6-control-cluster">
+<select aria-label="Price disparity period" id="disparityExplorerPeriod">
+<option value="today">Today</option>
+<option value="yesterday">Yesterday</option>
+<option value="last7">Last 7 Days</option>
+<option value="last15">Last 15 Days</option>
+<option value="last30">Last 30 Days</option>
+<option value="custom">Custom Range</option>
+</select>
+<input id="disparityExplorerFromDate" type="date"/>
+<input id="disparityExplorerToDate" type="date"/>
+<button class="primary-btn" onclick="loadDisparityExplorer()">Apply</button>
+<button class="secondary-btn" onclick="downloadDisparityExplorer()">Download Excel</button>
+<button class="secondary-btn" id="disparityExplorerEmailButton" onclick="openDisparityExplorerEmail()">Share via Email</button>
+</div>
+</div>
+<div class="disparity-explorer-controls v6-filter-bar">
+<select id="disparityExplorerType">
+<option value="all">All Disparities</option>
+<option value="listing">Listing Price Disparity</option>
+<option value="live">Live Price Disparity</option>
+<option value="mrp">MRP Disparity</option>
+</select>
+<select id="disparityExplorerCategory"><option value="all">All Categories</option></select>
+<input id="disparityExplorerSearch" placeholder="Search ASIN / FSN / WF SKU / marketplace SKU" type="search"/>
+<select id="disparityExplorerSort">
+<option value="impact_desc">Revenue Impact · High to Low</option>
+<option value="days_desc">Affected Days · High to Low</option>
+<option value="category_asc">Category · A to Z</option>
+<option value="identifier_asc">ASIN / FSN · A to Z</option>
+</select>
+</div>
+<div class="module-availability">
+<span id="disparityExplorerAvailability">No Data Available</span>
+<span class="coverage-chip" id="disparityExplorerCoverage">0 / 0 days</span>
+</div>
+<div class="disparity-summary-grid">
+<div class="summary-box"><span id="disparitySummaryLabel1">Products Affected</span><strong id="disparityExplorerProducts">0</strong></div>
+<div class="summary-box"><span id="disparitySummaryLabel2">Listing Disparity</span><strong id="disparityExplorerListing">0</strong></div>
+<div class="summary-box"><span id="disparitySummaryLabel3">Live Disparity</span><strong id="disparityExplorerLive">0</strong></div>
+<div class="summary-box"><span id="disparitySummaryLabel4">MRP Disparity</span><strong id="disparityExplorerMrp">0</strong></div>
+</div>
+<div class="report-row-info" id="disparityExplorerRowInfo"></div>
+<div class="table-wrap"><table class="result-table" id="disparityExplorerTable"></table></div>
+</div>
+</section>
+<!-- BUSINESS INSIGHTS -->
+<section class="app-view" id="businessInsightsSection">
+<div class="business-insights-shell">
+<div class="panel business-insights-nav">
+<div class="panel-title-row"><div><h2>Business Insights</h2><div class="v7-muted">Decision-support analytics separated from marketplace issue monitoring.</div></div></div>
+<div class="business-tab-row">
+<button class="insights-domain-tab active" data-business-tab="pricing" onclick="openBusinessInsights('pricing')">Pricing Insights</button>
+<button class="insights-domain-tab" data-business-tab="inventory" onclick="openBusinessInsights('inventory')">Inventory Insights</button>
+</div>
+</div>
+<div id="businessInsightsContent"></div>
+</div>
+</section>
+<!-- GENERIC REPORT MODULE -->
+<section class="app-view" id="reportModuleSection">
+<div class="panel">
+<div class="panel-title-row">
+<h2 id="reportModuleTitle">Report</h2>
+<div class="module-actions">
+<select id="reportPeriod">
+<option value="today">Today</option>
+<option value="yesterday">Yesterday</option>
+<option value="last7">Last 7 Days</option>
+<option value="last15">Last 15 Days</option>
+<option value="last30">Last 30 Days</option>
+<option value="custom">Custom Range</option>
+</select>
+<input id="reportFromDate" type="date"/>
+<input id="reportToDate" type="date"/>
+<input id="reportAnchorDate" type="hidden"/>
+<button class="primary-btn" onclick="loadHistoricalModule()">View</button>
+<button class="secondary-btn" onclick="downloadHistoricalModule()">Download Excel</button>
+<button class="secondary-btn" onclick="openShareEmailModal()">Share via Email</button>
+</div>
+</div>
+<div class="module-availability">
+<span id="reportAvailability">No Data Available</span>
+<span class="coverage-chip" id="reportCoverage">0 / 0 days</span>
+</div>
+<div class="report-filter-row">
+<select id="reportCategory">
+<option value="all">All Categories</option>
+</select>
+<input class="wide-search" id="reportSearch" placeholder="Search ASIN / FSN / WF SKU / AZ SKU / FK SKU" type="search"/>
+<select id="reportSort"></select>
+</div>
+<div class="report-summary-grid">
+<div class="summary-box"><span id="reportKpi1Label">Eligible</span><strong id="reportKpi1">0</strong></div>
+<div class="summary-box"><span id="reportKpi2Label">Parity</span><strong id="reportKpi2">0</strong></div>
+<div class="summary-box"><span id="reportKpi3Label">Disparity</span><strong id="reportKpi3">0</strong></div>
+<div class="summary-box"><span id="reportKpi4Label">Parity %</span><strong id="reportKpi4">0%</strong></div>
+<div class="summary-box"><span id="reportKpi5Label">Disparity %</span><strong id="reportKpi5">0%</strong></div>
+<div class="summary-box"><span id="reportKpi6Label">Rev Impact</span><strong id="reportKpi6">₹0</strong></div>
+</div>
+<div class="report-row-info" id="reportRowInfo"></div>
+<div class="table-wrap"><table class="result-table" id="reportModuleTable"></table></div>
+</div>
+</section>
+<!-- PRICING HISTORY -->
+<section class="app-view" id="pricingHistorySection">
+<div class="panel">
+<div class="panel-title-row"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><h2>Price History</h2><button class="secondary-btn" onclick="downloadPricingHistory()">Download Excel</button><button class="secondary-btn" onclick="downloadPricingHistoryFull()">Full Export</button></div>
+<div class="v7-filter-grid">
+<select id="pricingHistoryMarketplace"><option value="all">All Marketplaces</option><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option></select>
+<select id="pricingHistoryPeriod"><option value="today">Today</option><option value="yesterday">Yesterday</option><option selected="" value="last7">Last 7 Days</option><option value="last14">Last 14 Days</option><option value="last30">Last 30 Days</option><option value="custom">Custom Range</option></select>
+<input id="pricingHistoryFromDate" type="date"/><input id="pricingHistoryToDate" type="date"/>
+<select id="pricingHistoryCategory"><option value="all">All Categories</option></select>
+<select id="pricingHistoryType"><option value="all">All Prices</option><option value="wf">WF Price</option><option value="listing">Listing Price</option><option value="live">Live Price</option><option value="mrp">MRP</option></select>
+<select id="pricingHistoryView"><option value="daily">Daily View</option><option value="consolidated">Consolidated View</option></select>
+<input id="pricingHistorySearch" placeholder="Search ASIN / FSN / WF SKU / AZ SKU / FK SKU" type="search"/>
+<select id="pricingHistorySort"><option value="date_desc">Date · Latest First</option><option value="identifier_asc">Identifier · A to Z</option><option value="category_asc">Category · A to Z</option></select>
+<button class="primary-btn" onclick="loadPricingHistory()">View Price History</button>
+<select id="pricingHistoryDirection"><option value="all">All Price Movement</option><option value="increase">Increase</option><option value="decrease">Decrease</option><option value="no_change">No Change</option></select><select id="pricingHistoryChangedOnly"><option value="all">All Records</option><option value="changed">Changed SKUs Only</option></select><select id="pricingHistoryInterference"><option value="all">Any Interference</option><option value="none">No Inventory / Suppression Interference</option><option value="inventory">Inventory Interference</option><option value="suppression">Suppression / Buy Box Interference</option></select><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('pricingHistory')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('pricingHistory')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('pricingHistory')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('pricingHistory')" type="button">Restore Default</button></div><div id="pricingHistoryColumns"></div></div></details><button class="secondary-btn" onclick="resetPricingHistoryFilters()">Reset</button></div>
+<div class="module-availability"><span id="pricingHistoryInfo">No Data Available</span></div>
+<div class="table-wrap"><table class="result-table" id="pricingHistoryTable"></table></div>
+</div>
+</section>
+<!-- INVENTORY HISTORY -->
+<section class="app-view" id="inventoryHistorySection">
+<div class="panel">
+<div class="panel-title-row"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><h2>Inventory History</h2><button class="secondary-btn" onclick="downloadInventoryHistory()">Download Excel</button><button class="secondary-btn" onclick="downloadInventoryHistoryFull()">Full Export</button></div>
+<div class="v7-filter-grid">
+<select id="inventoryHistoryMarketplace"><option value="all">All Marketplaces</option><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option></select>
+<select id="inventoryHistoryPeriod"><option value="today">Today</option><option value="yesterday">Yesterday</option><option selected="" value="last7">Last 7 Days</option><option value="last14">Last 14 Days</option><option value="last30">Last 30 Days</option><option value="custom">Custom Range</option></select>
+<input id="inventoryHistoryFromDate" type="date"/><input id="inventoryHistoryToDate" type="date"/>
+<select id="inventoryHistoryCategory"><option value="all">All Categories</option></select>
+<select id="inventoryHistoryView"><option selected="" value="consolidated">Consolidated View</option><option value="daily">Daily View</option></select>
+<input id="inventoryHistorySearch" placeholder="Search ASIN / FSN / WF SKU / AZ SKU / FK SKU" type="search"/>
+<select id="inventoryHistorySort"><option value="loss_desc">Potential OOS Loss · High to Low</option><option value="oos_desc">OOS Days · High to Low</option><option value="inventory_asc">Latest Inventory · Low to High</option><option value="identifier_asc">Identifier · A to Z</option></select>
+<button class="primary-btn" onclick="loadInventoryHistory()">View History</button>
+<select id="inventoryHistoryState"><option value="all">All Inventory States</option><option value="oos">OOS</option><option value="critical">Critical &lt;3 days</option><option value="at_risk">At Risk 3–7 days</option><option value="watch">Watch 7–14 days</option><option value="healthy">Healthy &gt;14 days</option></select><input id="inventoryHistoryDocMin" min="0" placeholder="Min Days Cover" step="0.1" type="number"/><input id="inventoryHistoryDocMax" min="0" placeholder="Max Days Cover" step="0.1" type="number"/><select id="inventoryHistoryEvent"><option value="all">All Stock Movement</option><option value="oos_only">OOS Events Only</option><option value="restock_only">Restocks Only</option><option value="increase">Stock Increase</option><option value="decrease">Stock Decrease</option></select><select id="inventoryHistoryRisk"><option value="all">All Revenue Risk</option><option value="high">High Revenue Risk</option><option value="medium">Medium Revenue Risk</option><option value="normal">Normal</option></select><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('inventoryHistory')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('inventoryHistory')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('inventoryHistory')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('inventoryHistory')" type="button">Restore Default</button></div><div id="inventoryHistoryColumns"></div></div></details><button class="secondary-btn" onclick="resetInventoryHistoryFilters()">Reset</button></div>
+<div class="v7-kpis" id="inventoryHistoryKpis"></div>
+<div class="module-availability"><span id="inventoryHistoryInfo">No Data Available</span></div>
+<div class="table-wrap"><table class="result-table" id="inventoryHistoryTable"></table></div>
+</div>
+</section>
+<!-- SUPPRESSION MANAGEMENT -->
+<section class="app-view" id="suppressionManagementSection">
+<div class="panel">
+<div class="panel-title-row"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><h2>Suppression Management</h2><div class="module-actions"><button class="secondary-btn" onclick="openManualSuppressionModal()">Add Manual Suppression</button><button class="secondary-btn" onclick="loadSuppressionManagement()">Refresh</button><button class="secondary-btn" onclick="downloadSuppressionManagement()">Download Excel</button></div></div>
+<div class="v7-kpis" id="suppressionManagementKpis"></div>
+<div class="suppression-primary-filters">
+<select id="suppressionManagementPeriod"><option value="today">Today</option><option value="yesterday">Yesterday</option><option selected="" value="last7">Last 7 Days</option><option value="last15">Last 15 Days</option><option value="last30">Last 30 Days</option><option value="custom">Custom Range</option></select>
+<input id="suppressionManagementFromDate" type="date"/><input id="suppressionManagementToDate" type="date"/>
+<select id="suppressionManagementCategory"><option value="all">All Categories</option></select>
+<select id="suppressionManagementState"><option value="all">Suppression State</option><option value="Active">Active</option><option value="Overridden">Overridden</option><option value="Reactivated">Reactivated</option><option value="Closed">Closed</option></select>
+<select id="suppressionManagementStatus"><option value="all">Case Status</option><option value="Detected">Detected</option><option value="Under Review">Under Review</option><option value="Documents Pending">Documents Pending</option><option value="Case Raised">Case Raised</option><option value="Awaiting Resolution">Awaiting Resolution</option><option value="Reactivated">Reactivated</option><option value="Closed">Closed</option></select>
+<input id="suppressionManagementSearch" placeholder="Search ASIN / WF SKU / AZ SKU / Case ID / User" type="search"/>
+<button class="primary-btn" onclick="renderSuppressionManagement()">Apply</button>
+<button aria-expanded="false" class="secondary-btn suppression-more-toggle" id="suppressionMoreFiltersButton" onclick="toggleSuppressionMoreFilters()" type="button">More Filters</button>
+<div class="more-filters-panel suppression-more-inline" hidden="" id="suppressionMoreFilters">
+<label data-suppression-filter-permission="pocEscalation"><span>POC</span><select id="suppressionManagementPoc"><option value="all">Any POC Status</option><option value="required">Required</option><option value="escalated">Escalated</option><option value="needs_review">Needs Review</option><option value="not_required">Not Required</option></select></label>
+<label data-suppression-filter-permission="manageSuppressions"><span>Source</span><select id="suppressionManagementSource"><option value="all">Any Source</option><option value="Audit">Audit</option><option value="Manual">Manual</option></select></label>
+<label data-suppression-filter-permission="manageSuppressions"><span>Owner</span><select id="suppressionManagementOwner"><option value="all">Any Assignee</option><option value="me">Assigned to Me</option><option value="my_team">My Team</option></select></label>
+<label data-suppression-filter-permission="managePoaQc"><span>POA</span><select id="suppressionManagementPoa"><option value="all">Any POA Status</option><option value="Required">Required</option><option value="Prepared">Prepared</option><option value="Submitted">Submitted</option><option value="Not Required">Not Required</option></select></label>
+<label data-suppression-filter-permission="managePoaQc"><span>QC</span><select id="suppressionManagementQc"><option value="all">Any QC Status</option><option value="Required">Required</option><option value="Prepared">Prepared</option><option value="Submitted">Submitted</option><option value="Not Required">Not Required</option></select></label>
+<label><span>Sort</span><select id="suppressionManagementSort"><option value="latest">Latest Detected</option><option value="impact_desc">Rev Impact · High to Low</option><option value="asin">ASIN · A to Z</option></select></label>
+</div>
+</div>
+<div class="v93-bulk-bar" id="suppressionBulkBar"><label><input id="suppressionSelectVisible" onchange="toggleSuppressionSelectVisible(this.checked)" type="checkbox"/> Select visible</label><button class="secondary-btn" onclick="selectAllFilteredSuppressions()">Select all filtered</button><button class="secondary-btn" onclick="clearSuppressionSelection()">Clear selection</button><strong id="suppressionSelectedCount">0 selected</strong><input id="suppressionBulkCaseId" placeholder="Shared Case ID"/><button class="primary-btn" onclick="applyBulkSuppressionCaseId()">Apply Case ID to Selected</button><select id="suppressionBulkStatus"><option value="">Bulk Status…</option><option>Under Review</option><option>Documents Pending</option><option>Case Raised</option><option>Awaiting Resolution</option><option>Reactivated</option><option>Closed</option></select><button class="secondary-btn" onclick="applyBulkSuppressionStatus()">Apply Status</button><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('suppressionManagement')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('suppressionManagement')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('suppressionManagement')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('suppressionManagement')" type="button">Restore Default</button></div><div id="suppressionManagementColumns"></div></div></details></div><div class="table-wrap"><table class="result-table" id="suppressionManagementTable"></table></div>
+</div>
+</section>
+<!-- DAILY COMMUNICATIONS -->
+<section class="app-view" id="dailyCommunicationsSection">
+<div class="panel">
+<div class="panel-title-row"><h2>Daily Communications</h2><div class="module-actions"><input id="communicationsDate" type="date"/><button class="secondary-btn" onclick="loadDailyCommunications()">Refresh</button></div></div>
+<div class="communication-grid" id="communicationsCards"></div>
+<div class="panel-subsection">
+<div class="analytics-card-head"><strong>Today's Communication History</strong><span id="communicationsHistoryCount">0</span></div>
+<div class="table-wrap"><table class="result-table" id="communicationsHistoryTable"></table></div>
+</div>
+</div>
+</section>
+<!-- PRICING EXCEPTIONS -->
+<section class="app-view" id="pricingExceptionsSection">
+<div class="panel exception-workspace-head">
+<div class="panel-title-row"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><div><h2>Pricing Exceptions</h2><div class="v7-muted">Create and manage approved pricing exceptions without changing the raw marketplace state.</div></div></div>
+<div class="business-tab-row">
+<button class="insights-domain-tab active" data-exception-tab="add" onclick="openPricingExceptions('add')">Add Exceptions</button>
+<button class="insights-domain-tab" data-exception-tab="manager" onclick="openPricingExceptions('manager')">Exceptions Manager</button>
+</div>
+</div>
+<div id="pricingExceptionsWorkspace"></div>
+</section>
+<!-- UPLOAD CENTER -->
+<section class="app-view" id="uploadSection">
+<div class="upload-layout">
+<div class="panel">
+<div class="panel-title-row"><h2>Data Center</h2></div>
+<div class="form-grid">
+<div class="form-field"><label>Report Date</label><input id="reportDate" type="date"/></div>
+<div class="form-field"><label>Menu</label><select id="menu"><option value="">Loading...</option></select></div>
+<div class="form-field"><label>Folder</label><select id="folder"><option value="">Select Menu</option></select></div>
+<div class="form-field"><label>File</label><div class="v8-file-picker"><input accept=".csv,.txt,.tsv,.xlsx,.xls,.xlsm" id="file" type="file"/><button class="v8-clear-file" hidden="" id="clearMainUploadFile" onclick="clearSelectedFile('file')" type="button">Remove File</button></div></div>
+<div class="form-field full"><button class="primary-btn" id="uploadButton" onclick="uploadData()" style="width:100%">Upload</button></div>
+</div>
+<div class="upload-status" id="uploadStatus"></div>
+<div class="file-info" id="fileInfo"><div id="parsedFileName"></div><div id="parsedSheetName"></div><div id="parsedRowCount"></div><div id="parsedHeaders"></div><div id="detectedReport"></div><div id="validationResult"></div></div>
+<div class="business-summary" id="businessSummary"><div id="businessAsinCount"></div><div id="businessUnits"></div><div id="businessRevenue"></div><div id="businessOrderItems"></div><div id="businessReportDaysSummary"></div></div>
+<div class="audit-summary" id="auditUploadSummary"></div>
+</div>
+<div class="panel">
+<div class="readiness-head"><strong id="readinessTitle">Source Availability</strong><span id="readinessCounter">0 / 7</span></div>
+<div class="readiness-list" id="readinessList"></div>
+<div class="readiness-note">Analysis runs automatically for every module whose required sources are available.</div>
+</div>
+</div>
+
+</section>
+<!-- MASTER PRICING -->
+<section class="app-view" id="masterPricingSection">
+<div class="panel">
+<div class="panel-title-row"><h2>Master Pricing</h2><button class="primary-btn" id="masterPricingButton" onclick="connectMasterPricing()">Connect Master Pricing</button></div>
+<div class="master-status" id="masterPricingStatus">Not connected</div>
+<div class="master-grid" id="amazonMasterMetrics">
+<div class="master-metric"><div class="master-metric-label">Amazon Rows</div><div class="master-metric-value" id="amazonMasterRowCount">0</div></div>
+<div class="master-metric"><div class="master-metric-label">AZ SKUs</div><div class="master-metric-value" id="amazonMasterSkuCount">0</div></div>
+<div class="master-metric"><div class="master-metric-label">ASINs</div><div class="master-metric-value" id="amazonMasterAsinCount">0</div></div>
+<div class="master-metric"><div class="master-metric-label">Categories</div><div class="master-metric-value" id="amazonMasterCategoryCount">0</div></div>
+</div>
+<div class="master-grid" id="flipkartMasterMetrics">
+<div class="master-metric"><div class="master-metric-label">Flipkart Rows</div><div class="master-metric-value" id="flipkartMasterRowCount">0</div></div>
+<div class="master-metric"><div class="master-metric-label">FK SKUs</div><div class="master-metric-value" id="flipkartMasterSkuCount">0</div></div>
+<div class="master-metric"><div class="master-metric-label">FSNs</div><div class="master-metric-value" id="flipkartMasterFsnCount">0</div></div>
+<div class="master-metric"><div class="master-metric-label">Categories</div><div class="master-metric-value" id="flipkartMasterCategoryCount">0</div></div>
+</div>
+</div>
+</section>
+<!-- PRICE UPDATES -->
+<section class="app-view" id="priceUpdatesSection">
+<div class="panel">
+<div class="panel-title-row"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><div><h2 id="priceUpdatesTitle">Price Updates</h2><div class="v7-muted" id="priceUpdatesSubtitle">Generate marketplace-ready correction files from actionable rows.</div></div><div class="module-actions"><button class="secondary-btn" onclick="refreshPriceUpdateVerification()">Verify Previous Updates</button><button class="primary-btn" id="priceUpdatesDownloadButton" onclick="downloadCurrentPriceUpdate()">Download Update File</button></div></div>
+<div class="price-update-controls">
+<input id="priceUpdatesDate" type="date"/>
+<select id="priceUpdatesType"></select>
+<select id="priceUpdatesCategory"><option value="all">All Categories</option></select>
+<input id="priceUpdatesSearch" placeholder="Search SKU / ASIN / FSN / WF SKU" type="search"/>
+<label class="v9-percent-control" hidden="" id="priceUpdatesMinPctWrap"><span>Min SAP</span><input id="priceUpdatesMinPct" max="99" min="0.1" step="0.1" type="number" value="5"/><small>% below Amazon listing price</small></label>
+<button class="secondary-btn" onclick="loadPriceUpdatesPreview()">Load Preview</button>
+</div>
+<div class="price-update-summary" id="priceUpdatesKpis"></div>
+<div class="price-update-actions"><label class="select-all-row"><input id="priceUpdatesSelectAll" onchange="toggleAllPriceUpdateRows(this.checked)" type="checkbox"/> Select all visible</label><button class="secondary-btn" id="priceUpdatesAddExceptionButton" onclick="addSelectedPriceUpdateExceptions()">Add Exception</button><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('priceUpdates')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('priceUpdates')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('priceUpdates')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('priceUpdates')" type="button">Restore Default</button></div><div id="priceUpdatesColumns"></div></div></details><span id="priceUpdatesSelectionCount">0 selected</span></div>
+<div class="table-wrap"><table class="result-table" id="priceUpdatesTable"></table></div>
+<div class="panel-subsection"><div class="analytics-card-head"><strong>Update Verification</strong><span>Generated → reflected on marketplace</span></div><div class="table-wrap"><table class="result-table" id="priceUpdateVerificationTable"></table></div></div>
+</div>
+</section>
+<!-- AMAZON PRICING ISSUES -->
+<section class="app-view" id="amazonPricingIssuesSection">
+<div class="panel">
+<div class="panel-title-row"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><div><h2>Amazon Pricing Issues</h2><div class="v7-muted">Identify Minimum / Maximum Seller Allowed Price issues. Generate correction files from Amazon → Price Updates → Min / Max Price Update.</div></div><div class="module-actions"><button class="secondary-btn" onclick="openPriceUpdates('amazon','min_max')">Open Min / Max Price Update</button></div></div>
+<div class="v7-filter-grid">
+<input id="amazonPricingIssuesDate" type="date"/>
+<select id="amazonPricingIssuesCategory"><option value="all">All Categories</option></select>
+<select id="amazonPricingIssuesType"><option value="all">All Pricing Issues</option><option value="min">Minimum Price Issues</option><option value="max">Maximum Price Issues</option></select>
+<select id="amazonPricingIssuesSkuType"><option value="all">All SKUs</option><option value="main">Main SKUs</option><option value="duplicate">Duplicate SKUs</option><option value="custom">Custom SKUs</option></select>
+<input id="amazonPricingIssuesSearch" placeholder="Search ASIN / AZ SKU / WF SKU" type="search"/>
+<button class="primary-btn" onclick="loadAmazonPricingIssues()">View Issues</button>
+</div>
+<div class="v7-kpis" id="amazonPricingIssuesKpis"></div>
+<div class="table-wrap"><table class="result-table" id="amazonPricingIssuesTable"></table></div>
+</div>
+</section>
+<!-- MARKETPLACE DATA -->
+<section class="app-view" id="marketplaceDataSection">
+<div class="panel">
+<div class="panel-title-row"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button>
+<h2>Marketplace Data</h2>
+<div class="module-actions">
+<input id="marketplaceDataDate" type="date"/>
+<button class="secondary-btn" onclick="downloadMarketplaceData()">Download Excel</button>
+</div>
+</div>
+<div class="data-toolbar">
+<select id="marketplaceDataView">
+<option value="all">All Marketplace Data</option>
+<option value="amazon">Amazon Data</option>
+<option value="flipkart">Flipkart Data</option>
+<option value="mapping">WF SKU Mapping</option>
+</select>
+<select id="marketplaceDataType">
+<option value="core">Core Mapping</option>
+<option value="pricing">Pricing</option>
+<option value="inventory">Inventory</option>
+<option value="revenue">Revenue</option>
+<option value="full">Full Data</option>
+</select>
+<select id="marketplaceDataCategory">
+<option value="all">All Categories</option>
+</select>
+<select aria-label="Marketplace Presence" id="marketplaceDataPresence">
+<option value="all">All Marketplace Presence</option>
+<option value="both">Available on Both</option>
+<option value="amazon_only">Amazon Only</option>
+<option value="flipkart_only">Flipkart Only</option>
+<option value="missing_amazon">Missing on Amazon</option>
+<option value="missing_flipkart">Missing on Flipkart</option>
+</select>
+<select aria-label="SKU Type / Mapping" id="marketplaceDataSkuType">
+<option value="all">All SKUs</option>
+</select>
+<select id="marketplaceDataMappingStatus"><option value="all">All Mapping Status</option><option value="valid">Valid Mapping</option><option value="conflict">Mapping Conflict</option><option value="multiple">Multiple Marketplace SKUs</option></select>
+<select id="marketplaceDataInventoryStatus"><option value="all">All Inventory</option><option value="in_stock">In Stock</option><option value="oos">OOS</option><option value="no_data">No Inventory Data</option></select>
+<select id="marketplaceDataPriceStatus"><option value="all">All Price Status</option><option value="parity">Parity</option><option value="listing">Listing Disparity</option><option value="live">Live Disparity</option><option value="mrp">MRP Disparity</option><option value="pricing_issue">Amazon Pricing Issue</option><option value="approved_exception">Approved Exception</option></select>
+<select id="marketplaceDataSort">
+<option value="revenue_desc">Revenue · High to Low</option>
+<option value="revenue_asc">Revenue · Low to High</option>
+<option value="category_asc">Category · A to Z</option>
+<option value="wfsku_asc">WF SKU · A to Z</option>
+<option value="identifier_asc">ASIN / FSN · A to Z</option>
+<option value="price_desc">Price · High to Low</option>
+</select>
+</div>
+<div class="data-toolbar-secondary">
+<input id="marketplaceDataSearch" placeholder="Search ASIN / FSN / WF SKU / AZ SKU / FK SKU" type="search"/>
+<details class="column-picker" id="marketplaceColumnPicker">
+<summary>Columns</summary>
+<div class="column-picker-panel">
+<div class="v8-column-actions"><button onclick="marketplaceColumnsSelectAll()" type="button">Select All</button><button onclick="marketplaceColumnsClearAll()" type="button">Clear All</button><button onclick="marketplaceColumnsSetDefault()" type="button">Set as Default</button><button onclick="marketplaceColumnsRestoreDefault()" type="button">Restore Default</button></div>
+<div id="marketplaceDataColumns"></div>
+</div>
+</details>
+<button class="primary-btn" onclick="loadMarketplaceData()">View Data</button>
+<button class="secondary-btn" onclick="setMarketplaceQuickView('amazon_only')">Amazon Only</button>
+<button class="secondary-btn" onclick="setMarketplaceQuickView('flipkart_only')">Flipkart Only</button>
+<button class="secondary-btn" onclick="setMarketplaceQuickView('conflict')">Mapping Conflicts</button>
+</div>
+<div class="module-availability">
+<span id="marketplaceDataAvailability">No Data Available</span>
+<span class="coverage-chip" id="marketplaceDataAsOf">As of —</span>
+</div>
+<div class="data-stats">
+<span class="data-stat" id="marketplaceDataRowCount">0 rows</span>
+<span class="data-stat" id="marketplaceDataCategoryCount">0 categories</span>
+</div>
+<div class="table-wrap"><table class="result-table" id="marketplaceDataTable"></table></div>
+</div>
+</section>
+<!-- SETTINGS -->
+<section class="app-view" id="historyHubSection"><div class="panel"><div class="panel-title-row"><div class="v93-title-with-back"><button class="v93-back-btn" onclick="wakeSuiteBack()">← Back</button><div><h2>History</h2><div class="v7-muted">Central read-only audit and historical data hub across WakeSuite.</div></div></div><div class="module-actions"><button class="secondary-btn" onclick="downloadHistoryHub(false)">Download Visible</button><button class="secondary-btn" onclick="downloadHistoryHub(true)">Full Export</button></div></div><div class="v93-filter-grid"><select id="historyType"><option value="pricing">Pricing History</option><option value="inventory">Inventory History</option><option value="suppression">Suppression History</option><option value="buybox">Buy Box History</option><option value="exceptions">Pricing Exceptions History</option><option value="price_updates">Price Update / Verification History</option><option value="mapping">Marketplace / Mapping History</option><option value="uploads">Upload / Source File History</option><option value="admin">Data Administration / Audit History</option></select><select id="historyPeriod"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last14">Last 14 Days</option><option value="last30">Last 30 Days</option><option value="custom">Custom Range</option></select><input id="historyFromDate" type="date"/><input id="historyToDate" type="date"/><select id="historyMarketplace"><option value="all">All Marketplaces</option><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option></select><select id="historyCategory"><option value="all">All Categories</option></select><select id="historyStatus"><option value="all">All Status</option></select><input id="historySearch" placeholder="ASIN / FSN / WF SKU / AZ SKU / FK SKU / User" type="search"/><select id="historySort"><option value="date_desc">Date · Latest First</option><option value="identifier_asc">Identifier · A to Z</option><option value="category_asc">Category · A to Z</option></select><button class="primary-btn" onclick="loadHistoryHub()">Apply</button><button class="secondary-btn" onclick="resetHistoryHub()">Reset</button><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('historyHub')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('historyHub')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('historyHub')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('historyHub')" type="button">Restore Default</button></div><div id="historyHubColumns"></div></div></details></div><div class="v93-kpi-grid" id="historyHubKpis"></div><div class="module-availability"><span id="historyHubInfo">No data loaded</span></div><div class="table-wrap"><table class="result-table" id="historyHubTable"></table></div></div></section><section class="app-view" id="emailSettingsSection">
+<div class="panel">
+<div class="panel-title-row"><h2>Settings</h2></div>
+<div class="settings-group-tabs">
+<button class="settings-group-tab" data-settings-group="access" onclick="v7ShowSettingsGroup('access',this)">Access &amp; Security</button>
+<button class="settings-group-tab active" data-settings-group="email" onclick="v7ShowSettingsGroup('email',this)">Email</button>
+<button class="settings-group-tab" data-settings-group="system" onclick="v7ShowSettingsGroup('system',this)">System</button>
+</div>
+<div class="settings-tabs" id="settingsSubTabs">
+<button class="settings-tab active" data-settings-group-child="email" data-settings-pane="emailTemplatesPane" onclick="showSettingsPane('emailTemplatesPane',this)">Email Settings</button>
+<button class="settings-tab" data-settings-group-child="email" data-settings-pane="recipientGroupsPane" onclick="showSettingsPane('recipientGroupsPane',this)">Recipient Groups</button>
+<button class="settings-tab" data-settings-group-child="email" data-settings-pane="signaturePane" onclick="showSettingsPane('signaturePane',this)">Email Signature</button>
+<button class="settings-tab" data-settings-group-child="email" data-settings-pane="emailHistoryPane" onclick="showSettingsPane('emailHistoryPane',this)">Email History</button>
+<button class="settings-tab" data-settings-group-child="access" data-settings-pane="userAccessPane" id="userAccessSettingsTab" onclick="showSettingsPane('userAccessPane',this)">User Access</button>
+<button class="settings-tab" data-settings-group-child="access" data-settings-pane="organizationAccessPane" id="organizationAccessSettingsTab" onclick="showSettingsPane('organizationAccessPane',this)">Organization Access</button>
+<button class="settings-tab" data-settings-group-child="system" data-settings-pane="operationalControlsPane" id="operationalControlsSettingsTab" onclick="showSettingsPane('operationalControlsPane',this)">Operational Controls</button>
+<button class="settings-tab" data-settings-group-child="system" data-settings-pane="dataAdministrationPane" id="dataAdministrationSettingsTab" onclick="showSettingsPane('dataAdministrationPane',this)">Data Administration</button>
+<button class="settings-tab" data-settings-group-child="system" data-settings-pane="generalSettingsPane" id="generalSettingsTab" onclick="showSettingsPane('generalSettingsPane',this)">General Settings</button>
+</div>
+<div class="settings-pane active" id="emailTemplatesPane">
+<div class="settings-grid">
+<div class="settings-field">
+<label>Report</label>
+<select id="emailTemplateReport"></select>
+</div>
+<div class="settings-field">
+<label>Email Content</label>
+<select id="emailContentMode">
+<option value="message">Message + Attachment</option>
+<option value="table">Inline Table</option>
+<option value="summary">Summary + Attachment</option>
+<option value="table_attachment">Table + Attachment</option>
+</select>
+</div>
+<div class="settings-field full">
+<label>To</label>
+<input id="emailTemplateTo" placeholder="name@company.com, group:Amazon Pricing Team"/>
+</div>
+<div class="settings-field full">
+<label>CC</label>
+<input id="emailTemplateCc" placeholder="name@company.com"/>
+</div>
+<div class="settings-field full">
+<label>BCC</label>
+<input id="emailTemplateBcc" placeholder="Optional"/>
+</div>
+<div class="settings-field full">
+<label>Subject</label>
+<input id="emailTemplateSubject"/>
+</div>
+<div class="settings-field">
+<label>Greeting</label>
+<input id="emailTemplateGreeting"/>
+</div>
+<div class="settings-field">
+<label>Max Inline Rows</label>
+<input id="emailInlineLimit" max="100" min="1" type="number" value="30"/>
+</div>
+<div class="settings-field full">
+<label>Message</label>
+<textarea id="emailTemplateMessage"></textarea>
+</div>
+<div class="settings-field">
+<label>Excel Attachment</label>
+<select id="emailAttachExcel">
+<option value="yes">Attach Excel</option>
+<option value="no">No Attachment</option>
+</select>
+</div>
+<div class="settings-field">
+<label>Signature</label>
+<select id="emailUseSignature">
+<option value="yes">Use Default Signature</option>
+<option value="no">No Signature</option>
+</select>
+</div>
+<div class="settings-field full">
+<button class="primary-btn" onclick="saveCurrentEmailTemplate()">Save Email Settings</button>
+</div>
+</div>
+</div>
+<div class="settings-pane" id="recipientGroupsPane">
+<div id="recipientGroupsList"></div>
+<button class="secondary-btn" onclick="addRecipientGroup()">+ Add Recipient Group</button>
+<button class="primary-btn" onclick="saveRecipientGroups()">Save Recipient Groups</button>
+</div>
+<div class="settings-pane" id="signaturePane">
+<div class="settings-grid">
+<div class="settings-field full">
+<label>Default Signature</label>
+<textarea id="defaultEmailSignature"></textarea>
+</div>
+<div class="settings-field full">
+<button class="primary-btn" onclick="saveDefaultEmailSignature()">Save Signature</button>
+</div>
+</div>
+</div>
+<div class="settings-pane" id="emailHistoryPane">
+<div class="table-wrap"><table class="result-table" id="emailHistoryTable"></table></div>
+</div>
+<div class="settings-pane" id="userAccessPane">
+<div class="access-invite-row">
+<input id="inviteUserEmail" placeholder="name@wakefit.co" type="email"/>
+<select id="inviteUserRole"><option value="viewer">Viewer</option><option value="analyst">Analyst</option><option value="admin">Admin</option></select>
+<button class="primary-btn" onclick="inviteWakeSuiteUser()">Add User</button>
+</div>
+<div class="v7-access-counters" id="userAccessCounters"></div>
+<div class="v7-filter-grid v7-filter-grid-compact">
+<input id="userAccessSearch" placeholder="Search name or email" type="search"/>
+<select id="userAccessStatus"><option value="all">All Users</option><option value="attention">Needs Attention</option><option value="approved">Approved</option><option value="pending">Pending</option><option value="invited">Invited</option><option value="rejected">Rejected</option><option value="disabled">Disabled</option></select>
+<select id="userAccessRoleFilter"><option value="all">All Roles</option><option value="viewer">Viewer</option><option value="analyst">Analyst</option><option value="admin">Admin</option><option value="super_admin">Super Admin</option></select>
+<button class="secondary-btn" onclick="loadUserAccessManagement()">Refresh</button>
+</div>
+<div id="userAccessDirectory"></div>
+<div class="hidden-compat" id="invitedAccessUsers"></div><div class="hidden-compat" id="pendingAccessRequests"></div><div class="hidden-compat" id="approvedAccessUsers"></div>
+</div>
+<div class="settings-pane" id="organizationAccessPane">
+<div class="settings-grid">
+<div class="settings-field"><label>Organization-only access</label><select id="orgAccessEnabled"><option value="true">Enabled</option></select></div>
+<div class="settings-field"><label>Allowed email domain</label><input id="orgAccessDomain" readonly="" value="@wakefit.co"/></div>
+<div class="settings-field"><label>Admin approval for new users</label><select id="orgApprovalRequired"><option value="true">Required</option></select></div>
+<div class="settings-field"><label>External accounts</label><select id="orgExternalAccounts"><option value="false">Blocked</option></select></div>
+<div class="settings-field full"><div class="v7-security-note">Organization access is enforced in both WakeSuite and Firestore rules. Only @wakefit.co accounts can request or receive access.</div></div>
+</div>
+</div>
+<div class="settings-pane" id="operationalControlsPane">
+<div class="settings-grid">
+<div class="settings-field"><label>Suppression Override</label><select id="suppressionOverrideEnabled"><option value="true">Enabled</option><option value="false">Disabled</option></select></div>
+<div class="settings-field"><label>Amazon Account Manager Name</label><input id="amazonPocName" placeholder="Account Manager"/></div>
+<div class="settings-field"><label>Amazon Account Manager Email</label><input id="amazonPocEmail" placeholder="name@company.com" type="email"/></div>
+<div class="settings-field"><label>Flipkart Account Manager Name</label><input id="flipkartPocName" placeholder="Account Manager"/></div>
+<div class="settings-field"><label>Flipkart Account Manager Email</label><input id="flipkartPocEmail" placeholder="name@company.com" type="email"/></div>
+<div class="settings-field full"><label>Amazon Additional Escalation Recipients</label><input id="amazonPocAdditional" placeholder="email1@wakefit.co, email2@wakefit.co"/></div>
+<div class="settings-field full"><label>Flipkart Additional Escalation Recipients</label><input id="flipkartPocAdditional" placeholder="email1@wakefit.co, email2@wakefit.co"/></div>
+<div class="settings-field full"><label>Daily Marketplace Report Recipients</label><input id="internalMarketplaceRecipients" placeholder="Internal team emails"/></div>
+</div>
+<div class="panel-subsection">
+<div class="analytics-card-head"><strong>Amazon Suppression POC Escalation Thresholds</strong><span>Revenue Impact / Day</span></div>
+<div class="v7-threshold-grid">
+<label>Accessories<input id="thresholdAccessories" min="0" step="1" type="number" value="1000"/></label>
+<label>Furniture<input id="thresholdFurniture" min="0" step="1" type="number" value="2000"/></label>
+<label>Mattress<input id="thresholdMattress" min="0" step="1" type="number" value="4000"/></label>
+<label class="v7-toggle-label"><span>Office Chairs</span><span><input checked="" id="thresholdOfficeChairsAlways" type="checkbox"/> Always Escalate</span></label>
+</div>
+</div>
+<div class="panel-subsection"><div class="analytics-card-head"><strong>Amazon Pricing Controls</strong><span>Correction defaults</span></div><div class="v7-threshold-grid"><label>Minimum SAP Reduction %<input id="amazonMinPriceCorrectionPct" max="99" min="0.1" step="0.1" type="number" value="5"/></label><div class="v7-security-note">Maximum SAP is always corrected to the target MRP (WF MRP). No separate Max % is used.</div></div></div>
+<button class="primary-btn" onclick="saveOperationalControls()">Save Operational Controls</button>
+</div>
+<div class="settings-pane" id="dataAdministrationPane"><div class="v7-settings-card"><div class="panel-title-row"><div><strong>Super Admin · Data Administration</strong><p>Clear processed data or explicitly remove an incorrect uploaded source version. Every destructive action is previewed, confirmed and audited.</p></div></div>
+<div class="business-tab-row"><button class="insights-domain-tab active" data-admin-tab="processed" onclick="setDataAdminTab('processed')">Clear Processed Data</button><button class="insights-domain-tab" data-admin-tab="source" onclick="setDataAdminTab('source')">Delete Source File</button></div>
+<div id="dataAdminProcessedPanel">
+<div class="v93-filter-grid"><select id="dataAdminDateMode"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="single">Single Report Date</option><option value="custom">Custom Range</option></select><input id="dataAdminDate" type="date"/><input id="dataAdminFromDate" type="date"/><input id="dataAdminToDate" type="date"/><select id="dataAdminMarketplace"><option value="all">All Marketplaces</option><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option></select><select id="dataAdminCategory"><option value="all">All Categories</option><option>Mattress</option><option>Furniture</option><option>Accessories</option><option>Office Chairs</option></select><select id="dataAdminIssueStatus"><option value="all">All Issue / Status</option><option value="parity">Parity</option><option value="disparity">Disparity</option><option value="active">Active</option><option value="overridden">Overridden</option><option value="closed">Closed</option></select><input id="dataAdminIdentifier" placeholder="ASIN / FSN / WF SKU / AZ SKU / FK SKU"/><input id="dataAdminReason" placeholder="Mandatory audit reason"/></div>
+<div class="data-admin-options" id="dataAdminDatasetOptions"><label><input data-data-admin-type="amazon_pricing" type="checkbox"/> Amazon Pricing / Disparity</label><label><input data-data-admin-type="amazon_suppression" type="checkbox"/> Amazon ASIN Suppression</label><label><input data-data-admin-type="amazon_buybox" type="checkbox"/> Amazon Buy Box</label><label><input data-data-admin-type="amazon_pricing_issues" type="checkbox"/> Amazon Pricing Issues / Overrides</label><label><input data-data-admin-type="amazon_price_updates" type="checkbox"/> Amazon Price Updates / Verification</label><label><input data-data-admin-type="flipkart_pricing" type="checkbox"/> Flipkart Pricing / Disparity</label><label><input data-data-admin-type="flipkart_price_updates" type="checkbox"/> Flipkart Price Updates / Verification</label><label><input data-data-admin-type="inventory" type="checkbox"/> Inventory Analysis / History</label><label><input data-data-admin-type="marketplace_data" type="checkbox"/> Marketplace / Normalized Data</label><label><input data-data-admin-type="business_history" type="checkbox"/> Business Insights Derived History</label><label><input data-data-admin-type="pricing_exceptions" type="checkbox"/> Pricing Exception Operational Records</label><label><input data-data-admin-type="snapshot" type="checkbox"/> Entire Processed Snapshot</label></div>
+<div class="v93-admin-scope"><label><input checked="" name="dataAdminScope" type="radio" value="selected"/> Selected records</label><label><input name="dataAdminScope" type="radio" value="filtered"/> All filtered records</label><label><input name="dataAdminScope" type="radio" value="dataset"/> Entire selected dataset(s)</label><label><input name="dataAdminScope" type="radio" value="snapshot"/> Entire processed snapshot(s)</label></div>
+<div class="module-actions"><button class="secondary-btn" onclick="previewDataAdministrationV93()">Preview</button><button class="primary-btn danger-btn" onclick="executeDataAdministrationV93()">Clear Processed Data</button></div><div class="data-admin-preview" id="dataAdminPreview"></div><div class="table-wrap"><table class="result-table" id="dataAdminPreviewTable"></table></div>
+</div>
+<div hidden="" id="dataAdminSourcePanel"><div class="v93-filter-grid"><select id="sourceDeleteDateMode"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="single">Single Report Date</option><option value="custom">Custom Range</option></select><input id="sourceDeleteDate" type="date"/><input id="sourceDeleteFromDate" type="date"/><input id="sourceDeleteToDate" type="date"/><select id="sourceDeleteType"><option value="all">All Source Types</option><option value="wakefit_daily_pricing">Wakefit Daily Pricing</option><option value="amazon_all_listings">Amazon All Listings</option><option value="amazon_fba_inventory">Amazon FBA Inventory</option><option value="amazon_business_reports">Amazon Business Reports</option><option value="marketplace_audit_report">Shared Audit Report</option><option value="flipkart_listing_file">Flipkart Listing File</option><option value="flipkart_order_report">Flipkart Order Report</option></select><input id="sourceDeleteReason" placeholder="Mandatory audit reason"/><button class="secondary-btn" onclick="previewSourceVersionsV93()">Load Versions</button></div><div class="v93-security-note">Deleting a source version also invalidates only downstream processed data derived from that version/date. Unrelated source history is preserved.</div><div class="table-wrap"><table class="result-table" id="sourceDeleteTable"></table></div><div class="module-actions"><button class="primary-btn danger-btn" onclick="deleteSelectedSourceVersionsV93()">Delete Selected Source Version(s)</button></div></div>
+<div class="panel-subsection"><div class="analytics-card-head"><strong>Data Administration Audit</strong><div class="module-actions"><details class="column-picker"><summary>Columns</summary><div class="column-picker-panel"><div class="v8-column-actions"><button onclick="WakeSuiteColumns.selectAll('dataAdminAudit')" type="button">Select All</button><button onclick="WakeSuiteColumns.clearAll('dataAdminAudit')" type="button">Clear All</button><button onclick="WakeSuiteColumns.setDefault('dataAdminAudit')" type="button">Set as Default</button><button onclick="WakeSuiteColumns.restoreDefault('dataAdminAudit')" type="button">Restore Default</button></div><div id="dataAdminAuditColumns"></div></div></details></div></div><div class="table-wrap"><table class="result-table" id="dataAdminAuditTable"></table></div></div>
+</div></div>
+<div class="settings-pane" id="generalSettingsPane">
+<div class="v7-settings-card"><strong>WakeSuite System</strong><p>General application configuration is kept here. Operational, access and email settings are separated to keep Settings clean.</p></div>
+</div>
+</div>
+</section>
+<div aria-hidden="true" class="email-modal-backdrop" id="suppressionOverrideModal">
+<div class="email-modal v7-small-modal">
+<div class="email-modal-head"><strong>Override Suppression</strong><button class="secondary-btn" onclick="closeSuppressionOverrideModal()">Close</button></div>
+<div class="email-modal-body">
+<div class="v7-security-note">This removes the suppression issue and revenue impact only for the selected report date. The raw detection remains stored for audit.</div>
+<div class="settings-grid" style="margin-top:12px"><div class="settings-field"><label>ASIN</label><input id="suppressionOverrideAsin" readonly=""/></div><div class="settings-field"><label>Report Date</label><input id="suppressionOverrideDate" readonly=""/></div><div class="settings-field full"><label>Reason</label><textarea id="suppressionOverrideReason" placeholder="Why is this ASIN considered reactivated / not actionable?"></textarea></div></div>
+</div>
+<div class="email-modal-actions"><button class="secondary-btn" onclick="closeSuppressionOverrideModal()">Cancel</button><button class="primary-btn" onclick="saveCurrentSuppressionOverride()">Apply Override</button></div>
+</div>
+</div>
+<div aria-hidden="true" class="email-modal-backdrop" id="manualSuppressionModal">
+<div class="email-modal v7-small-modal"><div class="email-modal-head"><strong>Add Manual Suppression</strong><button class="secondary-btn" onclick="closeManualSuppressionModal()">Close</button></div>
+<div class="email-modal-body"><div class="settings-grid">
+<div class="settings-field"><label>ASIN</label><input id="manualSuppressionAsin"/></div>
+<div class="settings-field"><label>Case ID</label><input id="manualSuppressionCaseId"/></div>
+<div class="settings-field"><label>Detected / Submitted Date</label><input id="manualSuppressionDate" type="date"/></div>
+<div class="settings-field"><label>Category</label><select id="manualSuppressionCategory"><option>Mattress</option><option>Furniture</option><option>Accessories</option><option>Office Chairs</option></select></div>
+<div class="settings-field"><label>POA</label><select id="manualSuppressionPoa"><option>Not Required</option><option>Required</option><option>Prepared</option><option>Submitted</option></select></div>
+<div class="settings-field"><label>QC Report</label><select id="manualSuppressionQc"><option>Not Required</option><option>Required</option><option>Prepared</option><option>Submitted</option></select></div>
+<div class="settings-field full"><label>Assignee(s)</label><select id="manualSuppressionAssignees" multiple="" size="5"></select></div>
+<div class="settings-field full"><label>Reason / Notes</label><textarea id="manualSuppressionNotes"></textarea></div>
+</div></div><div class="email-modal-actions"><button class="secondary-btn" onclick="closeManualSuppressionModal()">Cancel</button><button class="primary-btn" onclick="saveManualSuppression()">Save Manual Case</button></div>
+</div>
+</div>
+<div aria-hidden="true" class="email-modal-backdrop" id="pricingExceptionModal">
+<div class="email-modal v7-small-modal">
+<div class="email-modal-head"><strong>Add Pricing Exception</strong><button class="secondary-btn" onclick="closePricingExceptionModal()">Close</button></div>
+<div class="email-modal-body"><div class="settings-grid">
+<div class="settings-field"><label>Marketplace</label><input id="manualExceptionMarketplace" readonly=""/></div>
+<div class="settings-field"><label>Product</label><input id="manualExceptionIdentifier" readonly=""/></div>
+<div class="settings-field"><label>Target</label><select id="manualExceptionTarget"><option value="all_pricing">All Pricing</option><option value="listing">Price</option><option value="live">Live Price Only</option><option value="mrp">MRP</option><option value="price_mrp">Price + MRP</option></select></div>
+<div class="settings-field"><label>Rule</label><select id="manualExceptionRule"><option value="full_exclusion">Full Exclusion</option><option value="approved_price">Approved Price</option><option value="approved_range">Approved Price Range</option><option value="tolerance_inr">Custom ₹ Tolerance</option><option value="tolerance_pct">Custom % Tolerance</option></select></div>
+<div class="settings-field"><label>Rule Value</label><input id="manualExceptionRuleValue" step="0.01" type="number"/></div>
+<div class="settings-field"><label>Rule Value To</label><input id="manualExceptionRuleValueTo" step="0.01" type="number"/></div>
+<div class="settings-field"><label>Period</label><select id="manualExceptionPeriod"><option value="today">Today Only</option><option value="custom">Custom Period</option><option value="no_expiry">No Expiry</option></select></div>
+<div class="settings-field"><label>Effective From</label><input id="manualExceptionFrom" type="date"/></div>
+<div class="settings-field"><label>Effective To</label><input id="manualExceptionTo" type="date"/></div>
+<div class="settings-field"><label>Exception Type</label><select id="manualExceptionType"><option value="Pricing">Pricing</option><option value="Parity">Parity</option><option value="Amazon Deal Tag">Amazon Deal Tag</option><option value="Flipkart Opt-In">Flipkart Opt-In</option><option value="Category Exception">Category Exception</option></select></div>
+<div class="settings-field full"><label>Remarks / Reason</label><textarea id="manualExceptionRemarks" placeholder="Required for manual exceptions"></textarea></div>
+</div></div>
+<div class="email-modal-actions"><button class="secondary-btn" onclick="closePricingExceptionModal()">Cancel</button><button class="primary-btn" onclick="saveManualPricingException()">Add Exception</button></div>
+</div>
+</div>
+<div class="product-drawer-backdrop" id="productDrawerBackdrop" onclick="closeProductDrawer(event)">
+<aside class="product-drawer product-360-drawer" id="productDrawer" onclick="event.stopPropagation()">
+<div class="product-drawer-head">
+<div><span class="utility-eyebrow" id="productDrawerContext">Product 360</span><h2 id="productDrawerTitle">Product</h2><div class="product-drawer-subtitle" id="productDrawerMarket">Marketplace</div></div>
+<div class="module-actions"><button class="secondary-btn" id="productDrawerFullButton" onclick="openFullProduct360()">Open Full Product 360</button><button class="secondary-btn" id="productDrawerDownloadButton" onclick="downloadCurrentProductData()">Download</button><button class="secondary-btn" onclick="closeProductDrawer()">Close</button></div>
+</div>
+<div class="product-360-tabs" id="productDrawerTabs"></div>
+<div class="product-drawer-body" id="productDrawerBody"></div>
+</aside>
+</div>
+<!-- SHARE EMAIL MODAL -->
+<div aria-hidden="true" class="email-modal-backdrop" id="emailShareModal">
+<div class="email-modal">
+<div class="email-modal-head">
+<strong>Share Report</strong>
+<button class="secondary-btn" onclick="closeShareEmailModal()">Close</button>
+</div>
+<div class="email-modal-body">
+<div class="email-modal-grid">
+<input id="shareEmailTo" placeholder="To"/>
+<input id="shareEmailCc" placeholder="CC"/>
+<input id="shareEmailBcc" placeholder="BCC"/>
+<input id="shareEmailSubject" placeholder="Subject"/>
+</div>
+<div style="height:10px"></div>
+<textarea id="shareEmailMessage" placeholder="Message" style="width:100%;min-height:100px"></textarea>
+<div class="email-preview">
+<div class="email-preview-head" id="shareEmailAttachmentName">No attachment</div>
+<div class="email-preview-body" id="shareEmailPreview"></div>
+</div>
+</div>
+<div class="email-modal-actions">
+<button class="secondary-btn" onclick="closeShareEmailModal()">Cancel</button>
+<button class="secondary-btn" id="createGmailDraftButton" onclick="sendCurrentReportEmail('draft')">Create Gmail Draft</button>
+<button class="primary-btn" id="sendGmailButton" onclick="sendCurrentReportEmail('send')">Send Email</button>
+</div>
+</div>
+</div>
+<!-- Compatibility nodes used by the proven processing engine; hidden from the final UI. -->
+<div class="hidden-compat">
+<input id="businessReportDaysInput" value="60"/><div id="businessReportDaysField"></div>
+<button id="runAmazonButton"></button><button id="runFlipkartButton"></button>
+<div id="auditSection"></div><div id="engineSection"></div><div id="disparityHubSection"></div>
+<div id="amazonPriceDisparitySection"><div id="amazonResultSummary"></div><select id="amazonResultFilter"><option value="all">All</option></select><input id="amazonSearch"/><table id="amazonPriceDisparityTable"></table></div>
+<div id="flipkartPriceDisparitySection"><div id="flipkartResultNote"></div><select id="flipkartResultFilter"><option value="all">All</option></select><input id="flipkartSearch"/><table id="flipkartPriceDisparityTable"></table></div>
+<table id="amazonSuppressionTable"></table><table id="amazonBuyBoxTable"></table><table id="disparityDetailTable"></table>
+<div id="totalLiveDisparityCount"></div><div id="dashboardReportsLoaded"></div>
+<div id="amazonListingDisparityCount"></div><div id="amazonMrpDisparityCount"></div><div id="flipkartListingDisparityCount"></div><div id="flipkartMrpDisparityCount"></div>
+<div id="amazonSuppressionImpactNote"></div><div id="amazonBuyBoxImpactNote"></div>
+<div id="suppressionSummaryCount"></div><div id="suppressionSummaryImpact"></div><div id="buyBoxSummaryCount"></div><div id="buyBoxSummaryImpact"></div>
+<div id="auditAmazonAsins"></div><div id="auditAmazonSuppressed"></div><div id="auditFlipkartFsns"></div>
+<div id="auditHealthAmazonAsins"></div><div id="auditHealthAmazonSuppressed"></div><div id="auditHealthAmazonBuyBox"></div><div id="auditHealthAmazonLive"></div><div id="auditHealthFlipkartFsns"></div><div id="auditHealthFlipkartLive"></div><div id="auditHealthRows"></div>
+</div>
+<div class="access-denied-overlay" id="accessPendingOverlay">
+<div class="access-denied-card">
+<h2 id="accessPendingTitle">Access Pending</h2>
+<p id="accessPendingMessage">Your WakeSuite access request is waiting for approval.</p>
+<button class="secondary-btn" onclick="location.reload()">Check Again</button>
+</div>
+</div>
+<div class="footer">WakeSuite © 2026 · V9.3.1</div>
+</main>
+<script src="./js/wakesuite-app.js"></script>
+<script src="./js/wakesuite-v9.1.js"></script>
+<script src="./js/core/module-registry.js"></script>
+<script src="./js/config/upload-sources.js"></script>
+<script src="./js/core/product-resolver.js"></script>
+<script src="./js/modules/price-updates/amazon-template-adapter.js"></script>
+<script src="./js/modules/price-updates/flipkart-template-adapter.js"></script>
+<script src="./js/modules/exceptions/pricing-exceptions.js"></script>
+<script src="./js/modules/pricing-issues/amazon-pricing-issues.js"></script>
+<script src="./js/modules/suppressions/suppression-lifecycle.js"></script>
+<script src="./js/modules/insights/marketplace-insights.js"></script>
+<script src="./js/modules/business/business-insights.js"></script>
+<script src="./js/modules/product360/product360.js"></script>
+<script src="./js/wakesuite-v9.2.js"></script>
+<script src="./js/core/navigation-history.js"></script><script src="./js/core/column-manager.js"></script><script src="./js/modules/parity/price-parity.js"></script><script src="./js/modules/dashboard/dashboard-routing.js"></script><script src="./js/modules/history/history-hub.js"></script><script src="./js/modules/suppressions/suppression-management-v9.3.js"></script><script src="./js/modules/admin/data-administration.js"></script><script src="./js/modules/price-updates/price-updates-v9.3.js"></script><script src="./js/wakesuite-v9.3.js"></script><script src="./js/wakesuite-firebase.js" type="module"></script>
+</body>
+</html>
