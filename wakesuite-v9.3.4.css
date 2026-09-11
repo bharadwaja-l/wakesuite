@@ -1,0 +1,14 @@
+/* WakeSuite V9.3.4 · dedicated analytics + Business Insights rebuild
+   Shared analytics filter bar is intentionally NOT present in this release. */
+.v934-analysis-page,.v934-business-panel{min-width:0}
+.v934-analysis-filter-grid,.v934-business-filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;align-items:end;margin:14px 0;padding:14px;border:1px solid #e5e7eb;border-radius:14px;background:#fff}
+.v934-analysis-filter-grid>*,.v934-business-filter-grid>*{width:100%;min-width:0}
+.v934-analysis-page .v8-view-switch,.v934-business-panel .v8-view-switch{margin:4px 0 14px}
+.v934-analysis-page .analytics-card,.v934-business-panel .analytics-card{margin-top:14px}
+.v934-impact-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0}.v934-impact-split>div{min-width:0}.v934-impact-split h4{margin:0 0 8px;font-size:13px;color:#344054}
+.v934-bi-kpis{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))!important}
+.v934-bi-kpis .v93-kpi small,#v934AnalysisKpis .v93-kpi small,#v934LiveImpactKpis .v93-kpi small{display:block;margin-top:5px;color:#667085;font-size:10px;line-height:1.35}
+#v934AnalysisTable th,#v934AnalysisTable td,#v934LiveImpactTable th,#v934LiveImpactTable td,#v934BiTable th,#v934BiTable td{white-space:nowrap}
+#v934LiveImpactCard[hidden]{display:none!important}
+@media(max-width:1000px){.v934-analysis-filter-grid,.v934-business-filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.v934-analysis-filter-grid,.v934-business-filter-grid,.v934-impact-split{grid-template-columns:1fr}.v934-analysis-page .module-actions,.v934-business-panel .module-actions{width:100%;display:flex;flex-wrap:wrap}.v934-analysis-page .module-actions>*,.v934-business-panel .module-actions>*{flex:1 1 140px}}
