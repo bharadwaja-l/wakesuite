@@ -1,0 +1,100 @@
+/* WakeSuite V9.3.9 · report-action visibility hotfix
+   Priority release: keep Download and Email actions visible on every individual report.
+*/
+
+/* Stable report action rows must never be clipped by the report heading or page overflow rules. */
+.ws-stable-report-actions{
+  display:flex!important;
+  align-items:center!important;
+  align-content:flex-start!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:visible!important;
+}
+.ws-stable-report-actions > *{
+  min-width:0;
+  box-sizing:border-box;
+}
+.ws-stable-report-actions > select,
+.ws-stable-report-actions > input[type="date"]{
+  flex:1 1 145px;
+  width:auto;
+  max-width:200px;
+}
+.ws-stable-report-actions > button:not([hidden]){
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto!important;
+  width:auto!important;
+  max-width:none!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:static!important;
+  transform:none!important;
+  white-space:nowrap;
+}
+
+/* Individual operational report: title occupies its own row, controls/actions use full width below it. */
+#reportModuleSection .panel-title-row,
+#priceDisparityExplorerSection .panel-title-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:10px!important;
+  overflow:visible!important;
+}
+#reportModuleSection .panel-title-row > h2,
+#priceDisparityExplorerSection .panel-title-row > div:first-child{
+  min-width:0;
+}
+#reportModuleSection .panel,
+#priceDisparityExplorerSection .panel{
+  overflow:visible;
+}
+
+/* These actions are required in the individual-report contract. */
+#reportDownloadButton:not([hidden]),
+#reportEmailButton:not([hidden]),
+#disparityExplorerDownloadButton:not([hidden]),
+#disparityExplorerEmailButton:not([hidden]),
+#disparityOrdersDownloadButton:not([hidden]),
+#marketplaceInsightsDownloadButton:not([hidden]){
+  display:inline-flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+
+/* Disparity Orders: allow controls to wrap below the heading instead of pushing Download off-screen. */
+#disparityOrdersSection .disparity-orders-head{
+  flex-wrap:wrap;
+}
+#disparityOrdersSection #disparityOrdersActions{
+  flex:1 1 620px;
+  justify-content:flex-end;
+}
+
+/* Marketplace Insights toolbar can be dense; keep Download in the wrapped control row. */
+#marketplaceInsightsActions{
+  justify-content:flex-end;
+}
+
+@media(max-width:1100px){
+  #disparityOrdersSection #disparityOrdersActions,
+  #marketplaceInsightsActions{
+    justify-content:flex-start;
+  }
+}
+
+@media(max-width:760px){
+  .ws-stable-report-actions > select,
+  .ws-stable-report-actions > input[type="date"],
+  .ws-stable-report-actions > button:not([hidden]){
+    flex:1 1 145px!important;
+    width:auto!important;
+    max-width:100%!important;
+  }
+}
