@@ -1,0 +1,17 @@
+{
+  "passed": [
+    "All JavaScript syntax checks",
+    "All local index asset links",
+    "APT implementation and all bundled templates/assets preserved byte-for-byte",
+    "POC columns, resend rows, numbering, timestamps, ASIN link labels and WF Price mapping",
+    "Normal report exports/share mirror visible columns and values, exclude actions/hidden columns, FK inline without attachment",
+    "Daily email/Excel summary, four detail tabs, unavailable FK revenue preserved",
+    "All four actual POA templates: global ASIN and split-run title replacement",
+    "Mocked sends refresh unresolved rows, log each escalation and split Flipkart category To/CC/attachments",
+    "Mocked Drive account-owned root/category discovery and reuse; stale/resolved suppression occurrences excluded",
+    "Missing category route, failed mandatory APT and unresolved identifiers block sends",
+    "Full app startup smoke test with live integrations disabled",
+    "Actual individual/Send All actions resend after logging; normal sharing repeats; real Gmail authorization helper/gateway finish six mocked deliveries"
+  ],
+  "liveGoogleFirebaseTested": false
+}

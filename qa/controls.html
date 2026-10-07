@@ -1,0 +1,25 @@
+<!doctype html><html><head>
+<link rel="stylesheet" href="css/wakesuite-v9.3.9.css"><link rel="stylesheet" href="css/wakesuite-v9.3.10.css">
+</head><body>
+<div id="disparityExplorerActions" class="ws-stable-report-actions">
+<select id="disparityExplorerType" hidden disabled><option value="all">All</option><option value="listing">Listing</option><option value="live">Live</option><option value="mrp">MRP</option></select>
+<button id="disparityExplorerDownloadButton" style="display:none">Download Excel</button>
+<button id="disparityExplorerEmailButton">Share via Email</button>
+</div>
+<div id="reportModuleActions"><button id="reportDownloadButton" style="display:none">Download Excel</button><button id="reportEmailButton">Share via Email</button></div>
+<div id="disparityOrdersActions"><button id="disparityOrdersDownloadButton" style="display:none">Download Excel</button></div>
+<div id="marketplaceInsightsActions"><button id="marketplaceInsightsDownloadButton" style="display:none">Download Excel</button></div>
+<button id="dashboardSearchDownload" style="display:none">Download Excel</button>
+<script>
+const V7_ROLE_PRESETS={analyst:{view:true,upload:true,download:true,email:true}};
+const ACCESS_ROLE_PRESETS=V7_ROLE_PRESETS;
+window.currentWakeSuiteAccess={role:'analyst',permissions:{email:true}};
+function v7CurrentPermissions(){const a=window.currentWakeSuiteAccess;return {...V7_ROLE_PRESETS[a.role],...(a.permissions||{})};}
+function v5CurrentPermissions(){return window.currentWakeSuiteAccess.permissions;}
+function applyAccessPermissions(){}
+let v6DisparityExplorerMode='strict'; let v6DisparityExplorerStrictType='listing'; let currentDisparityExplorerMarketplace='amazon';
+function openHistoricalModule(){}
+</script>
+<script src="js/wakesuite-v9.3.10.js"></script>
+<script>setTimeout(()=>{document.body.dataset.download=getComputedStyle(document.getElementById('disparityExplorerDownloadButton')).display;document.body.dataset.typeHidden=String(document.getElementById('disparityExplorerType').hidden);document.body.dataset.typeDisabled=String(document.getElementById('disparityExplorerType').disabled);document.body.dataset.typeValue=document.getElementById('disparityExplorerType').value;},1100)</script>
+</body></html>
