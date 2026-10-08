@@ -1,0 +1,15 @@
+{
+  "reproducedOldFailure": true,
+  "passed": [
+    "cached token reuse",
+    "expiry refresh",
+    "concurrent authorization",
+    "popup cancellation and blocked popup recovery",
+    "OAuth rejection recovery",
+    "authorization timeout recovery",
+    "repeated individual/combined gateway delivery",
+    "401 retry once",
+    "no retry on uncertain delivery"
+  ],
+  "liveGmailTested": false
+}

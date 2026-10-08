@@ -1,0 +1,11 @@
+{
+  "passed": [
+    "Confirmed original Order Report deletion targeted every Flipkart pricing row",
+    "Real persistence helper: compact/object prices, parity flags, audit evidence, inventory and Amazon chunks retained; only order metrics invalidated",
+    "Real delete UI + IndexedDB: deleting latest identical legacy duplicate promotes surviving copy without invalidating any processed output",
+    "Deleting a non-active distinct version preserves the current source and all results",
+    "Different active replacement/last copy/multiple selected copies: only order metrics invalidated; generic pricing deletion never invoked; stale active source removed",
+    "Cancellation performs no mutation; future uploads persist reliable active-version records"
+  ],
+  "liveFirestoreTested": false
+}

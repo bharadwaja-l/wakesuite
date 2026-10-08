@@ -1,0 +1,50 @@
+/* WakeSuite V9.3.10 · individual report controls + permission-safe actions */
+
+/* Explicit permission denial must win over the V9.3.9 visibility hotfix. */
+.ws-permission-hidden{display:none!important;visibility:hidden!important}
+
+/* Price Disparity side-menu reports keep their report-type and sort selectors. */
+#priceDisparityExplorerSection.ws-shared-filter-active .disparity-explorer-controls{
+  display:grid!important;
+  grid-template-columns:minmax(210px,.9fr) minmax(240px,1.1fr)!important;
+  gap:10px!important;
+  width:min(100%,760px)!important;
+  max-width:760px!important;
+}
+#priceDisparityExplorerSection.ws-shared-filter-active #disparityExplorerType:not([hidden]),
+#priceDisparityExplorerSection.ws-shared-filter-active #disparityExplorerSort{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  width:100%!important;
+  min-width:0!important;
+}
+
+/* Download + Email remain adjacent report actions and never get pushed off-screen. */
+#priceDisparityExplorerSection #disparityExplorerActions,
+#reportModuleSection #reportModuleActions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:8px!important;
+  overflow:visible!important;
+}
+#priceDisparityExplorerSection #disparityExplorerDownloadButton:not(.ws-permission-hidden),
+#priceDisparityExplorerSection #disparityExplorerEmailButton:not(.ws-permission-hidden):not([hidden]),
+#reportModuleSection #reportDownloadButton:not(.ws-permission-hidden),
+#reportModuleSection #reportEmailButton:not(.ws-permission-hidden):not([hidden]){
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  visibility:visible!important;
+  opacity:1!important;
+  white-space:nowrap!important;
+}
+
+@media(max-width:760px){
+  #priceDisparityExplorerSection.ws-shared-filter-active .disparity-explorer-controls{
+    grid-template-columns:1fr!important;
+    width:100%!important;
+    max-width:none!important;
+  }
+}

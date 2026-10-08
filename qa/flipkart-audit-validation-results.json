@@ -1,0 +1,68 @@
+{
+  "passed": [
+    "Reproduced original listing-price substitution for blank and absent audit prices",
+    "Uploaded workbook: all 8,193 rows checked; 3,483 eligible and 4,710 excluded; no substituted prices",
+    "Actual production builder: missing/blank/zero/negative/unknown/false/conflicting audit rows excluded; threshold and listing results preserved",
+    "Saved reports/POC/parity: substituted values removed; audit provenance survives serialization; other dates and unverified legacy values excluded",
+    "Replacing audit content with identical file metadata invalidates processing; changed saved values require reprocessing",
+    "Unknown audit evidence preserves escalation history; verified current parity remains eligible for resolution",
+    "Real communication refresh protects unresolved missing-audit history; price-history export preserves blanks and unavailable status",
+    "Full application runtime loaded without JavaScript errors"
+  ],
+  "uploadedWorkbook": {
+    "file": "amazon_flipkart_report_master_final_with_flipkart_20261007_050040.xlsx",
+    "sheet": "master_final_with_flipkart",
+    "total_rows": 8193,
+    "rows_with_fsn": 8193,
+    "unique_fsns": 6976,
+    "rows_without_fsn": 0,
+    "blank_fk_prices_all_rows": 1203,
+    "blank_fk_prices_with_fsn": 1203,
+    "positive_fk_prices_with_fsn": 6990,
+    "invalid_nonblank_fk_prices_with_fsn": 0,
+    "buy_now_with_fsn": {
+      "True": 3483,
+      "(blank)": 1202,
+      "False": 3508
+    },
+    "eligible_rows": 3483,
+    "duplicate_fsns": 17,
+    "conflicting_duplicates": 0,
+    "audit_dates": {
+      "2026-10-07": 8193
+    },
+    "category_breakdown": [
+      {
+        "category": "Accessories",
+        "rows_with_fsn": 4066,
+        "blank_prices": 473,
+        "eligible": 518
+      },
+      {
+        "category": "Furniture",
+        "rows_with_fsn": 3254,
+        "blank_prices": 406,
+        "eligible": 2417
+      },
+      {
+        "category": "Mattress",
+        "rows_with_fsn": 865,
+        "blank_prices": 322,
+        "eligible": 542
+      },
+      {
+        "category": "Office Chairs",
+        "rows_with_fsn": 8,
+        "blank_prices": 2,
+        "eligible": 6
+      }
+    ]
+  },
+  "realAuditCheck": {
+    "eligible": 3483,
+    "blocked": 4710,
+    "mismatches": 0,
+    "uniqueFsns": 6976
+  },
+  "liveGoogleFirebaseTested": false
+}
