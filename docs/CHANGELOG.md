@@ -1,3 +1,10 @@
+# 15 Oct 2026 — Data Center availability calendar
+
+- Add read-only monthly calendar using listDailySnapshotMetas; distinguish stored, partial, missing, processing, incomplete, unknown and future dates.
+- Source filter and selected-date details expose saved source availability; legacy metadata remains unknown. Refresh and reload on Data Center entry. Failed reads never label dates missing.
+- Coverage refers to processed snapshot report dates, not raw-file order coverage. No persistence or pricing calculation changes.
+- Validation: JavaScript syntax and 10 status classification assertions passed. Live account/UI verification remains pending.
+
 # TASKS_DONE / CHANGELOG — Duplicate source deletion fix
 
 Updated 07 Oct 2026. Includes the email resend and Flipkart audit-price fixes, with approved formats retained.
