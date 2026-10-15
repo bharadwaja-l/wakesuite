@@ -117,3 +117,10 @@ The latest completed snapshot is rendered first. Local source restoration, uploa
 
 ## V9.3.10 report-control compatibility
 Individual report action visibility is permission-aware. Effective permissions are resolved by merging the role preset with explicit stored user overrides so older access documents do not lose default actions merely because a newer permission key is absent. Price Disparity strict reports keep the shared analytics filter bar while exposing the dedicated report-type selector and sort control.
+
+
+## Shared report loading — 15 Oct 2026
+
+`js/core/report-loading.js` loads before application scripts. `WakeSuiteLoading.wrap` tracks nested report tasks, paints the shared accessible loading surface before work, restores control inert/aria-busy state on completion/failure, and exposes a cooperative yield helper. A capture listener defers select/date/month changes in app views until paint, then replays the native change once. File uploads and text editing remain outside this mechanism. Report controls/navigation are inert during tracked work, preventing overlapping user selections rather than aborting existing Firestore calls.
+
+Private module loader bindings use the same wrapper. Global report loaders are wrapped at DOMContentLoaded after scripts initialize. `WakeSuiteReadOnce` shares only in-flight date reads; existing snapshot caches remain responsible for reuse and invalidation. Shared range loading uses three workers, returns date-ordered snapshots and yields per date. No persistent cache, data schema or Firestore rule changes.

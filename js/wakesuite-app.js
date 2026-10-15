@@ -10662,6 +10662,7 @@ function filterMetasForPeriod(
 async function loadSnapshotCached(
   date
 ){
+  await window.WakeSuiteLoading.yield();
 
   if(
     snapshotCache.has(
@@ -10677,10 +10678,7 @@ async function loadSnapshotCached(
 
 
   const snapshot =
-    await window
-    .loadDailySnapshot(
-      date
-    );
+    await window.WakeSuiteReadOnce(date,()=>window.loadDailySnapshot(date));
 
 
   if(snapshot){
@@ -14290,12 +14288,18 @@ function renderDashboardFromSnapshots(snapshots,period,anchor,category){
 async function v4LoadSnapshotsForRange(fromDate,toDate){
   if(typeof window.listDailySnapshotMetas!=="function") return [];
   const metas=v4MetasInRange(await window.listDailySnapshotMetas(),fromDate,toDate);
-  const snapshots=[];
-  for(const meta of metas){
-    const snapshot=await loadSnapshotCached(meta.reportDate);
-    if(snapshot) snapshots.push(snapshot);
+  // Bound Firestore concurrency while preserving report-date order.
+  const snapshots=new Array(metas.length);
+  let next=0;
+  async function worker(){
+    while(next<metas.length){
+      const index=next++;
+      snapshots[index]=await loadSnapshotCached(metas[index].reportDate);
+      await window.WakeSuiteLoading.yield();
+    }
   }
-  return snapshots;
+  await Promise.all(Array.from({length:Math.min(3,metas.length)},worker));
+  return snapshots.filter(Boolean);
 }
 
 async function loadDashboardOverview(){

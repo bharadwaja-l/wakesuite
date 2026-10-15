@@ -81,4 +81,5 @@
   function download(full=false){if(!rows.length){showWakeSuiteToast?.('No history rows to download.','warning');return;}const vis=full?cols:(WakeSuiteColumns?.visible('historyHub')||cols),data=rows.map(r=>Object.fromEntries(vis.map(c=>[c,r[c]??''])));writeExcelReport?.(`WakeSuite_History_${document.getElementById('historyType').value}_${todayIso()}.xlsx`,{},data);}
   document.addEventListener('change',e=>{if(['historyType','historyMovement','historyExceptionMode','historyExceptionEvent'].includes(e.target?.id))load();});
   window.openHistoryHub=open;window.loadHistoryHub=load;window.resetHistoryHub=reset;window.downloadHistoryHub=download;window.WakeSuiteHistoryHub={open,load};
+  load=window.WakeSuiteLoading.wrap(load);
 })();

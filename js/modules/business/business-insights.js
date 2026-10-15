@@ -85,4 +85,5 @@
   function history(){if(current==='pricing')openPricingHistory?.();else openInventoryHistory?.();}
   function download(full=false){const r=current==='pricing'?pricingRows:inventoryRows;if(!r.length){showWakeSuiteToast?.('No Business Insights rows to download.','warning');return;}writeExcelReport?.(`WakeSuite_${current}_Insights_${todayIso()}.xlsx`,{},r);}
   window.openBusinessInsights=open;window.loadBusinessInsightsV93=load;window.resetBusinessInsightsV93=reset;window.setBusinessInsightsView=setView;window.openBusinessHistory=history;window.downloadBusinessInsights=download;window.WakeSuiteModules?.register('businessInsights',{open,load});
+  load=window.WakeSuiteLoading.wrap(load);
 })();
