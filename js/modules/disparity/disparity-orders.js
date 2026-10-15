@@ -262,4 +262,5 @@
   window.resetDisparityOrders=reset;
   window.downloadDisparityOrders=download;
   window.WakeSuiteDisparityOrders={open,load,download,getState:()=>state};
+  load=window.WakeSuiteLoading.wrap(load);
 })();

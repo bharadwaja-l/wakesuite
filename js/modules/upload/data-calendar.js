@@ -67,4 +67,5 @@
   new MutationObserver(()=>{if(section.classList.contains('active'))refresh();}).observe(section,{attributes:true,attributeFilter:['class']});
   render();
   if(section.classList.contains('active'))refresh();
+  refresh=window.WakeSuiteLoading.wrap(refresh);
 })();

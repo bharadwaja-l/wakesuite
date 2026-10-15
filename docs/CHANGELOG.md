@@ -1,3 +1,14 @@
+# 15 Oct 2026 — Site-wide report loading feedback and range responsiveness
+
+- Shared loading surface paints before select/date/month change handlers across app views. Existing handlers replay intact; upload/file and text edit changes are excluded.
+- Lock report controls and navigation during tracked loads to prevent conflicting user selections. Nested requests keep loading visible until settled; failures clear loading and retain existing error handling.
+- Wrap global report entry points and private loaders across Business Insights, History, Parity, Disparity Orders, Price Updates, Pricing Issues, Suppressions, Exceptions, Dashboard impact, Marketplace Data and Data Center calendar.
+- Coalesce concurrent snapshot reads by date without keeping null/error results. Preserve existing snapshot cache invalidation.
+- Fetch shared date ranges with at most three workers, preserve date order, and yield between dates; cached snapshot lookup also yields.
+- Cache-bust changed script references.
+- Validation: all changed JS passes node --check; mocked loading regression and bounded-range ordering checks passed. Authenticated live-browser interaction and timing measurement remain unverified because the browser runtime is unavailable.
+- No report business calculations, export formats, security rules or persistence schemas changed. Long synchronous aggregation/rendering may still take time; this release does not implement table virtualization or workers.
+
 # 15 Oct 2026 — Stop currency formatting feedback loop
 
 - Make currency cell updates idempotent; unchanged text is not replaced.

@@ -1,0 +1,26 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const events={},surfaces=new Map(),toasts=[];
+const main={inert:false,attrs:{},getAttribute(k){return this.attrs[k]??null},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+const doc={getElementById:id=>surfaces.get(id),createElement:()=>({setAttribute(){}}),body:{append(el){surfaces.set(el.id,el)}},querySelectorAll:()=>[main],addEventListener(name,fn){events[name]=fn}};
+const ctx={window:{showWakeSuiteToast:(...x)=>toasts.push(x)},document:doc,setTimeout,requestAnimationFrame:fn=>setTimeout(fn,0),Event:class{constructor(type,opts){this.type=type;Object.assign(this,opts)}}};
+vm.runInNewContext(fs.readFileSync(__dirname+'/../js/core/report-loading.js','utf8'),ctx);
+const L=ctx.window.WakeSuiteLoading;
+(async()=>{
+ let resolve,called=false;const fn=L.wrap(()=>{called=true;return new Promise(r=>resolve=r)});
+ const p=fn();assert.equal(main.inert,true);assert.equal(called,false,'work must wait for paint');assert.equal(surfaces.get('wsReportLoading').hidden,false);
+ await new Promise(r=>setTimeout(r,120));assert.equal(called,true);
+ resolve(7);assert.equal(await p,7);assert.equal(main.inert,false);assert.equal(L.busy,false);
+ const inner=L.wrap(async()=>{assert.equal(L.busy,true);return 9});const outer=L.wrap(async()=>inner());assert.equal(await outer(),9);assert.equal(L.busy,false);
+ await assert.rejects(L.wrap(async()=>{throw Error('network')})(),/network/);assert.equal(L.busy,false);assert.equal(main.inert,false);assert.equal(toasts.length,1);
+ let calls=0,finish;const read=()=>{calls++;return new Promise(r=>finish=r)};const a=ctx.window.WakeSuiteReadOnce('day',read),b=ctx.window.WakeSuiteReadOnce('day',read);assert.equal(a,b);await Promise.resolve();assert.equal(calls,1);finish(null);await a;
+ await ctx.window.WakeSuiteReadOnce('day',()=>{calls++;return 2});assert.equal(calls,2,'null read must not be retained');
+ await assert.rejects(ctx.window.WakeSuiteReadOnce('bad',()=>Promise.reject(Error('failed'))));assert.equal(await ctx.window.WakeSuiteReadOnce('bad',()=>3),3);
+ let replayCount=0,stopped=0;
+ const target={isConnected:true,matches:()=>true,closest:()=>true,dispatchEvent(event){replayCount++;events.change({...event,target,stopImmediatePropagation(){throw Error('replay intercepted')}})}};
+ events.change({target,stopImmediatePropagation(){stopped++}});
+ assert.equal(stopped,1);assert.equal(replayCount,0);await new Promise(r=>setTimeout(r,120));assert.equal(replayCount,1);assert.equal(L.busy,false);
+ const file={matches:()=>false};events.change({target:file,stopImmediatePropagation(){throw Error('file upload intercepted')}});
+ ctx.window.loadDashboardOverview=async()=>5;events.DOMContentLoaded();assert.equal(await ctx.window.loadDashboardOverview(),5);
+ assert.equal(main.inert,false);
+ console.log('PASS: paint before work, success/failure cleanup, nested tasks, read coalescing, retry after null/error, native change replay, upload exclusion and loader installation.');
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -200,4 +200,5 @@
 
   window.WakeSuiteV93={version:VERSION,aiIncluded:false};
   window.WakeSuiteModules?.register('v9.3',{version:VERSION,aiIncluded:false});
+  loadMarketplaceDataV93=window.WakeSuiteLoading.wrap(loadMarketplaceDataV93);
 })();

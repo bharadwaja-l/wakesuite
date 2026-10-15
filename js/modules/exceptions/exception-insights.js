@@ -118,4 +118,5 @@
   function download(full=false){if(!rows.length){showWakeSuiteToast?.('No Exception Insights rows to download.','warning');return;}const keys=full?columns.map(x=>x[0]):(WakeSuiteColumns?.visible('exceptionInsights')||columns.map(x=>x[0]));const data=rows.map(r=>Object.fromEntries(columns.filter(c=>keys.includes(c[0])).map(([k,label])=>[label,cell(r,k)])));writeExcelReport?.(`WakeSuite_Exception_Insights_${todayIso()}.xlsx`,{},data);}
   Object.assign(window,{openExceptionInsights:open,loadExceptionInsights:analyze,resetExceptionInsights:reset,setExceptionInsightsView:setView,downloadExceptionInsights:download});
   window.WakeSuiteModules?.register('exceptionInsights',{open,load:analyze});
+  analyze=window.WakeSuiteLoading.wrap(analyze);
 })();
