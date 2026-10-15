@@ -1,3 +1,11 @@
+# 15 Oct 2026 — Stop currency formatting feedback loop
+
+- Make currency cell updates idempotent; unchanged text is not replaced.
+- Observe only affected result tables and newly inserted tables, batch work, and disconnect the observer during formatting to prevent self-triggered scans.
+- Dropdown/calendar mutations outside report tables no longer trigger global currency scans. Existing currency rules and date handlers remain unchanged.
+- Cache-bust the updated shared controls script.
+- Validation: Node syntax check and mocked DOM regression checks passed for unrelated mutations, batching, unchanged/changed prices, observer disconnection and removed tables. Live responsiveness measurement remains pending.
+
 # 15 Oct 2026 — Data Center availability calendar
 
 - Add read-only monthly calendar using listDailySnapshotMetas; distinguish stored, partial, missing, processing, incomplete, unknown and future dates.

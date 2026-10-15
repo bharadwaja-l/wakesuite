@@ -57,18 +57,49 @@
         const n=number(t);if(n===null)return;
         // Do not convert identifiers/count columns just because "price" appears in unrelated text.
         if(/count|days|status|date/i.test(heads[i]||''))return;
-        td.textContent=money(n);
+        const formatted=money(n);
+        if(td.textContent!==formatted)td.textContent=formatted;
       });
     });
     delete table.dataset.wsCurrencyFormatted;
   }
   function formatAllTables(root=document){root.querySelectorAll?.('table.result-table').forEach(formatTableCurrency);}
-  let timer=null;
-  function scheduleFormat(){clearTimeout(timer);timer=setTimeout(()=>formatAllTables(),60);}
+  // Observe table changes only. Disconnect while formatting so our own text
+  // replacements cannot schedule another pass over the report tables.
+  let timer=null,observer=null;
+  const pendingTables=new Set();
+  const observe=()=>observer.observe(document.body,{childList:true,characterData:true,subtree:true});
+  function collectTables(node){
+    const el=node?.nodeType===1?node:node?.parentElement;
+    if(!el)return;
+    const parent=el.closest?.('table.result-table');
+    if(parent)pendingTables.add(parent);
+    el.querySelectorAll?.('table.result-table').forEach(table=>pendingTables.add(table));
+  }
+  function scheduleFormat(records){
+    for(const record of records){
+      // A mutation of body/main must not rescan every existing descendant table.
+      const el=record.target?.nodeType===1?record.target:record.target?.parentElement;
+      const table=el?.closest?.('table.result-table');
+      if(table)pendingTables.add(table);
+      for(const node of record.addedNodes||[])collectTables(node);
+    }
+    if(!pendingTables.size||timer!==null)return;
+    timer=setTimeout(()=>{
+      timer=null;
+      observer.disconnect();
+      try{
+        for(const table of pendingTables)if(table.isConnected)formatTableCurrency(table);
+      }finally{
+        pendingTables.clear();
+        observe();
+      }
+    },60);
+  }
 
   document.addEventListener('DOMContentLoaded',()=>{
     setupDates();formatAllTables();
-    const mo=new MutationObserver(scheduleFormat);mo.observe(document.body,{childList:true,subtree:true});
+    observer=new MutationObserver(scheduleFormat);observe();
   },{once:true});
   window.WakeSuiteDateControls={setup:setupDates,dateSetup};
 })();
