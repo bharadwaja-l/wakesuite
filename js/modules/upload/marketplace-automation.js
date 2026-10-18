@@ -18,21 +18,22 @@
     ['fkOrders','Flipkart Orders','https://seller.flipkart.com/index.html#dashboard/metrics/report-centre?query='+encodeURIComponent(JSON.stringify(fkRequest))],
     ['sql','Wakefit active pricing CSV','https://reports.wakefit.co/explorer/play/']
   ];
-  let state = null, helperSeen = 0;
+  let state = null, helperSeen = 0, helperVersion = '';
+  const helperTimeout=30000;
   try { const saved=JSON.parse(sessionStorage.getItem(storageKey)); if (saved && /^[\w-]{1,100}$/.test(saved.id) && Date.now()-saved.startedAt<86400000) state=saved; } catch {}
   function save(){try{sessionStorage.setItem(storageKey,JSON.stringify(state));}catch{}}
   function node(tag,text){const el=document.createElement(tag); if(text!==undefined)el.textContent=text; return el;}
   const title=node('div');title.className='mwf-trial-heading';title.append(node('h2','Marketplace automation'));
   const badge=node('span','TRIAL');badge.className='mwf-trial-badge';title.append(badge);panel.append(title);
   panel.append(node('p','Run report downloads in your signed-in Chrome tabs and monitor their status here. Keep the report tabs open.'));
-  const install=node('a','Install / update Marketplace Reports Workflow Helper v2.2.0');
+  const install=node('a','Install / update Marketplace Reports Workflow Helper v2.2.1');
   install.href='./userscripts/marketplace-reports-workflow-helper.user.js';install.target='_blank';install.rel='noopener';panel.append(install);
   const connection=node('p','Checking helper connection…');connection.setAttribute('role','status');panel.append(connection);
   const setup=node('details');setup.className='mwf-trial-setup';
   setup.append(node('summary','Connect the Chrome helper'));
   const steps=node('ol');
   ['Open the Install / update link above in the same Chrome profile as Wakesuite.',
-   'Install helper v2.2.0 in Tampermonkey, replacing the old version. Keep only one copy enabled.',
+   'Install helper v2.2.1 in Tampermonkey, replacing the old version. Keep only one copy enabled.',
    'If the link shows code, copy it into the existing helper in Tampermonkey Dashboard and save.',
    'Refresh Wakesuite. Wait for Helper connected, then try an Amazon or SQL report individually.'].forEach(value=>steps.append(node('li',value)));
   setup.append(steps);panel.append(setup);
@@ -47,8 +48,11 @@
   for(const task of tasks){const tr=node('tr'),status=node('td','Not started'),updated=node('td','—'),action=node('td'),button=node('button','Run');button.className='secondary-btn';button.addEventListener('click',()=>launch([task]));action.append(button);tr.append(node('td',task[1]),status,updated,action);body.append(tr);cells.set(task[0],{status,updated,button});}
   panel.append(node('p','Download clicked means the portal control was activated; confirm completion in Chrome Downloads. This trial does not import data, save report history, or delete Drive files.'));
   function render(){
-    const connected=Date.now()-helperSeen<6000;
-    text(connection,connected?'Helper connected · v2.2.0':'Helper not connected. Install/update it, enable it for this site, then refresh Wakesuite.');
+    const connected=helperSeen>0 && Date.now()-helperSeen<helperTimeout;
+    const detected=document.documentElement?.getAttribute('data-mwf-helper-version');
+    text(connection,connected?'Helper connected · v'+helperVersion:detected
+      ?'Helper v'+detected+' detected, but not responding. Click Check helper connection; refresh Wakesuite if this persists.'
+      :'Helper is not detected on Wakesuite. Install/update it in this Chrome profile, then refresh.');
     connection.dataset.connected=String(connected);
     runAll.disabled=!!state?.active;
     runAll.textContent=connected?'Run all daily reports':'Set up helper to run reports';
@@ -71,10 +75,10 @@
   }
   function text(el,value){if(el.textContent!==value)el.textContent=value;}
   function launch(selected){
-    if(Date.now()-helperSeen>=6000){
+    if(!helperSeen || Date.now()-helperSeen>=helperTimeout){
       setup.open=true;
       text(connection,'No helper response yet. Complete the steps below in this Chrome profile; no report has been started.');
-      window.postMessage({channel,type:'poll',runId:state?.id||'connection-check'},location.origin);
+      requestStatus();
       return;
     }
     if(!state || !state.active)state={id:Date.now()+'-'+crypto.randomUUID(),startedAt:Date.now(),tasks:{},active:true};
@@ -89,18 +93,30 @@
     save();render();
   }
   runAll.addEventListener('click',()=>launch(tasks));
-  window.addEventListener('message',event=>{
-    const data=event.data;
-    if(event.source!==window || event.origin!==location.origin || data?.channel!==channel || data.type!=='status'
-      || data.version!=='2.2.0' || data.runId!==(state?.id||'connection-check') || !Array.isArray(data.statuses))return;
+  function receiveStatus(data){
+    if(data?.channel!==channel || data.type!=='status'
+      || !['2.2.0','2.2.1'].includes(data.version) || data.runId!==(state?.id||'connection-check') || !Array.isArray(data.statuses))return;
     helperSeen=Date.now();
+    helperVersion=data.version;
     for(const item of data.statuses){
       if(!state?.tasks?.[item.kind] || item.runId!==state.id || typeof item.message!=='string'
         || !['running','finished','attention'].includes(item.phase) || !Number.isFinite(item.updatedAt))continue;
       if(item.updatedAt>=state.tasks[item.kind].updatedAt)state.tasks[item.kind]={phase:item.phase,message:item.message.slice(0,1200),updatedAt:item.updatedAt};
     }
     render();
+  }
+  window.addEventListener('message',event=>{
+    if(event.source===window && event.origin===location.origin)receiveStatus(event.data);
   });
-  function poll(){window.postMessage({channel,type:'poll',runId:state?.id||'connection-check'},location.origin);render();}
+  document.addEventListener('mwf-helper-status',event=>{
+    if(typeof event.detail!=='string' || event.detail.length>20000)return;
+    try{receiveStatus(JSON.parse(event.detail));}catch{}
+  });
+  function requestStatus(){
+    const request={channel,type:'poll',runId:state?.id||'connection-check'};
+    window.postMessage(request,location.origin);
+    document.dispatchEvent(new CustomEvent('mwf-helper-poll',{detail:JSON.stringify(request)}));
+  }
+  function poll(){requestStatus();render();}
   setInterval(poll,1500);poll();
 })();
