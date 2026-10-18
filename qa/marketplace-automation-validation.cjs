@@ -32,7 +32,7 @@ async function test(){
  assert.match(helper,/rows = rows\.filter\(row => flipkartListingKey\(row\) && !before\.has/);
  assert.match(helper,/selectVisibleOption\(dateRange,.*custom/);
  assert.doesNotMatch(helper,/if \(sqlHasResults\(\) && sqlResultsMatchExpected\(\)\)/);
- assert.match(helper,/sqlEditorText\(sqlEditor\(\)\) !== expected \|\| !sqlResultsMatchExpected/);
+ assert.match(helper,/!sqlQueryMatchesExpected\(\) \|\| !sqlResultsMatchExpected/);
  console.log('PASS helper: rolling dates, strict >20 MB threshold, fallback-only generation, unknown-size pause, SQL always runs before export, fresh-row and query guards.');
 }
 class Element{
