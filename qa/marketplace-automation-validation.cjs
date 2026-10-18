@@ -41,7 +41,8 @@ class Element{
 }
 async function controller(){
  const panel=new Element('section'),listeners={},tabs=[],outgoing=[],data=new Map();let tick;
- const ctx={document:{getElementById:()=>panel,createElement:tag=>new Element(tag)},URL,Date,crypto:{randomUUID:()=>String(Math.random()).slice(2)},location:{origin:'https://bharadwaja-l.github.io'},sessionStorage:{getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)},setInterval:fn=>{tick=fn;}};
+ const docEvents={};
+ const ctx={document:{documentElement:{getAttribute(){return null;}},addEventListener:(type,fn)=>docEvents[type]=fn,dispatchEvent(){},getElementById:()=>panel,createElement:tag=>new Element(tag)},CustomEvent:class{constructor(type,options){this.type=type;Object.assign(this,options);}},URL,Date,crypto:{randomUUID:()=>String(Math.random()).slice(2)},location:{origin:'https://bharadwaja-l.github.io'},sessionStorage:{getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)},setInterval:fn=>{tick=fn;}};
  ctx.window={addEventListener:(type,fn)=>listeners[type]=fn,postMessage:message=>outgoing.push(message),open:url=>{tabs.push(url);return {opener:{}};}};
  vm.runInNewContext(fs.readFileSync(root+'js/modules/upload/marketplace-automation.js','utf8'),ctx);
  const all=panel.children.find(el=>el.tagName==='button' && el.textContent==='Set up helper to run reports');assert.equal(all.disabled,false);
@@ -49,7 +50,9 @@ async function controller(){
  assert.equal(panel.children.find(el=>el.tagName==='details').open,true);
  const respond=(origin=ctx.location.origin,source=ctx.window,statuses=[])=>listeners.message({origin,source,data:{channel:'wakesuite-marketplace-helper-v1',type:'status',version:'2.2.0',runId:outgoing.at(-1).runId,statuses}});
  respond('https://evil.invalid');assert.equal(all.textContent,'Set up helper to run reports');respond(ctx.location.origin,{});assert.equal(all.textContent,'Set up helper to run reports');
- respond();assert.equal(all.disabled,false);all.listeners.click();assert.equal(tabs.length,6);assert.equal(all.disabled,true);
+ // Exercise the fallback independently of window.postMessage.
+ docEvents['mwf-helper-status']({detail:JSON.stringify({channel:'wakesuite-marketplace-helper-v1',type:'status',version:'2.2.1',runId:'connection-check',statuses:[]})});
+ assert.equal(all.textContent,'Run all daily reports');assert.equal(all.disabled,false);all.listeners.click();assert.equal(tabs.length,6);assert.equal(all.disabled,true);
  all.listeners.click();assert.equal(tabs.length,6,'pending tasks must not open duplicate tabs');
  tick();const id=outgoing.at(-1).runId;assert.ok(tabs.every(url=>new URL(url).searchParams.get('mwfRunId')===id));
  respond(ctx.location.origin,ctx.window,['inventory','asin','amazonOrders','flipkart','fkOrders','sql'].map(kind=>({kind,runId:id,phase:'finished',message:'Download control clicked',updatedAt:Date.now()+100})));
