@@ -1,6 +1,6 @@
 /* Read-only Data Center snapshot coverage. Never loads or processes report rows. */
 (function(){
-  const sources={wakefit:'Wakefit Daily Pricing',amazonListings:'Amazon All Listings',amazonFba:'Amazon FBA Inventory',amazonBusiness:'Amazon Business Reports',flipkartListing:'Flipkart Listing File',flipkartOrders:'Flipkart Order Report',audit:'Shared Audit Report'};
+  const sources={wakefit:'Wakefit Daily Pricing',amazonListings:'Amazon All Listings',amazonFba:'Amazon FBA Inventory',amazonBusiness:'Amazon Business Reports',amazonOrders:'Amazon Order Report',flipkartListing:'Flipkart Listing File',flipkartOrders:'Flipkart Order Report',audit:'Shared Audit Report'};
   const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
   function status(meta,date,today,source='all'){
     if(!meta)return date>today?'Future':'Missing';

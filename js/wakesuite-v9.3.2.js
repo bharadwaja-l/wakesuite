@@ -18,7 +18,7 @@
   };
   try{openDashboardDestination=window.openDashboardDestination;}catch(_e){}
 
-  function dailyRevenue(r,market){if(market==='amazon'){if(Number(r.avgRevenuePerDay)>0)return Number(r.avgRevenuePerDay);if(Number(r.asinRevenue)>0)return Number(r.asinRevenue)/Math.max(1,Number(r.businessReportDays)||60);}else{if(Number(r.avgRevenuePerDay)>0)return Number(r.avgRevenuePerDay);if(Number(r.calculatedRevenue)>0)return Number(r.calculatedRevenue)/Math.max(1,Number(r.orderPeriodDays||r.periodDays||r.revenuePeriodDays)||1);}return 0;}
+  function dailyRevenue(r,market){if(market==='amazon'){if(Number(r.avgRevenuePerDay)>0)return Number(r.avgRevenuePerDay);if(Number(r.asinRevenue)>0)return Number(r.asinRevenue)/resolveAmazonRevenueDays(r);}else{if(Number(r.avgRevenuePerDay)>0)return Number(r.avgRevenuePerDay);if(Number(r.calculatedRevenue)>0)return Number(r.calculatedRevenue)/Math.max(1,Number(r.orderPeriodDays||r.periodDays||r.revenuePeriodDays)||1);}return 0;}
   function snapshotMarketRows(s,market){return market==='amazon'?(getSnapshotAmazonRows(s)||[]):(getSnapshotFlipkartRows(s)||[]);}
   async function pricePerformance(market){
     const c=dashboardContext(),from=c.from||c.date,to=c.to||c.date;if(!from||!to)return[];let snaps=[];try{snaps=await v4LoadSnapshotsForRange(from,to);}catch(_e){return[];}if(snaps.length<2)return[];

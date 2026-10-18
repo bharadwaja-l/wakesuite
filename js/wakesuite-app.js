@@ -517,6 +517,7 @@ const READINESS_ITEMS = [
   ["amazon_all_listings","Amazon · All Listings Report"],
   ["amazon_fba_inventory","Amazon · FBA Inventory"],
   ["amazon_business_reports","Amazon · Business Reports"],
+  ["amazon_order_report","Amazon · Order Report"],
   ["flipkart_listing_file","Flipkart · Listing File"],
   ["flipkart_order_report","Flipkart · Order Report"],
   ["marketplace_audit_report","Shared · Audit Report"]
@@ -2883,15 +2884,9 @@ async function v936ResolveUploadCoverage(configId, parsedFile, explicitCoverage 
   }
 
   const overlaps=await v936CoverageOverlap(configId,from,to);
-  if(configId==="amazon_business_reports"){
-    const conflict=overlaps.find(v=>!(v.coverageFrom===from && v.coverageTo===to));
-    if(conflict){
-      throw new Error(
-        `Amazon Business Report coverage overlaps an existing range (${conflict.coverageFrom} to ${conflict.coverageTo}). `+
-        "Business Reports are period aggregates, so overlapping ranges cannot be safely combined. Use a non-overlapping range or replace the exact same range."
-      );
-    }
-  }
+  // Each upload replaces this source for its report date; archived versions are
+  // never combined. Rolling 30-day snapshots may legitimately overlap.
+
 
   return {
     from,
@@ -4280,14 +4275,7 @@ function buildAmazonPriceDisparity(){
       .rows
     );
 
-  const businessReportDays =
-    Number(
-      reports
-      .amazon_business_reports
-      .businessReportDays
-    )
-    ||
-    DEFAULT_AMAZON_BUSINESS_REPORT_DAYS;
+  const businessReportDays = resolveAmazonRevenueDays(reports.amazon_business_reports);
 
   const auditSummary =
     reports
@@ -4868,7 +4856,7 @@ function renderAmazonResults(){
         <th>MRP Diff</th>
         <th>Live Price Diff</th>
         <th>Inventory</th>
-        <th>60-Day ASIN Revenue</th>
+        <th>Report-period ASIN Revenue</th>
         <th>Price Gap %</th>
         <th>Daily Revenue Impact</th>
         <th>Required Action</th>
@@ -7693,7 +7681,7 @@ function downloadAmazonResults(){
       {label:"MRP Diff",getter:r=>r.mrpDiff},
       {label:"Live Price Diff",getter:r=>r.priceDiff ?? ""},
       {label:"Inventory",getter:r=>r.inventory},
-      {label:"60-Day ASIN Revenue",getter:r=>r.asinRevenue},
+      {label:"Report-period ASIN Revenue",getter:r=>r.asinRevenue},
       {label:"Price Gap",getter:r=>r.priceGap},
       {label:"Price Gap %",getter:r=>r.priceGapPercent},
       {label:"Daily Revenue Impact",getter:r=>r.dailyRevenueImpact},
@@ -7767,6 +7755,7 @@ const FINAL_REQUIRED_REPORTS = [
   ["amazon_all_listings","Amazon · All Listings"],
   ["amazon_fba_inventory","Amazon · FBA Inventory"],
   ["amazon_business_reports","Amazon · Business Reports"],
+  ["amazon_order_report","Amazon Order Report"],
   ["flipkart_listing_file","Flipkart · Listing File"],
   ["flipkart_order_report","Flipkart · Order Report"],
   ["marketplace_audit_report","Shared · Audit Report"]
@@ -7824,8 +7813,20 @@ function updateRunButtons(){
   // Manual processing is intentionally disabled in the final workflow.
 }
 
+function resolveAmazonRevenueDays(report){
+  if(!report) throw new Error("Amazon sales report is missing.");
+  if(report.coverageFrom || report.coverageTo){
+    const days=v936InclusiveDays(report.coverageFrom,report.coverageTo);
+    if(!report.coverageFrom || !report.coverageTo || !days) throw new Error("Confirm valid Amazon sales coverage dates before calculating revenue impact.");
+    return days;
+  }
+  const days=Number(report.businessReportDays || report.businessSummary?.reportDays);
+  if(Number.isInteger(days) && days>0) return days;
+  throw new Error("Amazon sales coverage is unknown. Re-upload with confirmed From / To dates before calculating revenue impact.");
+}
+
 function getBusinessReportDays(){
-  return DEFAULT_AMAZON_BUSINESS_REPORT_DAYS;
+  return resolveAmazonRevenueDays(window.wakeSuiteSessionReports?.amazon_business_reports);
 }
 
 function updateBusinessDaysVisibility(){
@@ -7911,7 +7912,7 @@ function reportsAllSameDate(date){
 }
 
 const PROCESSING_SCHEMA_VERSION =
-  "2026-08-17-premium-v5";
+  "2026-10-18-revenue-coverage-v6";
 
 
 function buildInputFingerprint(date){
@@ -13221,6 +13222,7 @@ function v4SourceAvailability(reportDate){
     amazonListings: !!v4ReportForDate("amazon_all_listings",reportDate),
     amazonFba: !!v4ReportForDate("amazon_fba_inventory",reportDate),
     amazonBusiness: !!v4ReportForDate("amazon_business_reports",reportDate),
+    amazonOrders: !!v4ReportForDate("amazon_order_report",reportDate),
     flipkartListing: !!v4ReportForDate("flipkart_listing_file",reportDate),
     flipkartOrders: !!v4ReportForDate("flipkart_order_report",reportDate),
     audit: !!v4ReportForDate("marketplace_audit_report",reportDate)
@@ -13301,7 +13303,7 @@ function buildAmazonModularResult(reportDate){
   const fbaMap = fbaAvailable ? buildFbaInventoryMap(fbaReport.parsedFile.rows) : new Map();
   const businessMap = revenueAvailable ? buildAmazonBusinessRevenueMap(businessReport.parsedFile.rows) : new Map();
   const businessReportDays = revenueAvailable
-    ? (Number(businessReport.businessReportDays) || DEFAULT_AMAZON_BUSINESS_REPORT_DAYS)
+    ? resolveAmazonRevenueDays(businessReport)
     : DEFAULT_AMAZON_BUSINESS_REPORT_DAYS;
 
   let auditMap = new Map();
@@ -26402,7 +26404,7 @@ function v7BuildAmazonInventoryRows(reportDate){
   const wfReport=v4ReportForDate("wakefit_daily_pricing",reportDate), listingReport=v4ReportForDate("amazon_all_listings",reportDate); if(!window.masterPricingAmazon||!wfReport||!listingReport)return[];
   const fbaReport=v4ReportForDate("amazon_fba_inventory",reportDate), businessReport=v4ReportForDate("amazon_business_reports",reportDate);
   const master=prepareAmazonMasterPricing().masterMap, wfMap=buildWakefitPricingMap(wfReport.parsedFile.rows), listingMap=buildAmazonListingMap(listingReport.parsedFile.rows), fbaMap=fbaReport?buildFbaInventoryMap(fbaReport.parsedFile.rows):new Map(), businessMap=businessReport?buildAmazonBusinessRevenueMap(businessReport.parsedFile.rows):new Map();
-  const days=businessReport?(Number(businessReport.businessReportDays)||DEFAULT_AMAZON_BUSINESS_REPORT_DAYS):0; const out=[];
+  const days=businessReport?resolveAmazonRevenueDays(businessReport):0; const out=[];
   master.forEach(m=>{ const l=listingMap.get(m.azSku); const wf=wfMap.get(m.wfSku); if(!l||l.status!=="active"||!wf)return; const allQty=Number(l.quantity||0); const fbaQty=fbaReport?Number(fbaMap.get(m.azSku)||0):0; const known=allQty>0||!!fbaReport; const inv=allQty>0?allQty:(fbaReport?fbaQty:null); const asin=m.asin||l.asin; const revenue=businessReport?Number(businessMap.get(asin)?.revenue||0):null; out.push({marketplace:"amazon",reportDate,category:m.category,wfSku:m.wfSku,marketSku:m.azSku,identifier:asin,inventory:inv,inventoryKnown:known,listingPrice:l.azPrice,avgRevenuePerDay:businessReport&&days?revenue/days:null,revenueAvailable:!!businessReport}); });
   return out;
 }
