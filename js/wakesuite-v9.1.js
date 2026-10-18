@@ -619,7 +619,7 @@ function ws91ApplyFocusedInsightVisibility(){
 
 async function ws91InsightsRange(){const [from,to]=v4SetRangeControls("insightsPeriod","insightsFromDate","insightsToDate","insightsDate");return {from,to,snaps:await v4LoadSnapshotsForRange(from,to)};}
 function ws91ObservedRevenuePerDay(r){
-  if(r.marketplace==="amazon" && ws91Num(r.asinRevenue)>0){const days=ws91Num(r.businessReportDays)||DEFAULT_AMAZON_BUSINESS_REPORT_DAYS;return ws91Num(r.asinRevenue)/Math.max(1,days);}
+  if(r.marketplace==="amazon" && ws91Num(r.asinRevenue)>0){const days=resolveAmazonRevenueDays(r);return ws91Num(r.asinRevenue)/Math.max(1,days);}
   if(r.marketplace==="flipkart" && ws91Num(r.calculatedRevenue)>0){const days=ws91Num(r.orderPeriodDays||r.periodDays||r.revenuePeriodDays)||1;return ws91Num(r.calculatedRevenue)/Math.max(1,days);}
   return ws91Num(r.avgRevenuePerDay);
 }
