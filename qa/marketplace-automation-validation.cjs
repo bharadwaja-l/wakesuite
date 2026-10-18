@@ -30,7 +30,8 @@ async function test(){
  await api.runSqlExport();assert.equal(written,1);assert.equal(armed,1);assert.equal(run,1);assert.ok(stored.has('mwf-sql-export-after-refresh-v4'));
  // Verify the actual fresh-listing loop excludes completed pre-existing rows.
  assert.match(helper,/rows = rows\.filter\(row => flipkartListingKey\(row\) && !before\.has/);
- assert.match(helper,/selectVisibleOption\(dateRange,.*custom/);
+ assert.match(helper,/selectVisibleOption\(dateRange,.*last 30 days/);
+ assert.doesNotMatch(helper,/Both custom date fields/);
  assert.doesNotMatch(helper,/if \(sqlHasResults\(\) && sqlResultsMatchExpected\(\)\)/);
  assert.match(helper,/!sqlQueryMatchesExpected\(\) \|\| !sqlResultsMatchExpected/);
  console.log('PASS helper: rolling dates, strict >20 MB threshold, fallback-only generation, unknown-size pause, SQL always runs before export, fresh-row and query guards.');

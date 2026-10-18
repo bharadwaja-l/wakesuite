@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Marketplace Reports Workflow Helper
 // @namespace    https://wakefit.co/marketplace-reports
-// @version      2.2.4
+// @version      2.2.5
 // @description  Runs the visible report workflow on Amazon Seller Central, Flipkart Seller Hub, and Wakefit SQL Explorer.
 // @match        https://sellercentral.amazon.in/*
 // @match        https://seller.flipkart.com/*
@@ -36,15 +36,15 @@
   function publishBridgeStatus(message, bad = false) {
     if (!safeRunId(bridgeRun) || !BRIDGE_KINDS.includes(bridgeKind)) return;
     bridgeLatest = { runId: bridgeRun, kind: bridgeKind, message: String(message).slice(0, 1200),
-      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.4' };
+      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.5' };
     GM_setValue(BRIDGE_PREFIX + bridgeRun + ':' + bridgeKind, bridgeLatest);
   }
   if (location.origin === 'https://bharadwaja-l.github.io' && location.pathname.startsWith('/wakesuite/')) {
-    document.documentElement.setAttribute('data-mwf-helper-version','2.2.4');
+    document.documentElement.setAttribute('data-mwf-helper-version','2.2.5');
     function bridgeReply(data) {
       if (data?.channel !== BRIDGE_CHANNEL || data.type !== 'poll' || !safeRunId(data.runId)) return;
       const statuses = BRIDGE_KINDS.map(kind => GM_getValue(BRIDGE_PREFIX + data.runId + ':' + kind, null)).filter(Boolean);
-      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.4',statuses};
+      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.5',statuses};
       window.postMessage(reply,location.origin);
       document.dispatchEvent(new CustomEvent('mwf-helper-status',{detail:JSON.stringify(reply)}));
     }
@@ -616,44 +616,16 @@
         selectedText(el),el.getAttribute('label'),el.getAttribute('placeholder'),el.getAttribute('aria-label'),
         el.labels?.[0]?.textContent,el.closest('.form-group,.a-row')?.querySelector('label')?.textContent,
         el.shadowRoot?.textContent].join(' '))));
-      return labelled.find(el=>el.tagName==='SELECT' && [...el.options].some(option=>/custom/.test(norm(option.textContent))))
+      return labelled.find(el=>el.tagName==='SELECT' && [...el.options].some(option=>/last 30 days/.test(norm(option.textContent))))
         || labelled[0] || (candidates.length===1 ? candidates[0] : null);
     }, 'All Orders Event Date selector', 45000);
-    await selectVisibleOption(dateRange, /^(date range:\s*)?(custom(?: date range| range| dates)?|date range|exact dates|specify dates|customized date range)$/);
-    const dateHosts = () => allElements().filter(el => enabledControl(el) && (
-      el.tagName === 'KAT-INPUT' && /date|dd|mm|yyyy/i.test([el.getAttribute('placeholder'),el.getAttribute('label'),el.getAttribute('type')].join(' '))
-      || el.tagName === 'INPUT' && !el.getRootNode().host && (el.type === 'date'
-        || /start|end|from|to|date/.test(norm([el.name,el.id,el.placeholder,el.getAttribute('aria-label')].join(' '))) && el.type === 'text')));
-    await waitControl(() => dateHosts().length === 2 && dateHosts()[0], 'Both custom date fields');
-    const range = rollingThirtyCalendarDays();
-    const dates = [range.start, range.end];
-    const expected = [];
-    for (let i=0; i<2; i++) {
-      const host = dateHosts()[i];
-      const input = host.tagName === 'INPUT' ? host : host.shadowRoot?.querySelector('input');
-      if (!input) throw new Error('Custom date field is not editable.');
-      const hint = String(host.getAttribute('placeholder') || input.placeholder || '').toLowerCase();
-      const date = dates[i];
-      let value;
-      if (input.type === 'date') value = date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
-      else if (/^mm[/-]dd[/-]yyyy$/.test(hint)) value = String(date.getMonth()+1).padStart(2,'0') + hint[2] + String(date.getDate()).padStart(2,'0') + hint[2] + date.getFullYear();
-      else if (/^dd[/-]mm[/-]yyyy$/.test(hint)) value = formatAmazonDate(date).replaceAll('/', hint[2]);
-      else throw new Error('Custom date format is not explicit. Set the dates manually; no report was requested.');
-      input.focus();
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value);
-      input.dispatchEvent(new Event('input',{bubbles:true,composed:true}));
-      input.dispatchEvent(new Event('change',{bubbles:true,composed:true}));
-      input.blur(); expected.push(value); await wait(200);
-    }
-    const fields = dateHosts();
-    if (fields.length !== 2 || fields.some((host,i) => String(host.tagName === 'INPUT' ? host.value : host.shadowRoot?.querySelector('input')?.value) !== expected[i]))
-      throw new Error('Custom dates did not persist; no report was requested.');
+    await selectVisibleOption(dateRange, /^(date range:\s*)?last 30 days$/);
     const radio = allElements().find(el => el.tagName === 'INPUT' && el.type === 'radio'
       && norm(el.labels?.[0]?.innerText || el.parentElement?.innerText).includes('order date'));
     if (!radio) throw new Error('Order Date selection could not be verified.');
     if (!radio.checked) { (radio.labels?.[0] || radio).click(); await wait(150); }
     if (!radio.checked) throw new Error('Order Date was not selected.');
-    return range;
+    return {preset:'Last 30 days'};
   }
 
   async function runAmazonOrders() {
