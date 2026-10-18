@@ -26,14 +26,14 @@
   const title=node('div');title.className='mwf-trial-heading';title.append(node('h2','Marketplace automation'));
   const badge=node('span','TRIAL');badge.className='mwf-trial-badge';title.append(badge);panel.append(title);
   panel.append(node('p','Run report downloads in your signed-in Chrome tabs and monitor their status here. Keep the report tabs open.'));
-  const install=node('a','Install / update Marketplace Reports Workflow Helper v2.2.3');
+  const install=node('a','Install / update Marketplace Reports Workflow Helper v2.2.4');
   install.href='./userscripts/marketplace-reports-workflow-helper.user.js';install.target='_blank';install.rel='noopener';panel.append(install);
   const connection=node('p','Checking helper connection…');connection.setAttribute('role','status');panel.append(connection);
   const setup=node('details');setup.className='mwf-trial-setup';
   setup.append(node('summary','Connect the Chrome helper'));
   const steps=node('ol');
   ['Open the Install / update link above in the same Chrome profile as Wakesuite.',
-   'Install helper v2.2.3 in Tampermonkey, replacing the old version. Keep only one copy enabled.',
+   'Install helper v2.2.4 in Tampermonkey, replacing the old version. Keep only one copy enabled.',
    'If the link shows code, copy it into the existing helper in Tampermonkey Dashboard and save.',
    'Refresh Wakesuite. Wait for Helper connected, then try an Amazon or SQL report individually.'].forEach(value=>steps.append(node('li',value)));
   setup.append(steps);panel.append(setup);
@@ -95,7 +95,7 @@
   runAll.addEventListener('click',()=>launch(tasks));
   function receiveStatus(data){
     if(data?.channel!==channel || data.type!=='status'
-      || !['2.2.0','2.2.1','2.2.2','2.2.3'].includes(data.version) || data.runId!==(state?.id||'connection-check') || !Array.isArray(data.statuses))return;
+      || !['2.2.0','2.2.1','2.2.2','2.2.3','2.2.4'].includes(data.version) || data.runId!==(state?.id||'connection-check') || !Array.isArray(data.statuses))return;
     helperSeen=Date.now();
     helperVersion=data.version;
     for(const item of data.statuses){

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Marketplace Reports Workflow Helper
 // @namespace    https://wakefit.co/marketplace-reports
-// @version      2.2.3
+// @version      2.2.4
 // @description  Runs the visible report workflow on Amazon Seller Central, Flipkart Seller Hub, and Wakefit SQL Explorer.
 // @match        https://sellercentral.amazon.in/*
 // @match        https://seller.flipkart.com/*
@@ -36,15 +36,15 @@
   function publishBridgeStatus(message, bad = false) {
     if (!safeRunId(bridgeRun) || !BRIDGE_KINDS.includes(bridgeKind)) return;
     bridgeLatest = { runId: bridgeRun, kind: bridgeKind, message: String(message).slice(0, 1200),
-      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.3' };
+      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.4' };
     GM_setValue(BRIDGE_PREFIX + bridgeRun + ':' + bridgeKind, bridgeLatest);
   }
   if (location.origin === 'https://bharadwaja-l.github.io' && location.pathname.startsWith('/wakesuite/')) {
-    document.documentElement.setAttribute('data-mwf-helper-version','2.2.3');
+    document.documentElement.setAttribute('data-mwf-helper-version','2.2.4');
     function bridgeReply(data) {
       if (data?.channel !== BRIDGE_CHANNEL || data.type !== 'poll' || !safeRunId(data.runId)) return;
       const statuses = BRIDGE_KINDS.map(kind => GM_getValue(BRIDGE_PREFIX + data.runId + ':' + kind, null)).filter(Boolean);
-      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.3',statuses};
+      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.4',statuses};
       window.postMessage(reply,location.origin);
       document.dispatchEvent(new CustomEvent('mwf-helper-status',{detail:JSON.stringify(reply)}));
     }
@@ -619,7 +619,7 @@
       return labelled.find(el=>el.tagName==='SELECT' && [...el.options].some(option=>/custom/.test(norm(option.textContent))))
         || labelled[0] || (candidates.length===1 ? candidates[0] : null);
     }, 'All Orders Event Date selector', 45000);
-    await selectVisibleOption(dateRange, /^(date range:\s*)?(custom(?: date range| range| dates)?|date range|specify dates|customized date range)$/);
+    await selectVisibleOption(dateRange, /^(date range:\s*)?(custom(?: date range| range| dates)?|date range|exact dates|specify dates|customized date range)$/);
     const dateHosts = () => allElements().filter(el => enabledControl(el) && (
       el.tagName === 'KAT-INPUT' && /date|dd|mm|yyyy/i.test([el.getAttribute('placeholder'),el.getAttribute('label'),el.getAttribute('type')].join(' '))
       || el.tagName === 'INPUT' && !el.getRootNode().host && (el.type === 'date'
