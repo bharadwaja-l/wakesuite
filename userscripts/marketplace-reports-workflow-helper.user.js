@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Marketplace Reports Workflow Helper
 // @namespace    https://wakefit.co/marketplace-reports
-// @version      2.2.1
+// @version      2.2.2
 // @description  Runs the visible report workflow on Amazon Seller Central, Flipkart Seller Hub, and Wakefit SQL Explorer.
 // @match        https://sellercentral.amazon.in/*
 // @match        https://seller.flipkart.com/*
@@ -22,23 +22,29 @@
   const BRIDGE_PREFIX = 'mwf-trial-status-v1:';
   const BRIDGE_KINDS = ['inventory', 'asin', 'amazonOrders', 'flipkart', 'fkOrders', 'sql'];
   const bridgeParams = new URLSearchParams(location.search);
-  const bridgeRun = bridgeParams.get('mwfRunId');
-  const bridgeKind = bridgeParams.get('mwfRun');
+  let sqlBridgeResume = null;
+  if (location.hostname === 'reports.wakefit.co') {
+    try { const saved=JSON.parse(sessionStorage.getItem('mwf-sql-export-after-refresh-v4')||'null');
+      if(saved?.startedAt && Date.now()-saved.startedAt<10*60*1000)sqlBridgeResume=saved;
+    } catch {}
+  }
+  const bridgeRun = bridgeParams.get('mwfRunId') || sqlBridgeResume?.runId;
+  const bridgeKind = bridgeParams.get('mwfRun') || sqlBridgeResume?.kind;
   const safeRunId = value => typeof value === 'string' && /^[a-zA-Z0-9-]{1,100}$/.test(value);
   let bridgeLatest = null;
   let bridgePhase = 'running';
   function publishBridgeStatus(message, bad = false) {
     if (!safeRunId(bridgeRun) || !BRIDGE_KINDS.includes(bridgeKind)) return;
     bridgeLatest = { runId: bridgeRun, kind: bridgeKind, message: String(message).slice(0, 1200),
-      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.1' };
+      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.2' };
     GM_setValue(BRIDGE_PREFIX + bridgeRun + ':' + bridgeKind, bridgeLatest);
   }
   if (location.origin === 'https://bharadwaja-l.github.io' && location.pathname.startsWith('/wakesuite/')) {
-    document.documentElement.setAttribute('data-mwf-helper-version','2.2.1');
+    document.documentElement.setAttribute('data-mwf-helper-version','2.2.2');
     function bridgeReply(data) {
       if (data?.channel !== BRIDGE_CHANNEL || data.type !== 'poll' || !safeRunId(data.runId)) return;
       const statuses = BRIDGE_KINDS.map(kind => GM_getValue(BRIDGE_PREFIX + data.runId + ':' + kind, null)).filter(Boolean);
-      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.1',statuses};
+      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.2',statuses};
       window.postMessage(reply,location.origin);
       document.dispatchEvent(new CustomEvent('mwf-helper-status',{detail:JSON.stringify(reply)}));
     }
@@ -153,8 +159,8 @@
     const entry = document.createElement('li');
     entry.textContent = label + ': running';
     history?.appendChild(entry);
-    try { await run(); bridgePhase = 'finished';
-      if (bridgeLatest) { bridgeLatest.phase = bridgeLatest.warning ? 'attention' : 'finished'; GM_setValue(BRIDGE_PREFIX + bridgeRun + ':' + bridgeKind, bridgeLatest); }
+    try { const result=await run(); bridgePhase = result?.pendingNavigation ? 'running' : 'finished';
+      if (bridgeLatest) { bridgeLatest.phase = result?.pendingNavigation ? 'running' : bridgeLatest.warning ? 'attention' : 'finished'; GM_setValue(BRIDGE_PREFIX + bridgeRun + ':' + bridgeKind, bridgeLatest); }
       entry.textContent = label + ': finished action — check status and Chrome Downloads'; }
     catch (error) { bridgePhase = 'attention'; publishBridgeStatus(error?.message || String(error), true); entry.textContent = label + ': stopped — ' + (error?.message || error); throw error; }
     finally { workflowBusy = false; buttons.forEach(button => { button.disabled = false; }); }
@@ -604,10 +610,15 @@
         && [...el.options].some(option => norm(option.textContent) === 'all orders')), 'All Orders report selector');
       await selectVisibleOption(report, /^all orders$/);
     }
-    const dateRange = await waitControl(() => allElements().find(el => enabledControl(el) && (
-      el.tagName === 'SELECT' && [...el.options].some(option => /custom/.test(norm(option.textContent)))
-      || (el.tagName === 'KAT-DROPDOWN' || el.getAttribute('role') === 'combobox' || el.getAttribute('aria-haspopup'))
-        && /date range|last 30 days|custom/.test(selectedText(el)))), 'All Orders date-range selector');
+    const dateRange = await waitControl(() => {
+      const candidates=allElements().filter(el=>enabledControl(el) && (el.tagName==='SELECT' || el.tagName==='KAT-DROPDOWN' || el.getAttribute('role')==='combobox'));
+      const labelled=candidates.filter(el=>/event date|date range|last 30 days|custom/.test(norm([
+        selectedText(el),el.getAttribute('label'),el.getAttribute('placeholder'),el.getAttribute('aria-label'),
+        el.labels?.[0]?.textContent,el.closest('.form-group,.a-row')?.querySelector('label')?.textContent,
+        el.shadowRoot?.textContent].join(' '))));
+      return labelled.find(el=>el.tagName==='SELECT' && [...el.options].some(option=>/custom/.test(norm(option.textContent))))
+        || labelled[0] || (candidates.length===1 ? candidates[0] : null);
+    }, 'All Orders Event Date selector', 45000);
     await selectVisibleOption(dateRange, /^(date range:\s*)?custom(?: date range| range)?$/);
     const dateHosts = () => allElements().filter(el => enabledControl(el) && (
       el.tagName === 'KAT-INPUT' && /date|dd|mm|yyyy/i.test([el.getAttribute('placeholder'),el.getAttribute('label'),el.getAttribute('type')].join(' '))
@@ -709,8 +720,24 @@
     return { start: formatAmazonDate(start), end: formatAmazonDate(end) };
   }
 
+  function amazonDateFieldValue(host) {
+    return String(host?.tagName === 'INPUT' ? host.value : host?.shadowRoot?.querySelector('input')?.value || host?.value || '');
+  }
+
+  function amazonEditableDateFields() {
+    const elements=allElements();
+    const hosts=elements.filter(el => ['KAT-INPUT','KAT-DATE-PICKER','KAT-DATEPICKER'].includes(el.tagName)
+      && visible(el) && el.shadowRoot?.querySelector('input')
+      && /dd.?mm.?yyyy|\bdate\b|\d{2}\/\d{2}\/\d{4}/i.test([el.getAttribute('placeholder'),el.getAttribute('label'),el.getAttribute('type'),amazonDateFieldValue(el)].join(' ')));
+    const native=elements.filter(el => el.tagName==='INPUT' && visible(el)
+      && !hosts.some(host=>host.shadowRoot===el.getRootNode())
+      && !el.disabled && /^(text|date|)$/.test(el.type)
+      && /dd.?mm.?yyyy|\d{2}\/\d{2}\/\d{4}/i.test([el.placeholder,el.value].join(' ')));
+    return [...hosts,...native];
+  }
+
   function setAmazonDateInput(host, value) {
-    const input = host.shadowRoot?.querySelector('input[part="input"]');
+    const input = host.tagName === 'INPUT' ? host : host.shadowRoot?.querySelector('input[part="input"],input');
     if (!input) throw new Error('Amazon’s date field did not expose its editable input.');
     input.focus();
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
@@ -733,8 +760,7 @@
         && params.get('columns') === '0/1/3/8/10/20/30/34/36'
         && params.has('chartCols');
     };
-    const dateFields = () => allElements().filter((el) => el.tagName === 'KAT-INPUT'
-      && el.getAttribute('placeholder') === 'DD/MM/YYYY' && visible(el));
+    const dateFields = () => amazonEditableDateFields();
     if (!isTargetReport()) {
       location.hash = targetHash;
       setStatus('Opening the requested Detail Page Sales and Traffic By Child Item report…');
@@ -744,8 +770,9 @@
         throw new Error('Amazon did not open the requested Child Item sales report.');
       }
     }
+    await waitControl(() => dateFields().length === 2 && dateFields()[0], 'Amazon sales start and end dates', 45000);
     const fields = dateFields();
-    if (fields.length < 2) throw new Error('Amazon’s start and end date fields were not visible.');
+    if (fields.length !== 2) throw new Error('Amazon sales needs exactly two editable date fields.');
 
     const range = amazonRolling30DayRange();
     setAmazonDateInput(fields[0], range.start);
@@ -769,12 +796,11 @@
     let applied = false;
     while (Date.now() < deadline) {
       await wait(500);
-      const currentFields = allElements().filter((el) => el.tagName === 'KAT-INPUT'
-        && el.getAttribute('placeholder') === 'DD/MM/YYYY' && visible(el));
+      const currentFields = dateFields();
       const body = document.body.innerText;
       if (currentFields.length >= 2
-          && String(currentFields[0].value || '') === range.start
-          && String(currentFields[1].value || '') === range.end
+          && amazonDateFieldValue(currentFields[0]) === range.start
+          && amazonDateFieldValue(currentFields[1]) === range.end
           && body.includes(`Data from ${range.end}`)) {
         applied = true;
         break;
@@ -1192,12 +1218,14 @@
     return body.includes('query was empty') || /\b1065\b/.test(body);
   }
 
+  function sqlResultHeaders() {
+    const table=document.querySelector('#nav-preview table');
+    const cells=table ? [...table.querySelectorAll('thead th,thead td')] : [];
+    return cells.map(cell=>norm(cell.getAttribute('data-column') || cell.querySelector('a')?.textContent || cell.innerText || cell.textContent)
+      .replace(/[↑↓↕▲▼]/g,'').trim()).filter(value=>value && !/^(#|row|row number|row_number)$/.test(value));
+  }
   function sqlResultsMatchExpected() {
-    const headers = Array.from(document.querySelectorAll('#nav-preview table thead th'))
-      .map((cell) => norm(cell.innerText || cell.textContent))
-      .filter(Boolean); // SQL Explorer prepends a blank row-number column.
-    return headers.length === 5
-      && headers.join('|') === ['scm_master_category', 'item_sku', 'mrp', 'sale_price', 'active'].join('|');
+    return sqlResultHeaders().join('|') === ['scm_master_category','item_sku','mrp','sale_price','active'].join('|');
   }
 
   function sqlEditorText(editor = sqlEditor()) {
@@ -1352,9 +1380,9 @@
       await wait(500);
     }
     if (!sqlHasResults()) { sessionStorage.removeItem(SQL_RESUME_KEY); throw new Error('Timed out waiting for SQL Explorer results after Refresh.'); }
-    if (sqlEditorText(editor) !== expected || !sqlResultsMatchExpected()) {
+    if (sqlEditorText(sqlEditor()) !== expected || !sqlResultsMatchExpected()) {
       sessionStorage.removeItem(SQL_RESUME_KEY);
-      throw new Error('SQL Explorer results did not match the requested five-column query; CSV was not clicked.');
+      throw new Error('SQL verification stopped. Editor matches: '+(sqlEditorText(sqlEditor())===expected)+'. Result columns: '+(sqlResultHeaders().join(', ')||'none')+'. CSV was not clicked.');
     }
     sessionStorage.removeItem(SQL_RESUME_KEY);
     await downloadSqlCsv();
@@ -1368,10 +1396,11 @@
 
     const run = document.querySelector('#refresh_play_button');
     if (!run) throw new Error('SQL Explorer’s Refresh (run query) control was not found.');
-    sessionStorage.setItem(SQL_RESUME_KEY, JSON.stringify({ startedAt: Date.now() }));
+    sessionStorage.setItem(SQL_RESUME_KEY, JSON.stringify({startedAt:Date.now(),runId:bridgeRun,kind:bridgeKind}));
     armSqlSubmission(run);
     setStatus('Query submitted; the page may refresh. The helper will continue with CSV when results return…');
     run.click();
+    return {pendingNavigation:true};
   }
 
   if (location.hostname === 'sellercentral.amazon.in' && location.pathname.startsWith('/business-reports')) {

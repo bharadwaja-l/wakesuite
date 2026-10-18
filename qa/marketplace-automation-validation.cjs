@@ -32,7 +32,7 @@ async function test(){
  assert.match(helper,/rows = rows\.filter\(row => flipkartListingKey\(row\) && !before\.has/);
  assert.match(helper,/selectVisibleOption\(dateRange,.*custom/);
  assert.doesNotMatch(helper,/if \(sqlHasResults\(\) && sqlResultsMatchExpected\(\)\)/);
- assert.match(helper,/sqlEditorText\(editor\) !== expected \|\| !sqlResultsMatchExpected/);
+ assert.match(helper,/sqlEditorText\(sqlEditor\(\)\) !== expected \|\| !sqlResultsMatchExpected/);
  console.log('PASS helper: rolling dates, strict >20 MB threshold, fallback-only generation, unknown-size pause, SQL always runs before export, fresh-row and query guards.');
 }
 class Element{
@@ -56,6 +56,12 @@ async function controller(){
  all.listeners.click();assert.equal(tabs.length,6,'pending tasks must not open duplicate tabs');
  tick();const id=outgoing.at(-1).runId;assert.ok(tabs.every(url=>new URL(url).searchParams.get('mwfRunId')===id));
  respond(ctx.location.origin,ctx.window,['inventory','asin','amazonOrders','flipkart','fkOrders','sql'].map(kind=>({kind,runId:id,phase:'finished',message:'Download control clicked',updatedAt:Date.now()+100})));
- assert.equal(all.disabled,false);console.log('PASS Data Center: helper handshake, foreign-message rejection, six tab launches, duplicate-run guard, shared run identity and terminal status cleanup.');
+ assert.equal(all.disabled,false);
+ const savedId=JSON.parse(data.get('ws-marketplace-trial-v1')).id;
+ const sqlRow=panel.children.find(el=>el.tagName==='div' && el.className==='table-wrap').children[0].children[1].children.at(-1);
+ sqlRow.children[3].children[0].listeners.click();
+ const rerun=JSON.parse(data.get('ws-marketplace-trial-v1'));
+ assert.equal(rerun.id,savedId);assert.equal(Object.keys(rerun.tasks).length,6,'individual reruns must retain earlier report status');
+ console.log('PASS Data Center: helper handshake, foreign-message rejection, six tab launches, duplicate-run guard, shared run identity, terminal cleanup and retained individual-report status.');
 }
 test().then(controller).catch(error=>{console.error(error);process.exitCode=1;});
