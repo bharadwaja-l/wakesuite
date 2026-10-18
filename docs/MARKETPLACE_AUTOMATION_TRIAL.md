@@ -5,9 +5,9 @@ Data Center launches the signed-in seller portals and SQL Explorer in Chrome, th
 ## Try it
 
 1. Use the trial branch locally or merge/deploy this PR to the existing Wakesuite GitHub Pages site. The helper bridge is scoped to `https://bharadwaja-l.github.io/wakesuite/`; a local preview can display the panel but cannot connect to the bridge.
-2. In Data Center, open **Install / update Marketplace Reports Workflow Helper v2.2.3**, and install it in Tampermonkey. Replace the existing helper rather than keeping two copies enabled. Approve its userscript storage grants; those store task status across the allowed sites. Refresh Wakesuite and the report tabs after updating.
+2. In Data Center, open **Install / update Marketplace Reports Workflow Helper v2.2.5**, and install it in Tampermonkey. Replace the existing helper rather than keeping two copies enabled. Approve its userscript storage grants; those store task status across the allowed sites. Refresh Wakesuite and the report tabs after updating.
 3. Check **Helper connected**, then run one report as a trial. Keep Chrome signed in. Use the site's normal login if needed.
-4. Check dates and report type in the portal. Amazon ASIN Sales, Amazon All Orders and Flipkart Orders target the 30 completed calendar days ending yesterday. All Orders uses Custom dates and Order Date, and stops before requesting if it cannot verify the controls.
+4. Check dates and report type in the portal. Amazon ASIN Sales and Flipkart Orders target the 30 completed calendar days ending yesterday. Amazon All Orders selects Order Date and the portal preset Date range: Last 30 days directly; no Exact dates or custom date entry is used.
 5. Confirm the file completes in Chrome Downloads and inspect its contents/date range. Then try **Run all daily reports**. If Chrome blocks extra tabs, run the blocked tasks individually. Portal generation may take minutes; do not repeatedly request it.
 
 ## What the status means
@@ -32,8 +32,10 @@ Run `node qa/marketplace-automation-validation.cjs` plus `node --check` on the c
 
 This change does not import BRAD Inbox, snapshot live scraping results, alter the BRAD workbook/Apps Script, or delete Drive files. Historical storage and cleanup require a separate verified import workflow.
 
-Connection repair: v2.2.3 adds a JSON DOM-event fallback to window messaging, a visible installed-version marker for diagnostics, and a 30-second connection timeout to tolerate background-tab throttling. Existing v2.2.0 message connections remain supported. Update the installed userscript once to use the fallback.
+Connection repair: v2.2.5 adds a JSON DOM-event fallback to window messaging, a visible installed-version marker for diagnostics, and a 30-second connection timeout to tolerate background-tab throttling. Existing v2.2.0 message connections remain supported. Update the installed userscript once to use the fallback.
 
 Portal trial repair: wait up to 45 seconds for sales date fields even on the correct route; support native date inputs and Katal wrappers; identify All Orders Event Date selectors; retain SQL task identity across form navigation; ignore only optional row-number headers when validating SQL results; preserve individual report statuses during later task starts. Screenshots confirmed the v2.2.1 bridge is connected, but live portal selector fixes still require another trial. SQL verification errors now show editor-match state and actual column names.
 
-Follow-up v2.2.3: recognise Date Range as the custom Orders option and include actual available options in failures. Verify the exact SQL from its normal form field or rendered editor, including CodeMirror layouts after form navigation; five expected result columns are still mandatory. Tests reject a different query with the same column names.
+Follow-up v2.2.5: select the native Last 30 days Orders preset and include actual available options in failures. Verify the exact SQL from its normal form field or rendered editor, including CodeMirror layouts after form navigation; five expected result columns are still mandatory. Tests reject a different query with the same column names.
+
+Current All Orders behavior (v2.2.5): select Date range: Last 30 days, verify Order Date and the selected preset, click Request, poll the new batch, then Download. Exact dates selection and manual date entry have been removed at the user’s request.
