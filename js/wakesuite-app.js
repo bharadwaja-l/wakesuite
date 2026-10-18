@@ -2854,12 +2854,12 @@ async function v936CoverageOverlap(configId, from, to){
   }catch(_e){ return []; }
 }
 
-async function v936ResolveUploadCoverage(configId, parsedFile){
+async function v936ResolveUploadCoverage(configId, parsedFile, explicitCoverage = null){
   if(!V936_COVERAGE_SOURCES.has(configId)) return null;
   const fromEl=document.getElementById("sourceCoverageFromDate");
   const toEl=document.getElementById("sourceCoverageToDate");
-  let from=v936DateOnly(fromEl?.value);
-  let to=v936DateOnly(toEl?.value);
+  let from=v936DateOnly(explicitCoverage ? explicitCoverage.from : fromEl?.value);
+  let to=v936DateOnly(explicitCoverage ? explicitCoverage.to : toEl?.value);
 
   if(configId==="amazon_order_report" || configId==="flipkart_order_report"){
     const actual=v936OrderCoverageFromRows(configId,parsedFile?.rows||[]);
@@ -2868,8 +2868,8 @@ async function v936ResolveUploadCoverage(configId, parsedFile){
     }
     if(!from) from=actual.from;
     if(!to) to=actual.to;
-    if(fromEl) fromEl.value=from;
-    if(toEl) toEl.value=to;
+    if(fromEl && !explicitCoverage) fromEl.value=from;
+    if(toEl && !explicitCoverage) toEl.value=to;
     if(from>actual.from || to<actual.to){
       throw new Error(`Entered Data From / To does not cover all order dates in the file. File coverage is ${actual.from} to ${actual.to}.`);
     }
@@ -2901,7 +2901,11 @@ async function v936ResolveUploadCoverage(configId, parsedFile){
   };
 }
 
-async function uploadData(){
+async function uploadData(importRequest = null){
+  const notify = message => {
+    if(importRequest?.silent) throw new Error(message);
+    alert(message);
+  };
 
   hideBusinessReportSummary();
 
@@ -2915,56 +2919,41 @@ async function uploadData(){
       "none";
   }
 
-  const reportDate =
-    document
-    .getElementById(
-      "reportDate"
-    )
-    .value;
+  const reportDate = importRequest?.reportDate || document.getElementById("reportDate").value;
 
-  const menu =
-    document
-    .getElementById(
-      "menu"
-    )
-    .value;
+  const menu = importRequest?.menu || document.getElementById("menu").value;
 
-  const folder =
-    document
-    .getElementById(
-      "folder"
-    )
-    .value;
+  const folder = importRequest?.folder || document.getElementById("folder").value;
 
-  const file =
-    document
-    .getElementById(
-      "file"
-    )
-    .files[0];
+  const file = importRequest?.file || document.getElementById("file").files[0];
 
   const uploadButton =
     document.getElementById(
       "uploadButton"
     );
 
+  if(importRequest){
+    const config=getSelectedConfig(menu,folder);
+    if(!config || !v7HasAction("upload") || (typeof window.v8CanUploadType==="function" && !window.v8CanUploadType(config.id))) throw new Error("Your access does not allow this report import.");
+  }
+
   if(!reportDate){
-    alert("Please select Report Date.");
+    notify("Please select Report Date.");
     return;
   }
 
   if(!menu){
-    alert("Please select Menu.");
+    notify("Please select Menu.");
     return;
   }
 
   if(!folder){
-    alert("Please select Folder.");
+    notify("Please select Folder.");
     return;
   }
 
   if(!file){
-    alert("Please choose a file.");
+    notify("Please choose a file.");
     return;
   }
 
@@ -2972,7 +2961,7 @@ async function uploadData(){
     typeof window.saveUploadMetadata !==
     "function"
   ){
-    alert("Firebase is not ready. Please refresh WakeSuite.");
+    notify("Firebase is not ready. Please refresh WakeSuite.");
     return;
   }
 
@@ -3002,11 +2991,7 @@ async function uploadData(){
         selectedConfigForRead?.id
       ) || null;
 
-    const parsedFile =
-      await readWakeSuiteFile(
-        file,
-        selectedDefinitionForRead
-      );
+    const parsedFile = importRequest?.parsedFile || await readWakeSuiteFile(file,selectedDefinitionForRead);
 
     const validation =
       validateSelectedReport(
@@ -3052,7 +3037,7 @@ async function uploadData(){
         "error"
       );
 
-      alert(message);
+      notify(message);
       return;
 
     }
@@ -3066,7 +3051,8 @@ async function uploadData(){
     const sourceCoverage =
       await v936ResolveUploadCoverage(
         selectedConfig.id,
-        parsedFile
+        parsedFile,
+        importRequest?.coverage || null
       );
 
     let businessSummary =
@@ -3229,7 +3215,7 @@ async function uploadData(){
 
     updateReadiness();
 
-    alert(
+    if(!importRequest?.silent) notify(
       "Report validated and loaded successfully.\n\n" +
       "Report: " +
       validation.detectedLabel +
@@ -3240,6 +3226,7 @@ async function uploadData(){
       "\n\nRaw file is not uploaded to cloud storage."
     );
 
+    return {uploadId,configId:selectedConfig.id,reportDate,rowCount:parsedFile.rowCount,coverage:sourceCoverage};
   }
   catch(error){
 
@@ -3254,7 +3241,7 @@ async function uploadData(){
       "error"
     );
 
-    alert(
+    notify(
       "Unable to process report.\n\n" +
       error.message
     );
@@ -3263,7 +3250,7 @@ async function uploadData(){
   finally{
 
     uploadButton.disabled =
-      false;
+      !!importRequest?.deferProcessing;
 
     uploadButton.innerText =
       "Validate & Load Report";
@@ -8322,24 +8309,25 @@ async function maybeAutoProcessCurrentDate(){
 
 /* Wrap the proven upload function. */
 const coreUploadData = uploadData;
-uploadData = async function(){
-  const date = document.getElementById("reportDate")?.value;
+uploadData = async function(importRequest = null){
+  const date = importRequest?.reportDate || document.getElementById("reportDate")?.value;
   if(date && currentSessionDate !== date){
     await restoreSessionForDate(date);
   }
-  const menu = document.getElementById("menu")?.value;
-  const folder = document.getElementById("folder")?.value;
+  const menu = importRequest?.menu || document.getElementById("menu")?.value;
+  const folder = importRequest?.folder || document.getElementById("folder")?.value;
   const config = getSelectedConfig(menu,folder);
-  await coreUploadData();
+  const result = await coreUploadData(importRequest);
   if(date && config?.id && window.wakeSuiteSessionReports?.[config.id]?.reportDate === date){
     const sessionRecord = window.wakeSuiteSessionReports[config.id];
     sessionRecord.fileName = sessionRecord.parsedFile?.fileName || "";
     sessionRecord.fileSize = sessionRecord.parsedFile?.fileSize || 0;
-    sessionRecord.lastModified = document.getElementById("file")?.files?.[0]?.lastModified || 0;
+    sessionRecord.lastModified = importRequest?.file?.lastModified || document.getElementById("file")?.files?.[0]?.lastModified || 0;
     await persistCurrentUploadedReport(date,config.id);
     updateReadiness();
-    await maybeAutoProcessCurrentDate();
+    if(!importRequest?.deferProcessing) await maybeAutoProcessCurrentDate();
   }
+  return result;
 };
 
 const coreLoadAllMasterPricing = loadAllMasterPricing;
@@ -17348,7 +17336,7 @@ async function maybeAutoProcessCurrentDate(){
 
   if(
     !window.masterPricingAmazon
-    ||
+    &&
     !window.masterPricingFlipkart
   ){
     return;
@@ -17367,11 +17355,15 @@ async function maybeAutoProcessCurrentDate(){
     );
 
   const canAmazon =
+    !!window.masterPricingAmazon
+    &&
     availability.wakefit
     &&
     availability.amazonListings;
 
   const canFlipkart =
+    !!window.masterPricingFlipkart
+    &&
     availability.wakefit
     &&
     availability.flipkartListing;
@@ -26838,7 +26830,7 @@ openWakeSuiteDb = function(){return new Promise((resolve,reject)=>{const request
 async function v8PersistUploadVersion(reportDate,configId,file,record){if(!file)return;const db=await openWakeSuiteDb(),versionId=`${reportDate}::${configId}::${Date.now()}::${Math.random().toString(36).slice(2,7)}`,dateConfig=`${reportDate}::${configId}`;const bytes=await file.arrayBuffer();await new Promise((resolve,reject)=>{const tx=db.transaction(["report_versions","raw_files"],"readwrite");tx.objectStore("report_versions").put({versionId,dateConfig,reportDate,configId,fileName:file.name,fileSize:file.size,lastModified:file.lastModified,createdAt:Date.now(),rowCount:record?.parsedFile?.rowCount||0,coverageFrom:record?.coverageFrom||null,coverageTo:record?.coverageTo||null,coverageDays:record?.coverageDays||null,status:"successful"});tx.objectStore("raw_files").put({versionId,dateConfig,reportDate,configId,fileName:file.name,mimeType:file.type||"",bytes});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});return versionId;}
 async function v8GetLatestRawFile(reportDate,configId){const db=await openWakeSuiteDb(),dateConfig=`${reportDate}::${configId}`;return new Promise((resolve,reject)=>{const tx=db.transaction(["report_versions","raw_files"],"readonly"),idx=tx.objectStore("report_versions").index("dateConfig"),q=idx.getAll(dateConfig);q.onsuccess=()=>{const versions=(q.result||[]).filter(v=>v.status==="successful").sort((a,b)=>b.createdAt-a.createdAt);if(!versions.length){resolve(null);return;}const r=tx.objectStore("raw_files").get(versions[0].versionId);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);};q.onerror=()=>reject(q.error);});}
 const v8BaseUploadData=uploadData;
-uploadData=async function(){const reportDate=document.getElementById("reportDate")?.value;const menu=document.getElementById("menu")?.value,folder=document.getElementById("folder")?.value,file=document.getElementById("file")?.files?.[0];let config=null;try{config=getSelectedConfig(menu,folder);}catch(_e){}await v8BaseUploadData();if(reportDate&&config?.id&&file&&window.wakeSuiteSessionReports?.[config.id]?.reportDate===reportDate){try{const versionId=await v8PersistUploadVersion(reportDate,config.id,file,window.wakeSuiteSessionReports[config.id]);window.wakeSuiteSessionReports[config.id].versionId=versionId;showWakeSuiteToast("Upload cached locally for correction-file generation.","success");}catch(error){console.warn("Version persistence failed",error);}}};
+uploadData=async function(importRequest=null){const reportDate=importRequest?.reportDate||document.getElementById("reportDate")?.value;const menu=importRequest?.menu||document.getElementById("menu")?.value,folder=importRequest?.folder||document.getElementById("folder")?.value,file=importRequest?.file||document.getElementById("file")?.files?.[0];let config=null;try{config=getSelectedConfig(menu,folder);}catch(_e){}const result=await v8BaseUploadData(importRequest);if(reportDate&&config?.id&&file&&window.wakeSuiteSessionReports?.[config.id]?.reportDate===reportDate){try{const versionId=await v8PersistUploadVersion(reportDate,config.id,file,window.wakeSuiteSessionReports[config.id]);window.wakeSuiteSessionReports[config.id].versionId=versionId;showWakeSuiteToast("Upload cached locally for correction-file generation.","success");}catch(error){console.warn("Version persistence failed",error);}}return result;};
 
 /* ---------- Amazon min / max fields + corrected live classification ---------- */
 buildAmazonListingMap=function(rows){const map=new Map();(rows||[]).forEach(row=>{const azSku=normalizeKey(getRowValue(row,"seller-sku"));if(!azSku)return;map.set(azSku,{azSku,asin:normalizeKey(getRowValue(row,"asin1")),status:String(getRowValue(row,"status")||"").trim().toLowerCase(),azPrice:parseMoney(getRowValue(row,"price")),azMrp:parseMoney(getRowValue(row,"maximum-retail-price")),minAllowedPrice:parseMoney(getRowValue(row,"minimum-seller-allowed-price")),maxAllowedPrice:parseMoney(getRowValue(row,"maximum-seller-allowed-price")),quantity:parseNumber(getRowValue(row,"quantity"))});});return map;};
