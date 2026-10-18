@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Marketplace Reports Workflow Helper
 // @namespace    https://wakefit.co/marketplace-reports
-// @version      2.2.2
+// @version      2.2.3
 // @description  Runs the visible report workflow on Amazon Seller Central, Flipkart Seller Hub, and Wakefit SQL Explorer.
 // @match        https://sellercentral.amazon.in/*
 // @match        https://seller.flipkart.com/*
@@ -36,15 +36,15 @@
   function publishBridgeStatus(message, bad = false) {
     if (!safeRunId(bridgeRun) || !BRIDGE_KINDS.includes(bridgeKind)) return;
     bridgeLatest = { runId: bridgeRun, kind: bridgeKind, message: String(message).slice(0, 1200),
-      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.2' };
+      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.3' };
     GM_setValue(BRIDGE_PREFIX + bridgeRun + ':' + bridgeKind, bridgeLatest);
   }
   if (location.origin === 'https://bharadwaja-l.github.io' && location.pathname.startsWith('/wakesuite/')) {
-    document.documentElement.setAttribute('data-mwf-helper-version','2.2.2');
+    document.documentElement.setAttribute('data-mwf-helper-version','2.2.3');
     function bridgeReply(data) {
       if (data?.channel !== BRIDGE_CHANNEL || data.type !== 'poll' || !safeRunId(data.runId)) return;
       const statuses = BRIDGE_KINDS.map(kind => GM_getValue(BRIDGE_PREFIX + data.runId + ':' + kind, null)).filter(Boolean);
-      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.2',statuses};
+      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.3',statuses};
       window.postMessage(reply,location.origin);
       document.dispatchEvent(new CustomEvent('mwf-helper-status',{detail:JSON.stringify(reply)}));
     }
@@ -586,7 +586,7 @@
   async function selectVisibleOption(host, pattern) {
     if (host.tagName === 'SELECT') {
       const option = [...host.options].find(el => pattern.test(norm(el.textContent)) && !el.disabled);
-      if (!option) throw new Error('Required report/date option is unavailable.');
+      if (!option) throw new Error('Required report/date option is unavailable. Available options: '+[...host.options].map(el=>el.textContent.trim()).join(' | '));
       Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(host, option.value);
       host.dispatchEvent(new Event('input', { bubbles: true }));
       host.dispatchEvent(new Event('change', { bubbles: true }));
@@ -619,7 +619,7 @@
       return labelled.find(el=>el.tagName==='SELECT' && [...el.options].some(option=>/custom/.test(norm(option.textContent))))
         || labelled[0] || (candidates.length===1 ? candidates[0] : null);
     }, 'All Orders Event Date selector', 45000);
-    await selectVisibleOption(dateRange, /^(date range:\s*)?custom(?: date range| range)?$/);
+    await selectVisibleOption(dateRange, /^(date range:\s*)?(custom(?: date range| range| dates)?|date range|specify dates|customized date range)$/);
     const dateHosts = () => allElements().filter(el => enabledControl(el) && (
       el.tagName === 'KAT-INPUT' && /date|dd|mm|yyyy/i.test([el.getAttribute('placeholder'),el.getAttribute('label'),el.getAttribute('type')].join(' '))
       || el.tagName === 'INPUT' && !el.getRootNode().host && (el.type === 'date'
@@ -1229,7 +1229,16 @@
   }
 
   function sqlEditorText(editor = sqlEditor()) {
-    return norm(editor?.innerText || editor?.textContent).replace(/\s/g, '');
+    return norm(editor?.innerText || editor?.textContent).replace(/[\s\u200B-\u200D\uFEFF]/g, '');
+  }
+
+  function sqlQueryMatchesExpected() {
+    const canonical=value=>norm(value).replace(/[\s\u200B-\u200D\uFEFF]/g,'');
+    const expected=canonical(SQL);
+    const formValue=document.querySelector('#id_sql')?.value;
+    const rendered=document.querySelector('.cm-content,.CodeMirror-code');
+    return [formValue,sqlEditor()?.innerText,sqlEditor()?.textContent,rendered?.innerText,rendered?.textContent]
+      .some(value=>typeof value==='string' && canonical(value)===expected);
   }
 
   function writeSqlQueryToEditor(editor = sqlEditor()) {
@@ -1330,7 +1339,7 @@
     }
     const editor = sqlEditor();
     const expected = norm(SQL).replace(/\s/g, '');
-    if (!sqlHasResults() && (sqlEditorText(editor) !== expected || sqlHasEmptyQueryError())) {
+    if (!sqlHasResults() && (!sqlQueryMatchesExpected() || sqlHasEmptyQueryError())) {
       // SQL Explorer can clear its CodeMirror editor or submit an empty hidden
       // field even while the visible editor still contains the query. Restore
       // both fields and retry a few times before stopping safely.
@@ -1380,9 +1389,9 @@
       await wait(500);
     }
     if (!sqlHasResults()) { sessionStorage.removeItem(SQL_RESUME_KEY); throw new Error('Timed out waiting for SQL Explorer results after Refresh.'); }
-    if (sqlEditorText(sqlEditor()) !== expected || !sqlResultsMatchExpected()) {
+    if (!sqlQueryMatchesExpected() || !sqlResultsMatchExpected()) {
       sessionStorage.removeItem(SQL_RESUME_KEY);
-      throw new Error('SQL verification stopped. Editor matches: '+(sqlEditorText(sqlEditor())===expected)+'. Result columns: '+(sqlResultHeaders().join(', ')||'none')+'. CSV was not clicked.');
+      throw new Error('SQL verification stopped. Editor matches: '+sqlQueryMatchesExpected()+'. Result columns: '+(sqlResultHeaders().join(', ')||'none')+'. CSV was not clicked.');
     }
     sessionStorage.removeItem(SQL_RESUME_KEY);
     await downloadSqlCsv();
