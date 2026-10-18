@@ -28,6 +28,15 @@
   const install=node('a','Install / update Marketplace Reports Workflow Helper v2.2.0');
   install.href='./userscripts/marketplace-reports-workflow-helper.user.js';install.target='_blank';install.rel='noopener';panel.append(install);
   const connection=node('p','Checking helper connection…');connection.setAttribute('role','status');panel.append(connection);
+  const setup=node('details');setup.className='mwf-trial-setup';
+  setup.append(node('summary','Connect the Chrome helper'));
+  const steps=node('ol');
+  ['Open the Install / update link above in the same Chrome profile as Wakesuite.',
+   'Install helper v2.2.0 in Tampermonkey, replacing the old version. Keep only one copy enabled.',
+   'If the link shows code, copy it into the existing helper in Tampermonkey Dashboard and save.',
+   'Refresh Wakesuite. Wait for Helper connected, then try an Amazon or SQL report individually.'].forEach(value=>steps.append(node('li',value)));
+  setup.append(steps);panel.append(setup);
+  const retry=node('button','Check helper connection');retry.className='secondary-btn';retry.addEventListener('click',()=>{setup.open=true;poll();});panel.append(retry);
   const summary=node('div');summary.className='mwf-trial-summary';panel.append(summary);
   const progress=node('progress');progress.max=tasks.length;progress.value=0;progress.setAttribute('aria-label','Report tasks finished');panel.append(progress);
   const runAll=node('button','Run all daily reports');runAll.className='primary-btn';panel.append(runAll);
@@ -41,7 +50,8 @@
     const connected=Date.now()-helperSeen<6000;
     text(connection,connected?'Helper connected · v2.2.0':'Helper not connected. Install/update it, enable it for this site, then refresh Wakesuite.');
     connection.dataset.connected=String(connected);
-    runAll.disabled=!connected || !!state?.active;
+    runAll.disabled=!!state?.active;
+    runAll.textContent=connected?'Run all daily reports':'Set up helper to run reports';
     let unfinished=false;
     for(const [kind,cell] of cells){
       const item=state?.tasks?.[kind];
@@ -50,17 +60,23 @@
       text(cell.status,item ? (pending && Date.now()-item.updatedAt>30000 ? 'No recent update — check the report tab. ' : '')+item.message : 'Not started');
       cell.status.dataset.phase=item?.phase||'idle';
       text(cell.updated,item?.updatedAt?new Date(item.updatedAt).toLocaleTimeString():'—');
-      cell.button.disabled=!connected || pending;
+      cell.button.disabled=!!pending;
+      cell.button.textContent=connected?'Run':'Connect helper';
     }
     const items=Object.values(state?.tasks||{}),finished=items.filter(item=>item.phase==='finished').length;
     const attention=items.filter(item=>['attention','blocked'].includes(item.phase)).length;
     text(summary,finished+' finished actions · '+attention+' need attention · '+items.filter(item=>['running','opening'].includes(item.phase)).length+' running');
     progress.value=finished;
-    if(state){state.active=unfinished;runAll.disabled=!connected || unfinished;save();}
+    if(state){state.active=unfinished;runAll.disabled=unfinished;save();}
   }
   function text(el,value){if(el.textContent!==value)el.textContent=value;}
   function launch(selected){
-    if(Date.now()-helperSeen>=6000)return;
+    if(Date.now()-helperSeen>=6000){
+      setup.open=true;
+      text(connection,'No helper response yet. Complete the steps below in this Chrome profile; no report has been started.');
+      window.postMessage({channel,type:'poll',runId:state?.id||'connection-check'},location.origin);
+      return;
+    }
     if(!state || !state.active)state={id:Date.now()+'-'+crypto.randomUUID(),startedAt:Date.now(),tasks:{},active:true};
     for(const [kind,,raw]of selected){
       const prior=state.tasks[kind];if(prior&&!['finished','attention','blocked'].includes(prior.phase))continue;
