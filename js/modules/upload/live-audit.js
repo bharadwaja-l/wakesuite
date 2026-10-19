@@ -26,9 +26,9 @@
    const az=azFields.some(k=>value(cells,k)!=='');
    const fk=['flipkart_selling_price','flipkart_buy_now_present'].some(k=>value(cells,k)!=='');
    if(!az&&!fk){unfilled++;continue;}
-   if(az){
+   if(az||fk){
     const timestamp=value(cells,'amazon_timestamp');
-    if(!timestamp||timestamp.slice(0,10)!==date)throw Error('Amazon scrape timestamps are missing or do not all match '+date+'. Finish or refresh the scrape for this date before importing.');
+    if(!timestamp||timestamp.slice(0,10)!==date)throw Error('Shared Amazon / Flipkart scrape timestamps are missing or do not all match '+date+'. Finish or refresh the scrape for this date before importing.');
    }
    const row=Object.fromEntries(headers.map((key,i)=>[key,cells[i]??'']));
    // Unscraped identifiers must not be classified as negative audit findings.
@@ -95,6 +95,6 @@
  date.addEventListener('change',reset);
  check.addEventListener('change',()=>{saveButton.disabled=busy||!preview||!check.checked;});
  async function action(fn){if(busy)return;busy=true;readButton.disabled=saveButton.disabled=date.disabled=true;try{await fn();}catch(e){status.textContent=e.message;}finally{busy=false;readButton.disabled=date.disabled=false;saveButton.disabled=!preview||!check.checked;}}
- readButton.addEventListener('click',()=>action(async()=>{reset();status.textContent='Reading live audit results…';preview=await read(date.value);status.textContent=preview.rowCount+' scraped rows: '+preview.amazon+' Amazon, '+preview.flipkart+' Flipkart; '+preview.unfilled+' input-only rows excluded. Read at '+preview.readAt+'. Confirm completion before importing. Flipkart has no scrape timestamp column, so its date requires your confirmation.';}));
+ readButton.addEventListener('click',()=>action(async()=>{reset();status.textContent='Reading live audit results…';preview=await read(date.value);status.textContent=preview.rowCount+' scraped rows: '+preview.amazon+' Amazon, '+preview.flipkart+' Flipkart; '+preview.unfilled+' input-only rows excluded. Read at '+preview.readAt+'. Confirm completion before importing. amazon_timestamp is used as the shared scrape timestamp for Amazon and Flipkart.';}));
  saveButton.addEventListener('click',()=>action(async()=>{status.textContent='Importing audit and verifying snapshot…';const message=await save(preview,check.checked);reset();status.textContent=message;}));
 })();

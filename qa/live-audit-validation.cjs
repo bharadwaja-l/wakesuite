@@ -4,10 +4,11 @@ const headers=['ASIN','FSN','amazon_has_supersede_issue','amazon_selling_price',
 let uploads=0,processed=0,allow=true;const date={value:'2026-10-19',disabled:false},button={disabled:false};
 const ctx={console,Date,Map,Set,File,canonicalHeader:v=>String(v).toLowerCase().replace(/[^a-z0-9]/g,''),document:{getElementById:id=>id==='reportDate'?date:id==='uploadButton'?button:null},v7HasAction:()=>allow,processingLock:false,currentSessionDate:'2026-10-19',uploadConfig:[{id:'marketplace_audit_report',menu:'Audit',folder:'Amazon + Flipkart Audit Report'}],restoreSessionForDate:async()=>{},maybeAutoProcessCurrentDate:async()=>{processed++},buildInputFingerprint:()=> 'fp',updateReadiness(){},window:{v8CanUploadType:()=>true,wakeSuiteSessionReports:{},uploadData:async opts=>{uploads++;assert.equal(opts.menu,'Audit');assert.equal(opts.deferProcessing,true);assert.equal(opts.file.type,'text/csv');return {uploadId:'receipt'}},getDailySnapshotMeta:async()=>({status:'completed',fingerprint:'fp'})}};
 vm.createContext(ctx);vm.runInContext(code,ctx);const api=ctx.window.WakeSuiteLiveAudit;
-const input=[headers,['A','F','False','100','True','','','','','2026-10-19 08:00:00'],['B','G','','','','','','200','True',''],['C','H']];
+const input=[headers,['A','F','False','100','True','','','','','2026-10-19 08:00:00'],['B','G','','','','','','200','True','2026-10-19 08:01:00'],['C','H']];
 (async()=>{
  const p=api.prepare(input,'2026-10-19');assert.equal(p.amazon,1);assert.equal(p.flipkart,1);assert.equal(p.unfilled,1);assert.equal(p.rowCount,2);assert.equal(p.rows[0].FSN,'');assert.equal(p.rows[1].ASIN,'');
  assert.throws(()=>api.prepare([headers,['A','F','False','','False','','','','','2026-10-18 08:00:00']],'2026-10-19'),/timestamps/);
+ assert.throws(()=>api.prepare([headers,['','F','','','','','','200','True','2026-10-18 08:00:00']],'2026-10-19'),/timestamps/);
  assert.throws(()=>api.prepare([headers,['A','F']],'2026-10-19'),/No scraped/);
  assert.throws(()=>api.prepare([['ASIN'],['A']],'2026-10-19'),/missing/);
  await assert.rejects(api.save(p,false),/Confirm/);assert.equal(uploads,0);
