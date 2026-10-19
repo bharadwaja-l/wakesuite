@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Marketplace Reports Workflow Helper
 // @namespace    https://wakefit.co/marketplace-reports
-// @version      2.2.5
+// @version      2.2.6
 // @description  Runs the visible report workflow on Amazon Seller Central, Flipkart Seller Hub, and Wakefit SQL Explorer.
 // @match        https://sellercentral.amazon.in/*
 // @match        https://seller.flipkart.com/*
@@ -36,15 +36,15 @@
   function publishBridgeStatus(message, bad = false) {
     if (!safeRunId(bridgeRun) || !BRIDGE_KINDS.includes(bridgeKind)) return;
     bridgeLatest = { runId: bridgeRun, kind: bridgeKind, message: String(message).slice(0, 1200),
-      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.5' };
+      phase: bridgePhase, warning: !!bad, updatedAt: Date.now(), version: '2.2.6' };
     GM_setValue(BRIDGE_PREFIX + bridgeRun + ':' + bridgeKind, bridgeLatest);
   }
   if (location.origin === 'https://bharadwaja-l.github.io' && location.pathname.startsWith('/wakesuite/')) {
-    document.documentElement.setAttribute('data-mwf-helper-version','2.2.5');
+    document.documentElement.setAttribute('data-mwf-helper-version','2.2.6');
     function bridgeReply(data) {
       if (data?.channel !== BRIDGE_CHANNEL || data.type !== 'poll' || !safeRunId(data.runId)) return;
       const statuses = BRIDGE_KINDS.map(kind => GM_getValue(BRIDGE_PREFIX + data.runId + ':' + kind, null)).filter(Boolean);
-      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.5',statuses};
+      const reply = {channel:BRIDGE_CHANNEL,type:'status',runId:data.runId,version:'2.2.6',statuses};
       window.postMessage(reply,location.origin);
       document.dispatchEvent(new CustomEvent('mwf-helper-status',{detail:JSON.stringify(reply)}));
     }
@@ -1131,21 +1131,52 @@
     return (text.match(/[^\s]+\.xlsx?\b/) || [])[0] || '';
   }
 
-  function listingSizeMb(row) {
-    const match = String(row.innerText || row.textContent).match(/(\d+(?:\.\d+)?)\s*(GB|MB|KB|bytes)\b/i);
-    if (!match) return null;
-    const value = Number(match[1]);
-    return /gb/i.test(match[2]) ? value * 1000 : /kb/i.test(match[2]) ? value / 1000 : /bytes/i.test(match[2]) ? value / 1000000 : value;
+  function flipkartPendingListingRows() {
+    const rows = [];
+    for (const el of allElements()) {
+      if (!visible(el) || !/^(?:generating(?: file)?|processing|in progress|in-progress|queued|pending|requested)(?:\s*[.…]*)$/i.test(norm(el.innerText || el.textContent))) continue;
+      let row = el;
+      for (let depth = 0; depth < 8 && row; depth++, row = row.parentElement) {
+        const text = norm(row.innerText || row.textContent);
+        if (text.length > 1500) break;
+        if (!/\blisting\b/.test(text)) continue;
+        const download = allElements(row).some(item => visible(item) && (isButtonLike(item) || item.tagName === 'A') && buttonText(item) === 'download');
+        if (!download && !rows.includes(row)) rows.push(row);
+        break;
+      }
+    }
+    return rows;
+  }
+
+  function clickFlipkartListingDownload(row) {
+    const download = allElements(row).find(el => (isButtonLike(el) || el.tagName === 'A') && buttonText(el) === 'download' && visible(el));
+    if (!download) throw new Error('The completed Flipkart Listing file has no visible Download control.');
+    download.click();
+    setStatus('Clicked Download for the Flipkart Listing file. Confirm completion and size in Chrome Downloads. If it is 20 MB or smaller, use Generate fresh; file size is not available before downloading.');
+  }
+
+  async function waitForFlipkartListing(before, pendingKeys = []) {
+    const deadline = Date.now() + 20 * 60 * 1000;
+    setStatus('A Flipkart Listing file is generating. Waiting for its Download button; no additional report will be requested.');
+    while (Date.now() < deadline) {
+      const candidates = flipkartListingRows().filter(row => {
+        const key = flipkartListingKey(row);
+        return key && (pendingKeys.includes(key) || !before.has(key));
+      });
+      if (candidates.length === 1) return clickFlipkartListingDownload(candidates[0]);
+      if (candidates.length > 1) throw new Error('More than one new Listing file completed. Use Download latest to choose the newest completed file; no additional report was requested.');
+      await wait(2500);
+    }
+    throw new Error('Timed out waiting for the generating Listing file. No additional report was requested. Check Downloads History and retry when it is ready.');
   }
 
   async function runFlipkartListingWorkflow() {
     await openFlipkartHistory();
     await wait(1500);
-    const latest = flipkartListingRows()[0];
-    if (!latest) return generateFreshFlipkartListing();
-    const size = listingSizeMb(latest);
-    if (size == null) throw new Error('Seller Hub does not expose the latest file size. Use Download latest, check Chrome Downloads, then use Generate fresh only if it is 20 MB or smaller. Automatic generation paused to avoid an unnecessary request.');
-    if (size > 20) return downloadFlipkartListing();
+    const completed = flipkartListingRows();
+    const pending = flipkartPendingListingRows();
+    if (pending.length) return waitForFlipkartListing(new Set(completed.map(flipkartListingKey)), pending.map(flipkartListingKey).filter(Boolean));
+    if (completed.length) return clickFlipkartListingDownload(completed[0]);
     return generateFreshFlipkartListing();
   }
 
@@ -1153,6 +1184,8 @@
     await openFlipkartHistory();
     await wait(1500);
     const before = new Set(flipkartListingRows().map(flipkartListingKey));
+    const pending = flipkartPendingListingRows();
+    if (pending.length) return waitForFlipkartListing(before, pending.map(flipkartListingKey).filter(Boolean));
     if (exactText('Downloads History')) {
       const close = allElements().find((el) => isButtonLike(el) && buttonText(el) === 'close' && visible(el));
       if (close) close.click();
@@ -1164,17 +1197,7 @@
     setStatus('Requested a fresh Flipkart Listing file; waiting for its completed entry…');
     await wait(1500);
     await openFlipkartHistory();
-    const deadline = Date.now() + 15 * 60 * 1000;
-    let rows = [];
-    while (Date.now() < deadline) {
-      await wait(2500);
-      rows = flipkartListingRows();
-      rows = rows.filter(row => flipkartListingKey(row) && !before.has(flipkartListingKey(row)));
-      if (rows.length) break;
-    }
-    if (rows.length !== 1) throw new Error('Could not uniquely identify the new completed Listing file. No old file was downloaded.');
-    allElements(rows[0]).find((el) => (isButtonLike(el) || el.tagName === 'A') && buttonText(el) === 'download' && visible(el))?.click();
-    setStatus('Clicked Download for the new Flipkart Listing workbook. Verify in Chrome Downloads that it exceeds 20 MB.');
+    return waitForFlipkartListing(before);
   }
 
   function sqlEditor() {
@@ -1410,7 +1433,7 @@
   } else if (location.hostname === 'seller.flipkart.com') {
     addPanel('Flipkart Reports', [
       dailyReportsAction(),
-      { label: 'Run Listing workflow (check size / fallback)', run: runFlipkartListingWorkflow },
+      { label: 'Run Listing workflow (wait / download)', run: runFlipkartListingWorkflow },
       { label: 'Download latest completed Listing file', run: downloadFlipkartListing },
       { label: 'Generate and download a fresh Listing file', run: generateFreshFlipkartListing },
       flipkartOrderReportAction()
