@@ -1,8 +1,8 @@
-const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const app=fs.readFileSync('work/release/WakeSuite/js/wakesuite-app.js','utf8');
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
+const root=path.resolve(__dirname,'..');
+const app=fs.readFileSync(path.join(root,'js/wakesuite-app.js'),'utf8');
 const auth=app.slice(app.indexOf('function v4InvalidateGmailToken(){'),app.indexOf('function v4BytesToBase64('));
-const old=fs.readFileSync('work/repeat-send/original-gmail-token.js','utf8');
-const deliveryFile=fs.readFileSync('work/release/WakeSuite/js/wakesuite-v9.3.11.js','utf8');
+const deliveryFile=fs.readFileSync(path.join(root,'js/wakesuite-v9.3.11.js'),'utf8');
 const delivery=deliveryFile.slice(deliveryFile.indexOf('  async function gmailDeliver('),deliveryFile.indexOf('  async function preparePocRows('));
 function runtime(code){
  let now=0;const state={clients:[],requests:0,mode:'success',token:0,timers:new Map(),nextTimer:0,fetches:[],statuses:[]};
@@ -15,7 +15,6 @@ function runtime(code){
 }
 async function within(p,ms=250){let timer;try{return await Promise.race([p,new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('pending')),ms))]);}finally{clearTimeout(timer);}}
 (async()=>{
- const baseline=runtime(old);assert.equal(await baseline.ctx.v4GetGmailToken(),'mock-token-1');await assert.rejects(within(baseline.ctx.v4GetGmailToken(),100),/pending/);console.log('REPRODUCED: previous Gmail callback leaves second authorization unresolved');
  const fixed=runtime(auth+delivery);assert.equal(await fixed.ctx.v4GetGmailToken(),'mock-token-1');assert.equal(await fixed.ctx.v4GetGmailToken(),'mock-token-1');assert.equal(fixed.state.requests,1);console.log('PASS repeated sends reuse unexpired token without a new sign-in request');
  fixed.advance(3600000);const one=fixed.ctx.v4GetGmailToken(),two=fixed.ctx.v4GetGmailToken();assert.strictEqual(one,two);assert.equal(await one,'mock-token-2');assert.equal(await two,'mock-token-2');assert.equal(fixed.state.clients.length,2);console.log('PASS expired token refresh uses new callbacks; concurrent callers share one request');
  for(const [mode,pattern] of [['closed',/closed/],['blocked',/could not open/],['oauth-error',/access_denied/]]){
@@ -25,5 +24,5 @@ async function within(p,ms=250){let timer;try{return await Promise.race([p,new P
  for(const subject of ['Individual POC','All POC','Individual POC again'])await within(fixed.ctx.gmailDeliver({to:['test@example.test'],subject,html:'Mock test'}));assert.equal(fixed.state.fetches.length,3);console.log('PASS shared real delivery gateway completes repeated individual/combined requests');
  const before=fixed.state.fetches.length;fixed.state.statuses=[401,200];await within(fixed.ctx.gmailDeliver({to:['test@example.test'],subject:'401 recovery',html:'test'}));assert.equal(fixed.state.fetches.length,before+2);assert.notEqual(fixed.state.fetches[before].opts.headers.Authorization,fixed.state.fetches[before+1].opts.headers.Authorization);console.log('PASS one explicit Gmail 401 refreshes the token and retries once');
  fixed.state.statuses=[500];const count=fixed.state.fetches.length;await assert.rejects(within(fixed.ctx.gmailDeliver({to:['test@example.test'],subject:'Do not duplicate',html:'test'})),/500/);assert.equal(fixed.state.fetches.length,count+1);console.log('PASS uncertain/API delivery failure is not automatically resent');
- fs.writeFileSync('work/repeat-send/validation.json',JSON.stringify({reproducedOldFailure:true,passed:['cached token reuse','expiry refresh','concurrent authorization','popup cancellation and blocked popup recovery','OAuth rejection recovery','authorization timeout recovery','repeated individual/combined gateway delivery','401 retry once','no retry on uncertain delivery'],liveGmailTested:false},null,2));
+ fs.writeFileSync(path.join(__dirname,'gmail-authorization-validation-results.json'),JSON.stringify({liveGmailTested:false,passed:['cached token reuse','expiry refresh','concurrent authorization','popup cancellation and blocked popup recovery','OAuth rejection recovery','authorization timeout recovery','repeated individual/combined gateway delivery','401 retry once','no retry on uncertain delivery'],liveGmailTested:false},null,2));
 })().catch(e=>{console.error(e.stack);process.exit(1)});
