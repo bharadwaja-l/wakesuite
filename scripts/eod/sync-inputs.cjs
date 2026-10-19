@@ -2,7 +2,7 @@
 const {GoogleAuth}=require('google-auth-library');
 const {initializeApp,cert}=require('firebase-admin/app');
 const {getFirestore,FieldPath}=require('firebase-admin/firestore');
-const {eligibleInputs,planInputUpdates,revenueSortRequests}=require('../../js/modules/connections/input-plan.js');
+const {eligibleInputs,planInputUpdates,replacementRequests}=require('../../js/modules/connections/input-plan.js');
 const projectId='wakesuite-4daf9',sheetId='1KeVVOLASOsHO5Efgf4IVsNWDLD3X1SqsivExGbJ1Bms',tab='master_final_with_flipkart',tabId=743318554;
 const backupTab='_Wakesuite_Input_Backup';
 function unpack(packed){return Array.isArray(packed)?packed:Object.keys(packed||{}).sort().map(k=>packed[k]);}
@@ -51,12 +51,11 @@ async function main(){
  const fresh=(await source.ref.get()).data();
  if(fresh.status!=='completed'||fresh.fingerprint!==meta.fingerprint||fresh.revision!==meta.revision)throw Error('Snapshot changed; no input write started.');
  if(plan.requiredRows>sheet.gridProperties.rowCount)await sheets(':batchUpdate','POST',{requests:[{appendDimension:{sheetId:tabId,dimension:'ROWS',length:plan.requiredRows-sheet.gridProperties.rowCount}}]});
- for(let i=0;i<plan.updates.length;i+=400)await sheets('/values:batchUpdate','POST',{valueInputOption:'RAW',data:plan.updates.slice(i,i+400).map(u=>({range:"'"+tab+"'!A"+u.row+':F'+u.row,values:[u.values]}))});
- const after=(await sheets('/values/'+encodeURIComponent("'"+tab+"'!A1:F"+plan.requiredRows)+'?valueRenderOption=UNFORMATTED_VALUE')).values||[];
- if(plan.updates.some(u=>u.values.some((v,i)=>String(after[u.row-1]?.[i]??'')!==String(v))))throw Error('Input readback failed; restore the backup before retrying.');
- await sheets(':batchUpdate','POST',{requests:revenueSortRequests(plan,eligible.rows,sheet.gridProperties.columnCount,tabId)});
- const sorted=(await sheets('/values/'+encodeURIComponent("'"+tab+"'!A2:F"+(eligible.rows.length+1))+'?valueRenderOption=UNFORMATTED_VALUE')).values||[];
- if(eligible.rows.some((r,i)=>r.some((v,j)=>String(sorted[i]?.[j]??'')!==String(v))))throw Error('Revenue sort verification failed. Check the full-row backup.');
+ await sheets(':batchUpdate','POST',{requests:replacementRequests(eligible.rows,Math.max(plan.requiredRows,sheet.gridProperties.rowCount),sheet.gridProperties.columnCount,tabId)});
+ const sorted=(await sheets('/values/'+encodeURIComponent("'"+tab+"'!A1:AK"+Math.max(plan.requiredRows,sheet.gridProperties.rowCount))+'?valueRenderOption=UNFORMATTED_VALUE')).values||[];
+ if(eligible.rows.some((r,i)=>r.some((v,j)=>String(sorted[i+1]?.[j]??'')!==String(v))))throw Error('Input verification failed. Check the full-row backup.');
+ if(sorted.slice(1).some((r,i)=>r.slice(i<eligible.rows.length?6:0).some(v=>v!==''&&v!=null)))throw Error('Old result clearing verification failed.');
+ if((values[0]||[]).some((v,j)=>String(sorted[0]?.[j]??'')!==String(v)))throw Error('Header verification failed.');
  const receipt={status:'completed',mode:'github-actions',completedAt:new Date().toISOString(),sourceReportDate:source.id,rows:eligible.rows.length,skipped:eligible.skipped,schedule:'18:30 Asia/Kolkata (GitHub may delay)',zeroCostBillingCheck:'disabled'};
  const receiptRequests=(metadata.developerMetadata||[]).filter(m=>m.metadataKey==='wakesuite_eod_sync').map(m=>({deleteDeveloperMetadata:{dataFilter:{developerMetadataLookup:{metadataId:m.metadataId}}}}));
  receiptRequests.push({createDeveloperMetadata:{developerMetadata:{metadataKey:'wakesuite_eod_sync',metadataValue:JSON.stringify(receipt),visibility:'DOCUMENT',location:{spreadsheet:true}}}});
