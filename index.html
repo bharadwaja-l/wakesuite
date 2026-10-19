@@ -97,7 +97,7 @@
 </div>
 </details><a class="nav-link" data-ws-module="dailyCommunications" href="#" onclick="openDailyCommunications();return false"><span class="nav-icon" data-nav-icon="mail"></span><span class="nav-text">Daily Communications</span></a>
 <a class="nav-link" data-ws-module="uploadCenter" href="#" onclick="showView('uploadSection');return false"><span class="nav-icon" data-nav-icon="upload"></span><span class="nav-text">Data Center</span></a>
-<a class="nav-link" data-ws-module="masterPricing" href="#" onclick="showView('masterPricingSection');return false"><span class="nav-icon" data-nav-icon="database"></span><span class="nav-text">Master Pricing</span></a>
+<a class="nav-link" data-ws-module="masterPricing" href="#" onclick="showView('masterPricingSection');return false"><span class="nav-icon" data-nav-icon="database"></span><span class="nav-text">Live Data Connections</span></a>
 <a class="nav-link" data-ws-module="marketplaceData" href="#" onclick="openMarketplaceData();return false"><span class="nav-icon" data-nav-icon="table"></span><span class="nav-text">Marketplace Data</span></a>
 <div class="sidebar-settings-link">
 <a class="nav-link" href="#" onclick="openWakeSuiteSettings('access');return false"><span class="nav-icon" data-nav-icon="settings"></span><span class="nav-text">Settings</span></a>
@@ -756,6 +756,7 @@
 <div class="master-metric"><div class="master-metric-label">Categories</div><div class="master-metric-value" id="flipkartMasterCategoryCount">0</div></div>
 </div>
 </div>
+<div class="panel" id="liveConnectionsPanel"></div>
 </section>
 <!-- PRICE UPDATES -->
 <section class="app-view" id="priceUpdatesSection">
@@ -1162,5 +1163,7 @@
 <script src="./js/modules/upload/marketplace-automation.js?release=trial-7"></script>
 <script src="./js/modules/upload/download-import.js?release=import-1"></script>
 <script src="./js/modules/upload/live-audit.js?release=audit-1"></script>
+<script src="./js/modules/connections/input-plan.js?release=connections-1"></script>
+<script src="./js/modules/connections/live-connections.js?release=connections-1"></script>
 </body>
 </html>
