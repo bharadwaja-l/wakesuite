@@ -3,11 +3,14 @@
  'use strict';
  const spreadsheetId='1KeVVOLASOsHO5Efgf4IVsNWDLD3X1SqsivExGbJ1Bms',tab='master_final_with_flipkart',tabId=743318554;
  const host=document.getElementById('liveConnectionsPanel');if(!host)return;
- if(typeof FINAL_VIEW_TITLES!=='undefined')FINAL_VIEW_TITLES.masterPricingSection='Live Data Connections';
+ // The main script may have stopped before its lexical title map initialized.
+ // A connection panel must still render independently in that case.
+ try{if(typeof FINAL_VIEW_TITLES!=='undefined')FINAL_VIEW_TITLES.masterPricingSection='Live Data Connections';}catch{}
+ document.getElementById('liveConnectionsLoading')?.remove();
  let busy=false,writeToken='',expires=0,live=null,eligible=null,page=0;
  const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
  const status=el('p','Connect Google Sheets using the Master Pricing button, then Refresh status.');status.setAttribute('role','status');
- host.append(el('h2','URL scraping sheet'));
+ if(!document.getElementById('urlScrapingHeading'))host.append(el('h2','URL scraping sheet'));
  const link=el('a','Open live URL scraping sheet');link.href='https://docs.google.com/spreadsheets/d/'+spreadsheetId+'/edit#gid='+tabId;link.target='_blank';link.rel='noopener';host.append(link);
  const controls=el('div');controls.className='connections-controls';
  const refresh=el('button','Refresh status'),preview=el('button','Preview latest inputs'),manual=el('button','Manual Update');for(const b of [refresh,preview,manual]){b.type='button';b.className='secondary-btn';controls.append(b);}
