@@ -1,13 +1,13 @@
-/* Import selected local Amazon / SQL downloads through the existing uploader. */
+/* Import selected local Amazon / Flipkart / SQL downloads through the existing uploader. */
 (() => {
   'use strict';
-  const allowed = new Set(['wakefit_daily_pricing','amazon_all_listings','amazon_fba_inventory','amazon_business_reports','amazon_order_report']);
+  const allowed = new Set(['wakefit_daily_pricing','amazon_all_listings','amazon_fba_inventory','amazon_business_reports','amazon_order_report','flipkart_listing_file','flipkart_order_report']);
   const receiptsKey = 'ws-download-import-receipts-v1';
   let busy = false;
   const yieldUi=()=>new Promise(resolve=>setTimeout(resolve,0));
   function assertAccess(id){
     if(typeof v7HasAction!=='function' || !v7HasAction('upload'))throw new Error('Your account does not allow report uploads.');
-    if(!allowed.has(id))throw new Error('This trial imports Amazon and Wakefit SQL only.');
+    if(!allowed.has(id))throw new Error('This importer supports Amazon, Flipkart and Wakefit SQL reports.');
     if(typeof window.v8CanUploadType!=='function' || !window.v8CanUploadType(id))throw new Error('Your upload scope does not allow this report type.');
   }
   function definitions(){return Object.values(REPORT_DEFINITIONS);}
@@ -47,7 +47,7 @@
           if(file.size>200*1024*1024)throw new Error('This browser trial supports files up to 200 MB.');
           const parsed=await readWakeSuiteFile(file);
           const definition=identify(parsed.headers);
-          if(!definition)throw new Error('Not a supported Amazon / SQL report. Flipkart and audit files are excluded.');
+          if(!definition)throw new Error('Not a supported Amazon / Flipkart / SQL report. Use the live sheet connection for audit data.');
           assertAccess(definition.id);
           if(!parsed.rowCount)throw new Error('The report has no data rows.');
           const config=configs().find(config=>config.id===definition.id);
@@ -57,7 +57,7 @@
           const hash=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());
           const digest=Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,'0')).join('');
           Object.assign(item,{definition,config,parsed,digest,selected:true,status:'Ready · '+parsed.rowCount.toLocaleString()+' rows'});
-          if(definition.id==='amazon_order_report')item.coverage=v936OrderCoverageFromRows(definition.id,parsed.rows);
+          if(['amazon_order_report','flipkart_order_report'].includes(definition.id))item.coverage=v936OrderCoverageFromRows(definition.id,parsed.rows);
         }catch(error){item.status=error.message;}
         items.push(item);
       }
@@ -85,13 +85,13 @@
     const dateWasDisabled=reportDateControl.disabled;
     reportDateControl.disabled=true;
     const results=[];
-    const order=['wakefit_daily_pricing','amazon_all_listings','amazon_fba_inventory','amazon_business_reports','amazon_order_report'];
+    const order=['wakefit_daily_pricing','amazon_all_listings','amazon_fba_inventory','amazon_business_reports','amazon_order_report','flipkart_listing_file','flipkart_order_report'];
     try{
       if(currentSessionDate!==reportDate)await restoreSessionForDate(reportDate);
       for(const item of selected.sort((a,b)=>order.indexOf(a.definition.id)-order.indexOf(b.definition.id))){
         await yieldUi();
-        const coverage=item.definition.id==='amazon_business_reports'?businessCoverage:item.definition.id==='amazon_order_report'?{from:'',to:''}:null;
-        const key=receiptKey(item,reportDate,item.definition.id==='amazon_order_report'?item.coverage:coverage);
+        const coverage=item.definition.id==='amazon_business_reports'?businessCoverage:['amazon_order_report','flipkart_order_report'].includes(item.definition.id)?{from:'',to:''}:null;
+        const key=receiptKey(item,reportDate,['amazon_order_report','flipkart_order_report'].includes(item.definition.id)?item.coverage:coverage);
         if(!replace && receipts()[key]){item.status='Already imported · identical file/date/coverage';onProgress(item);results.push({item,skipped:true});continue;}
         item.status='Importing…';onProgress(item);
         const prior=window.wakeSuiteSessionReports?.[item.definition.id];
@@ -125,8 +125,8 @@
   panel.classList.add('mwf-import');
   const el=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;};
   const label=(text,input)=>{const node=el('label');node.append(el('span',text),input);return node;};
-  panel.append(el('h2','Import Amazon + SQL downloads'));
-  panel.append(el('p','Choose the downloaded files together, review their types and dates, then import. Flipkart and audit files are excluded. No Drive connection is needed.'));
+  panel.append(el('h2','Import Amazon + Flipkart + SQL downloads'));
+  panel.append(el('p','Choose the downloaded files together, review their types and dates, then import. Amazon and Flipkart reports plus Wakefit SQL are supported. Import audit data from Live Data Connections. No Drive connection is needed for these files.'));
   const controls=el('div');controls.className='mwf-import-controls';
   const date=el('input');date.type='date';date.value=document.getElementById('reportDate')?.value||todayIso();
   const files=el('input');files.type='file';files.multiple=true;files.accept='.csv,.txt,.tsv,.xlsx,.xls,.xlsm';
@@ -146,6 +146,6 @@
   function lock(value){panel.querySelectorAll('input,button').forEach(input=>input.disabled=value);if(!value){button.disabled=!items.some(item=>item.selected && item.definition);for(const [item,cell]of rowCells){const checkbox=cell.parentElement?.querySelector('input[type=checkbox]');if(checkbox)checkbox.disabled=!item.definition;}}}
   function rowStatus(item,message){if(item && rowCells.has(item))rowCells.get(item).textContent=item.status;if(message)status.textContent=message;}
   function render(){tbody.replaceChildren();rowCells.clear();for(const item of items){const tr=el('tr'),check=el('input');check.type='checkbox';check.checked=item.selected;check.disabled=!item.definition;check.addEventListener('change',()=>{item.selected=check.checked;button.disabled=!items.some(item=>item.selected);});const use=el('td');use.append(check);const result=el('td',item.status);rowCells.set(item,result);tr.append(use,el('td',item.file.name),el('td',item.definition?.label||'Excluded'),el('td',item.coverage?.from?item.coverage.from+' → '+item.coverage.to:item.definition?.id==='amazon_business_reports'?'Confirm below':'Daily snapshot'),result);tbody.append(tr);}coverage.hidden=!items.some(item=>item.definition?.id==='amazon_business_reports');}
-  files.addEventListener('change',async()=>{lock(true);confirmed.checked=false;try{items=await inspect([...files.files],message=>{status.textContent=message;});render();status.textContent=items.some(item=>item.definition)?'Preview ready. Check Report Date, selected files and any sales coverage dates.':'No supported Amazon / SQL files were found. Check the per-file messages.';}catch(error){status.textContent=error.message;}finally{lock(false);}});
+  files.addEventListener('change',async()=>{lock(true);confirmed.checked=false;try{items=await inspect([...files.files],message=>{status.textContent=message;});render();status.textContent=items.some(item=>item.definition)?'Preview ready. Check Report Date, selected files and any sales coverage dates.':'No supported Amazon / Flipkart / SQL files were found. Check the per-file messages.';}catch(error){status.textContent=error.message;}finally{lock(false);}});
   button.addEventListener('click',async()=>{lock(true);try{const result=await importItems(items,{reportDate:date.value,businessCoverage:{from:from.value,to:to.value},confirmBusinessCoverage:confirmed.checked,replace:replace.checked,onProgress:rowStatus});const saved=result.results.filter(entry=>entry.result).length,skipped=result.results.filter(entry=>entry.skipped).length,failed=result.results.filter(entry=>entry.error).length;status.textContent=saved+' imported · '+skipped+' already imported · '+failed+' failed. '+result.snapshot.message;}catch(error){status.textContent=error.message;}finally{lock(false);}});
 })();

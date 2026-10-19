@@ -20,7 +20,9 @@ vm.runInContext(fs.readFileSync(__dirname+'/../js/modules/upload/download-import
 const api=context.window.WakeSuiteDownloadImport;
 function file(def,name='report.csv'){const parsed={headers:[...def.requiredHeaders],rowCount:3,rows:[{}],fileName:name};if(def.id==='amazon_order_report')parsed.headers.push('amazon-order-id','purchase-date');const bytes=new TextEncoder().encode(def.id+name);return {name,size:bytes.length,lastModified:123,arrayBuffer:async()=>bytes.buffer,parsed};}
 (async()=>{
- assert.equal(api.identify(context.defs.flipkartListingFile.requiredHeaders),null);
+ assert.equal(api.identify(context.defs.flipkartListingFile.requiredHeaders).id,'flipkart_listing_file');
+ assert.equal(api.identify(context.defs.flipkartOrderReport.requiredHeaders).id,'flipkart_order_report');
+ assert.equal(api.identify(context.defs.marketplaceAuditReport.requiredHeaders),null);
  assert.equal(api.identify(['sku','price']),null,'sku alone must not classify an unrelated file as Orders');
  const files=[file(context.defs.amazonAllListings,'listings.txt'),file(context.defs.wakefitDailyPricing,'pricing.csv')];
  const items=await api.inspect(files);assert.equal(items.length,2);assert.equal(items.every(item=>item.selected),true);assert.match(items[0].digest,/^[a-f0-9]{64}$/);
@@ -34,7 +36,12 @@ function file(def,name='report.csv'){const parsed={headers:[...def.requiredHeade
  deny=true;await assert.rejects(api.importItems(items,{reportDate:'2026-10-20'}),/does not allow/);deny=false;
  fail=true;meta=null;result=await api.importItems(items,{reportDate:'2026-10-20'});assert.equal(result.results.every(entry=>entry.error),true);assert.equal(dateControl.disabled,false);assert.equal(api.busy,false);
  fail=false;result=await api.importItems(items,{reportDate:'2026-10-20'});assert.equal(result.results.every(entry=>entry.result),true,'failed writes must remain retryable');assert.equal(result.snapshot.saved,false,'metadata import must not claim cloud snapshot success');
- console.log('PASS batch import: Amazon/SQL detection, Flipkart exclusion, SHA dedupe, date isolation, coverage confirmation, source ordering, one processing pass, permissions, retry and honest cloud status.');
+ const fkFiles=await api.inspect([file(context.defs.flipkartListingFile,'listing.xlsx'),file(context.defs.flipkartOrderReport,'orders.xlsx')]);
+ assert.equal(fkFiles.every(item=>item.selected),true);assert.equal(fkFiles[1].coverage.from,'2026-09-19');
+ const fkStart=calls.length,fkResult=await api.importItems(fkFiles,{reportDate:'2026-10-21'});
+ assert.equal(fkResult.results.every(entry=>entry.result),true);assert.equal(calls.length,fkStart+2);assert.equal(calls.at(-1).coverage.from,'','order coverage must be derived from the file rather than ASIN sales controls');
+ await api.importItems(fkFiles,{reportDate:'2026-10-21'});assert.equal(calls.length,fkStart+2,'Flipkart duplicates must be skipped');
+ console.log('PASS batch import: Amazon/Flipkart/SQL detection, audit exclusion, SHA dedupe, date isolation, coverage confirmation, source ordering, one processing pass, permissions, retry and honest cloud status.');
  // Exercise the real core upload function with no selected manual file.
  const start=core.indexOf('async function uploadData(importRequest');const end=core.indexOf('/* ======================================================\n   SHARED WAKEFIT PRICING',start);
  const base=core.slice(start,end);let writes=0,valid=true;
