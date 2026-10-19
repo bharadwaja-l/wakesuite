@@ -30,7 +30,7 @@ ctx.fetch=async(url,options={})=>{
   writes++;
   for(const req of input.requests){
    if(req.appendDimension?.dimension==='COLUMNS')state.columns++;
-   if(req.updateCells){const start=req.updateCells.range.startRowIndex,col=req.updateCells.range.startColumnIndex;req.updateCells.rows.forEach((r,i)=>{state.values[start+i]||=[];state.values[start+i][col]=r.values[0].userEnteredValue.numberValue;});}
+   if(req.updateCells){const u=req.updateCells,start=u.range.startRowIndex,col=u.range.startColumnIndex;for(let i=start;i<u.range.endRowIndex;i++){state.values[i]||=[];for(let j=col;j<u.range.endColumnIndex;j++){const v=u.rows[i-start]?.values[j-col]?.userEnteredValue;state.values[i][j]=v?.numberValue??v?.stringValue??'';}}}
    if(req.sortRange){const r=req.sortRange.range,col=req.sortRange.sortSpecs[0].dimensionIndex,rows=state.values.slice(r.startRowIndex,r.endRowIndex).sort((a,b)=>a[col]-b[col]);state.values.splice(r.startRowIndex,rows.length,...rows);}
    if(req.deleteDimension){state.values.forEach(r=>r.splice(req.deleteDimension.range.startIndex,1));state.columns--;}
    if(req.deleteDeveloperMetadata)state.receipt=[];
@@ -48,10 +48,10 @@ const descendants=n=>[n,...n.children.flatMap(descendants)],button=text=>descend
  assert(section.children.includes(audit));
  await button('Refresh status').listeners.click();assert(host.textContent.includes('2 WF SKUs'));assert.equal(master.textContent,'Loaded');
  await button('Preview latest inputs').listeners.click();assert(host.textContent.includes('highest first'));assert.equal(writes,0);
- backupWorks=false;await button('Manual Update').listeners.click();assert(host.textContent.includes('Local backup could not be verified'));assert.equal(writes,0);
+ backupWorks=false;await button('Manual Update').listeners.click();assert(host.textContent.includes('Local backup could not be verified'));assert.equal(writes,0);assert(!descendants(host).some(n=>n.tagName==='dialog'));
  backupWorks=true;await button('Manual Update').listeners.click();
- assert(host.textContent.includes('Manual Update complete'),host.textContent.slice(-1500));
- assert.equal(state.values[1][3],'HIGH');assert.equal(state.values[1][6],'HIGH-EDD');assert.equal(state.values[2][3],'LOW');assert.equal(state.values[2][6],'LOW-EDD');assert.equal(state.columns,37);assert.equal(state.receipt.length,1);
+ assert(host.textContent.includes('Update verified successfully'),host.textContent.slice(-1500));assert(host.textContent.includes('Update successful'));assert.equal(descendants(host).find(n=>n.tagName==='progress').value,100);
+ assert.equal(state.values[1][3],'HIGH');assert.equal(state.values[1][6],'');assert.equal(state.values[2][3],'LOW');assert.equal(state.values[2][6],'');assert.equal(state.columns,37);assert.equal(state.receipt.length,1);
  const count=writes;allow=false;await button('Manual Update').listeners.click();assert.equal(writes,count);assert(host.textContent.includes('Upload permission'));
- console.log('PASS actual connections UI handlers: live stats, preview, backup-before-write, manual update, whole-row revenue ordering, output alignment, temp-column cleanup, receipt and permission checks. All external access mocked.');
+ console.log('PASS actual connections UI handlers: live stats, preview, backup-before-write, manual update, whole-row revenue ordering, old result clearing, preserved headers, progress and success popup, receipt and permission checks. All external access mocked.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

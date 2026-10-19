@@ -12,6 +12,11 @@
  const controls=el('div');controls.className='connections-controls';
  const refresh=el('button','Refresh status'),preview=el('button','Preview latest inputs'),manual=el('button','Manual Update');for(const b of [refresh,preview,manual]){b.type='button';b.className='secondary-btn';controls.append(b);}
  host.append(controls,status);
+ const progress=el('progress');progress.max=100;progress.value=0;progress.hidden=true;progress.setAttribute('aria-label','Manual Update progress');host.append(progress);
+ const progressText=el('p');host.append(progressText);
+ function stage(value,label){progress.hidden=false;progress.value=value;progressText.textContent=value+'% - '+label;status.textContent=label;}
+ function completed(message){const dialog=el('dialog');dialog.setAttribute('role','alertdialog');dialog.append(el('h3','Update successful'),el('p',message));const close=el('button','OK');close.type='button';close.addEventListener('click',()=>{if(dialog.close)dialog.close();dialog.remove();});dialog.append(close);host.append(dialog);if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');}
+
  const stats=el('p'),sync=el('p','Background 6:30 PM sync is not configured. Manual Update works while this page is open; no paid service is activated.');
  host.append(stats,sync);
  const source=el('p');host.append(source);
@@ -41,20 +46,20 @@
   const meta=await api('?fields=sheets(properties(sheetId,title,gridProperties)),developerMetadata');
   const sheet=meta.sheets?.find(s=>s.properties.sheetId===tabId)?.properties;
   if(!sheet||sheet.title!==tab)throw Error('The configured audit tab changed.');
-  const count=sheet.gridProperties.rowCount;if(count>50000)throw Error('The live sheet exceeds this connector’s 50,000-row limit.');
+  const count=sheet.gridProperties.rowCount;if(count>50000)throw Error('The live sheet exceeds this connector's 50,000-row limit.');
   const result=await api('/values/'+encodeURIComponent("'"+tab+"'!A1:AK"+count)+'?valueRenderOption='+(formulas?'FORMULA':'UNFORMATTED_VALUE'));
   return {sheet,meta,values:result.values||[],checkedAt:new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})};
  }
  function showLive(){
   const values=live.values,headers=values[0]||[],index=k=>headers.indexOf(k),val=(r,k)=>String(r[index(k)]??'').trim();
   const rows=values.slice(1).filter(r=>val(r,'WF Item SKU')||val(r,'ASIN')||val(r,'FSN'));
-  const unique=k=>new Set(rows.map(r=>val(r,k)).filter(Boolean)).size;
+  const unique=k=>new Set(rows.map(r=>val(r,k)).filter(v=>v&&!/^Not available on (AZ|FK)$/i.test(v))).size;
   const az=rows.filter(r=>val(r,'amazon_timestamp')).length,fk=rows.filter(r=>val(r,'flipkart_selling_price')||val(r,'flipkart_buy_now_present')).length;
   const missing=rows.filter(r=>!(Number(r[index('WF Price')])>0)).length;
   const times=rows.map(r=>val(r,'amazon_timestamp')).filter(Boolean).sort();
-  stats.textContent=rows.length+' input rows · '+unique('WF Item SKU')+' WF SKUs · '+unique('ASIN')+' ASINs · '+unique('FSN')+' FSNs · '+missing+' rows missing WF Price · '+az+' timestamped scrape rows · '+fk+' Flipkart result rows · latest shared scrape timestamp: '+(times.at(-1)||'Not available')+' · checked '+live.checkedAt+' IST.';
+  stats.textContent=rows.length+' input rows � '+unique('WF Item SKU')+' WF SKUs � '+unique('ASIN')+' ASINs � '+unique('FSN')+' FSNs � '+missing+' rows missing WF Price � '+az+' timestamped scrape rows � '+fk+' Flipkart result rows � latest shared scrape timestamp: '+(times.at(-1)||'Not available')+' � checked '+live.checkedAt+' IST.';
   const receipt=(live.meta.developerMetadata||[]).find(m=>m.metadataKey==='wakesuite_eod_sync');
-  if(receipt){try{const r=JSON.parse(receipt.metadataValue);sync.textContent='Last input sync: '+r.completedAt+' · '+r.rows+' rows · Wakesuite source '+r.sourceReportDate+'. Schedule status is only verified by the background workflow, not by a prior success receipt.';}catch{sync.textContent='Input sync receipt could not be read.';}}
+  if(receipt){try{const r=JSON.parse(receipt.metadataValue);sync.textContent='Last input sync: '+r.completedAt+' � '+r.rows+' rows � Wakesuite source '+r.sourceReportDate+'. Schedule status is only verified by the background workflow, not by a prior success receipt.';}catch{sync.textContent='Input sync receipt could not be read.';}}
   table.replaceChildren();const head=el('tr');headers.forEach(h=>head.append(el('th',String(h))));const thead=el('thead');thead.append(head);table.append(thead);const body=el('tbody');
   const pages=Math.max(1,Math.ceil(rows.length/50));page=Math.min(page,pages-1);
   rows.slice(page*50,(page+1)*50).forEach(r=>{const tr=el('tr');headers.forEach((h,i)=>tr.append(el('td',r[i]===undefined||r[i]===''?'Not available':String(r[i]))));body.append(tr);});table.append(body);
@@ -75,7 +80,7 @@
  }
  function showInputs(){
   inputTable.replaceChildren();if(!eligible)return;
-  const s=eligible.skipped;source.textContent='Latest saved Wakesuite data: '+eligible.sourceReportDate+' · '+eligible.rows.length+' eligible inputs · skipped '+s.missingPrice+' missing price/MRP, '+s.outOfStock+' out-of-stock/inactive, '+s.conflictingPrice+' conflicting-price SKUs. Missing ASIN/FSN displays as Not available and is written as a blank for the scraper.';
+  const s=eligible.skipped;source.textContent='Latest saved Wakesuite data: '+eligible.sourceReportDate+' � '+eligible.rows.length+' eligible inputs � skipped '+s.missingPrice+' missing price/MRP, '+s.outOfStock+' out-of-stock/inactive, '+s.conflictingPrice+' conflicting-price SKUs. Missing IDs are written as Not available on AZ / Not available on FK. Updating inputs clears all previous results below the header.';
   const head=el('tr');['WF SKU','ASIN','FSN','WF Price','WF MRP','Category','Amazon revenue (WF SKU)'].forEach(h=>head.append(el('th',h)));inputTable.append(head);
   eligible.rows.slice(0,100).forEach((r,i)=>{const tr=el('tr');[r[3],r[1]||'Not available',r[2]||'Not available',r[4],r[5],r[0],eligible.revenues[i]===null?'Not available':eligible.revenues[i]].forEach(v=>tr.append(el('td',String(v))));inputTable.append(tr);});
   source.textContent+=' Sorted by unique-ASIN Amazon revenue per WF SKU, highest first; missing revenue last. First '+Math.min(100,eligible.rows.length)+' eligible inputs shown; Manual Update writes all '+eligible.rows.length+'.';
@@ -89,27 +94,36 @@
  async function update(){
   assertWriter();
   // Start OAuth during the button click, before any awaited network read.
+  stage(5,'Connecting Google Sheets.');
   await authorization();
+  stage(20,'Loading latest eligible SKUs.');
   eligible=await latestInputs();showInputs();
+  stage(35,'Reading the sheet.');
   const current=await readLive(true),plan=window.WakeSuiteInputPlan.planInputUpdates(current.values,eligible.rows);
   if(plan.requiredRows>50000)throw Error('Input sheet needs cleanup before appending more SKUs.');
+  stage(50,'Saving a full backup.');
   await backupInputs(current.values);
   const latest=await window.getDailySnapshotMeta(eligible.sourceReportDate);
   if(latest?.fingerprint!==eligible.fingerprint||latest?.revision!==eligible.revision||latest?.status!=='completed')throw Error('Wakesuite source changed during preparation. Retry Manual Update.');
   if(plan.requiredRows>current.sheet.gridProperties.rowCount)await api(':batchUpdate',{method:'POST',body:JSON.stringify({requests:[{appendDimension:{sheetId:tabId,dimension:'ROWS',length:plan.requiredRows-current.sheet.gridProperties.rowCount}}]})});
-  for(let i=0;i<plan.updates.length;i+=400)await api('/values:batchUpdate',{method:'POST',body:JSON.stringify({valueInputOption:'RAW',data:plan.updates.slice(i,i+400).map(u=>({range:"'"+tab+"'!A"+u.row+':F'+u.row,values:[u.values]}))})});
-  await api(':batchUpdate',{method:'POST',body:JSON.stringify({requests:window.WakeSuiteInputPlan.revenueSortRequests(plan,eligible.rows,current.sheet.gridProperties.columnCount,tabId)})});
+  stage(70,'Replacing inputs and clearing previous results.');
+  await api(':batchUpdate',{method:'POST',body:JSON.stringify({requests:window.WakeSuiteInputPlan.replacementRequests(eligible.rows,Math.max(plan.requiredRows,current.sheet.gridProperties.rowCount),current.sheet.gridProperties.columnCount,tabId)})});
+  stage(85,'Verifying inputs, cleared results and headers.');
   live=await readLive();
   for(let i=0;i<eligible.rows.length;i++)if(eligible.rows[i].some((v,j)=>String(live.values[i+1]?.[j]??'')!==String(v)))throw Error('Sorted input verification failed. Check the sheet before retrying; a local input backup is available.');
+  if(live.values.slice(1).some((r,i)=>r.slice(i<eligible.rows.length?6:0).some(v=>v!==''&&v!=null)))throw Error('Old result clearing verification failed. Check the backup before retrying.');
+  if((current.values[0]||[]).some((v,j)=>String(live.values[0]?.[j]??'')!==String(v)))throw Error('Header verification failed.');
+  stage(95,'Saving the update receipt.');
   const receipt={completedAt:new Date().toISOString(),sourceReportDate:eligible.sourceReportDate,rows:eligible.rows.length,mode:'manual'};
   const requests=(current.meta.developerMetadata||[]).filter(m=>m.metadataKey==='wakesuite_eod_sync').map(m=>({deleteDeveloperMetadata:{dataFilter:{developerMetadataLookup:{metadataId:m.metadataId}}}}));
   requests.push({createDeveloperMetadata:{developerMetadata:{metadataKey:'wakesuite_eod_sync',metadataValue:JSON.stringify(receipt),visibility:'DOCUMENT',location:{spreadsheet:true}}}});
   try{await api(':batchUpdate',{method:'POST',body:JSON.stringify({requests})});}catch(e){status.textContent='Inputs verified, but sync receipt could not be saved: '+e.message;showLive();return;}
-  showLive();sync.textContent='Manual Update verified at '+receipt.completedAt+' · source '+receipt.sourceReportDate+'. Background schedule not yet configured.';
-  status.textContent='Manual Update complete: '+eligible.rows.length+' eligible rows; '+plan.retained+' retained in place, '+plan.appended+' appended, '+plan.cleared+' ineligible input rows cleared. Rows are sorted by Amazon revenue; all source columns moved together so scrape results remain matched. Input backup is stored in this browser.';
+  showLive();sync.textContent='Manual Update verified at '+receipt.completedAt+' � source '+receipt.sourceReportDate+'. Background schedule not yet configured.';
+  status.textContent='Manual Update complete: '+eligible.rows.length+' eligible rows; '+plan.retained+' retained in place, '+plan.appended+' appended, '+plan.cleared+' ineligible input rows cleared. Rows are sorted by Amazon revenue. Previous results and obsolete input rows are cleared; headers are preserved. Input backup is stored in this browser.';
+  stage(100,'Update verified successfully.');completed(eligible.rows.length+' input rows updated in Amazon revenue order. Previous results cleared; headers preserved.');
  }
- async function run(fn){if(busy)return;busy=true;for(const b of [refresh,preview,manual])b.disabled=true;try{await fn();}catch(e){status.textContent=e.message;}finally{busy=false;for(const b of [refresh,preview,manual])b.disabled=false;}}
- refresh.addEventListener('click',()=>run(async()=>{status.textContent='Checking live data connections…';let masterError='';if(typeof sheetsAccessToken!=='undefined'&&sheetsAccessToken&&typeof loadAllMasterPricing==='function'){try{await loadAllMasterPricing();}catch(e){masterError=e.message;}}else masterError='Master Pricing is not connected.';live=await readLive();showLive();status.textContent=masterError?'URL sheet connected. Master Pricing: '+masterError:'Both sheet reads finished. Master Pricing status is shown above; URL sheet status is below.';}));
+ async function run(fn){if(busy)return;busy=true;for(const b of [refresh,preview,manual])b.disabled=true;try{await fn();}catch(e){status.textContent=e.message;if(!progress.hidden)progressText.textContent='Update stopped: '+e.message;}finally{busy=false;for(const b of [refresh,preview,manual])b.disabled=false;}}
+ refresh.addEventListener('click',()=>run(async()=>{status.textContent='Checking live data connections.';let masterError='';if(typeof sheetsAccessToken!=='undefined'&&sheetsAccessToken&&typeof loadAllMasterPricing==='function'){try{await loadAllMasterPricing();}catch(e){masterError=e.message;}}else masterError='Master Pricing is not connected.';live=await readLive();showLive();status.textContent=masterError?'URL sheet connected. Master Pricing: '+masterError:'Both sheet reads finished. Master Pricing status is shown above; URL sheet status is below.';}));
  preview.addEventListener('click',()=>run(async()=>{eligible=await latestInputs();showInputs();status.textContent='Preview loaded; no Sheet values changed.';}));
  manual.addEventListener('click',()=>run(update));prev.addEventListener('click',()=>{page--;showLive();});next.addEventListener('click',()=>{page++;showLive();});
  const audit=document.getElementById('liveAuditPanel');if(audit)host.parentElement.append(audit);

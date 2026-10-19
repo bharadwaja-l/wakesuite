@@ -21,7 +21,7 @@ function eligibleInputs(groups){
  for(const item of [...bySku.values()].sort((a,b)=>(revenue(b)??-1)-(revenue(a)??-1)||a.sku.localeCompare(b.sku))){
   if(item.conflict){skipped.conflictingPrice++;continue;}
   const asins=[...item.amazon].sort(),fsns=[...item.flipkart].sort();
-  for(let i=0;i<Math.max(asins.length,fsns.length);i++){rows.push([item.category,asins[i]||'',fsns[i]||'',item.sku,item.price,item.mrp]);revenues.push(revenue(item));}
+  for(let i=0;i<Math.max(asins.length,fsns.length);i++){rows.push([item.category,asins[i]||'Not available on AZ',fsns[i]||'Not available on FK',item.sku,item.price,item.mrp]);revenues.push(revenue(item));}
  }
  return {rows,revenues,skipped};
 }
@@ -55,5 +55,10 @@ function revenueSortRequests(plan,eligible,columnCount,sheetId){
   {deleteDimension:{range:{sheetId,dimension:'COLUMNS',startIndex:columnCount,endIndex:columnCount+1}}}
  ];
 }
-if(typeof module!=='undefined'&&module.exports)module.exports={eligibleInputs,planInputUpdates,revenueSortRequests,expand};
-else window.WakeSuiteInputPlan={eligibleInputs,planInputUpdates,revenueSortRequests,expand};
+function replacementRequests(eligible,rowCount,columnCount,sheetId){
+ if(!eligible.length)throw Error('No eligible inputs; existing sheet left unchanged.');
+ if(!Number.isInteger(rowCount)||rowCount<eligible.length+1||!Number.isInteger(columnCount)||columnCount<6)throw Error('Invalid sheet dimensions.');
+ return [{updateCells:{range:{sheetId,startRowIndex:1,endRowIndex:rowCount,startColumnIndex:0,endColumnIndex:columnCount},rows:eligible.map(row=>({values:row.map(value=>({userEnteredValue:typeof value==='number'?{numberValue:value}:{stringValue:String(value)}}))})),fields:'userEnteredValue'}}];
+}
+if(typeof module!=='undefined'&&module.exports)module.exports={eligibleInputs,planInputUpdates,revenueSortRequests,replacementRequests,expand};
+else window.WakeSuiteInputPlan={eligibleInputs,planInputUpdates,revenueSortRequests,replacementRequests,expand};

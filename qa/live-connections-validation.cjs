@@ -9,7 +9,7 @@ const groups={amazonRows:[
  {wfSku:'W4',asin:'A5',wfPrice:110,wfMrp:200,inventory:2}
 ],flipkartRows:[{wfSku:'W1',fsn:'F1',category:'Mattress',wfPrice:100,wfMrp:200,inventory:3},{wfSku:'W5',fsn:'F5',category:'Furniture',wfPrice:90,wfMrp:150,inventory:1}]};
 const eligible=eligibleInputs(groups);
-assert.deepEqual(eligible.rows,[['Mattress','A1','F1','W1',100,200],['Furniture','','F5','W5',90,150]]);
+assert.deepEqual(eligible.rows,[['Mattress','A1','F1','W1',100,200],['Furniture','Not available on AZ','F5','W5',90,150]]);
 assert.equal(eligible.skipped.missingPrice,1);assert.equal(eligible.skipped.outOfStock,1);assert.equal(eligible.skipped.conflictingPrice,1);
 const header=['Category','ASIN','FSN','WF Item SKU','WF Price','WF MRP'];
 const existing=[header,['Mattress','A1','F1','W1',80,160,'EDD','existing scrape'],['Mattress','OLD','','OLD',80,160,'EDD','old scrape']];
@@ -33,7 +33,7 @@ const ranked=eligibleInputs({amazonRows:[
 ],flipkartRows:[{wfSku:'MISSING',fsn:'ONLY-FSN',wfPrice:10,wfMrp:20,inventory:1}]});
 assert.deepEqual(ranked.rows.map(r=>r[3]),['HIGH','LOW','ZERO','MISSING']);
 assert.deepEqual(ranked.revenues,[1000,100,0,null]);
-const revenuePlan=planInputUpdates([header,['','LOW-ASIN','','LOW',10,20,'low-output'],['','HIGH-ASIN','','HIGH',10,20,'high-output']],ranked.rows);
+const revenuePlan=planInputUpdates([header,['','LOW-ASIN','Not available on FK','LOW',10,20,'low-output'],['','HIGH-ASIN','Not available on FK','HIGH',10,20,'high-output']],ranked.rows);
 const sortOps=revenueSortRequests(revenuePlan,ranked.rows,37,743318554);
 assert.equal(sortOps[2].sortRange.range.endColumnIndex,38);
 assert.equal(sortOps[2].sortRange.range.startRowIndex,1);
