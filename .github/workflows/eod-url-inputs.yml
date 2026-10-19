@@ -1,0 +1,29 @@
+name: Free EOD URL sheet input sync
+on:
+  schedule:
+    - cron: '0 13 * * *' # 18:30 Asia/Kolkata; GitHub may delay execution.
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: wakesuite-url-input-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.event.repository.private == false && vars.WAKESUITE_EOD_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install runtime dependencies without paid cache or artifacts
+        run: npm install --prefix scripts/eod --omit=dev --ignore-scripts --no-audit --no-fund
+      - name: Test SKU mapping and input update plan
+        run: node qa/live-connections-validation.cjs
+      - name: Sync eligible inputs under zero-cost policy
+        env:
+          GITHUB_REPOSITORY_VISIBILITY: public
+          WAKESUITE_EOD_SERVICE_ACCOUNT_JSON: ${{ secrets.WAKESUITE_EOD_SERVICE_ACCOUNT_JSON }}
+        run: node scripts/eod/sync-inputs.cjs

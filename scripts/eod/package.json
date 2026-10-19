@@ -1,0 +1,11 @@
+{
+  "name": "wakesuite-free-eod-sync",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "google-auth-library": "^9.0.0"
+  }
+}
