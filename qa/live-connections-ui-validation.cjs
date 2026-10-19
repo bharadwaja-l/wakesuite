@@ -6,6 +6,7 @@ class Node{
  append(...nodes){for(const n of nodes){if(n.parentElement)n.parentElement.children=n.parentElement.children.filter(c=>c!==n);n.parentElement=this;this.children.push(n);}}
  replaceChildren(...nodes){this.children=[];this._text='';this.append(...nodes);}
  setAttribute(){}
+ remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(c=>c!==this);}
  addEventListener(type,fn){this.listeners[type]=fn;}
 }
 const host=new Node('section'),section=new Node('section'),audit=new Node('section'),master=new Node('p');section.append(host);
@@ -41,6 +42,9 @@ ctx.fetch=async(url,options={})=>{
  return {ok:true,status:200,json:async()=>data};
 };
 vm.createContext(ctx);
+// An earlier core startup failure leaves a lexical title map uninitialized.
+// Connections must render and operate even in that state.
+try{vm.runInContext("throw Error('simulated earlier startup error');const FINAL_VIEW_TITLES={};",ctx);}catch{}
 vm.runInContext(fs.readFileSync(__dirname+'/../js/modules/connections/input-plan.js','utf8'),ctx);
 vm.runInContext(fs.readFileSync(__dirname+'/../js/modules/connections/live-connections.js','utf8'),ctx);
 const descendants=n=>[n,...n.children.flatMap(descendants)],button=text=>descendants(host).find(n=>n.tagName==='button'&&n.textContent===text);
