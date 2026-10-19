@@ -1,7 +1,7 @@
 'use strict';
 function expand(row,market){
  if(!Array.isArray(row))return row;
- return {category:row[0],wfSku:row[1],identifier:row[3],wfMrp:row[4],wfPrice:row[5],listingPrice:row[7],inventory:row[9],...(market==='amazon'?{asin:row[3]}:{fsn:row[3]})};
+ return {category:row[0],wfSku:row[1],identifier:row[3],wfMrp:row[4],wfPrice:row[5],listingPrice:row[7],inventory:row[9],...(market==='amazon'?{asin:row[3],asinRevenue:row.length>26?row[26]:null,revenueAvailable:row.length>24?!!row[24]:false}:{fsn:row[3]})};
 }
 function eligibleInputs(groups){
  const bySku=new Map(),skipped={missingPrice:0,outOfStock:0,missingIdentifier:0,conflictingPrice:0};
@@ -11,17 +11,19 @@ function eligibleInputs(groups){
   if(!(Number(row.inventory)>0)||row.active===false||['inactive','archived'].includes(String(row.status||'').toLowerCase())){skipped.outOfStock++;continue;}
   const price=Number(row.wfPrice),mrp=Number(row.wfMrp);
   if(!Number.isFinite(price)||price<=0||!Number.isFinite(mrp)||mrp<=0){skipped.missingPrice++;continue;}
-  if(!bySku.has(sku))bySku.set(sku,{sku,category:String(row.category||''),price,mrp,amazon:new Set(),flipkart:new Set(),conflict:false});
+  if(!bySku.has(sku))bySku.set(sku,{sku,category:String(row.category||''),price,mrp,amazon:new Set(),flipkart:new Set(),revenueByAsin:new Map(),conflict:false});
   const item=bySku.get(sku);if(item.price!==price||item.mrp!==mrp)item.conflict=true;
   item[market].add(id);
+  if(market==='amazon'&&row.revenueAvailable!==false&&row.asinRevenue!=null&&Number.isFinite(Number(row.asinRevenue))&&Number(row.asinRevenue)>=0)item.revenueByAsin.set(id,Number(row.asinRevenue));
  }
- const rows=[];
- for(const item of [...bySku.values()].sort((a,b)=>a.sku.localeCompare(b.sku))){
+ const rows=[],revenues=[];
+ const revenue=item=>item.revenueByAsin.size?[...item.revenueByAsin.values()].reduce((s,v)=>s+v,0):null;
+ for(const item of [...bySku.values()].sort((a,b)=>(revenue(b)??-1)-(revenue(a)??-1)||a.sku.localeCompare(b.sku))){
   if(item.conflict){skipped.conflictingPrice++;continue;}
   const asins=[...item.amazon].sort(),fsns=[...item.flipkart].sort();
-  for(let i=0;i<Math.max(asins.length,fsns.length);i++)rows.push([item.category,asins[i]||'',fsns[i]||'',item.sku,item.price,item.mrp]);
+  for(let i=0;i<Math.max(asins.length,fsns.length);i++){rows.push([item.category,asins[i]||'',fsns[i]||'',item.sku,item.price,item.mrp]);revenues.push(revenue(item));}
  }
- return {rows,skipped};
+ return {rows,revenues,skipped};
 }
 const key=row=>[row[1],row[2],row[3]].map(v=>String(v??'').trim()).join('|');
 function planInputUpdates(existing,eligible){
@@ -41,5 +43,17 @@ function planInputUpdates(existing,eligible){
  for(const [k,row]of wanted)if(!seen.has(k))updates.push({row:next++,values:row});
  return {updates,retained,cleared,appended:wanted.size-seen.size,requiredRows:Math.max(existing.length,next-1)};
 }
-if(typeof module!=='undefined'&&module.exports)module.exports={eligibleInputs,planInputUpdates,expand};
-else window.WakeSuiteInputPlan={eligibleInputs,planInputUpdates,expand};
+function revenueSortRequests(plan,eligible,columnCount,sheetId){
+ if(!Number.isInteger(columnCount)||columnCount<6)throw Error('Invalid source column count.');
+ const rank=new Map(eligible.map((row,i)=>[key(row),i+1]));
+ const updates=new Map(plan.updates.map(u=>[u.row,u.values]));
+ const rows=Array.from({length:plan.requiredRows-1},(_,i)=>({values:[{userEnteredValue:{numberValue:rank.get(key(updates.get(i+2)||[]))||eligible.length+i+2}}]}));
+ return [
+  {appendDimension:{sheetId,dimension:'COLUMNS',length:1}},
+  {updateCells:{range:{sheetId,startRowIndex:1,endRowIndex:plan.requiredRows,startColumnIndex:columnCount,endColumnIndex:columnCount+1},rows,fields:'userEnteredValue'}},
+  {sortRange:{range:{sheetId,startRowIndex:1,endRowIndex:plan.requiredRows,startColumnIndex:0,endColumnIndex:columnCount+1},sortSpecs:[{dimensionIndex:columnCount,sortOrder:'ASCENDING'}]}},
+  {deleteDimension:{range:{sheetId,dimension:'COLUMNS',startIndex:columnCount,endIndex:columnCount+1}}}
+ ];
+}
+if(typeof module!=='undefined'&&module.exports)module.exports={eligibleInputs,planInputUpdates,revenueSortRequests,expand};
+else window.WakeSuiteInputPlan={eligibleInputs,planInputUpdates,revenueSortRequests,expand};

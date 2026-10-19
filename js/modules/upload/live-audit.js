@@ -60,11 +60,14 @@
   if(!dateControl||!config)throw Error('Audit upload configuration is not ready.');
   const dateDisabled=dateControl.disabled,uploadDisabled=upload?.disabled;
   dateControl.disabled=true;if(upload)upload.disabled=true;
-  const prior=window.wakeSuiteSessionReports?.marketplace_audit_report;
+  let prior;
+  let uploadStarted=false;
   let imported=false;
   try{
    dateControl.value=data.date;
    if(currentSessionDate!==data.date)await restoreSessionForDate(data.date);
+   prior=window.wakeSuiteSessionReports?.marketplace_audit_report;
+   uploadStarted=true;
    const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
    const csv=[data.headers,...data.rows.map(row=>data.headers.map(h=>row[h]))].map(row=>row.map(quote).join(',')).join('\r\n');
    const file=new File([csv],'URL_Scraping_Audit_'+data.date+'.csv',{type:'text/csv'});
@@ -76,7 +79,7 @@
     ?'Audit imported. Firestore snapshot verified for the currently available sources.'
     :'Audit source imported and cached in this browser. Processed cloud snapshot is not yet verified; check Master Pricing and Source Availability. Keep the source sheet until verification.';
   }catch(error){
-   if(!imported&&window.wakeSuiteSessionReports){if(prior&&prior.reportDate===data.date)window.wakeSuiteSessionReports.marketplace_audit_report=prior;else delete window.wakeSuiteSessionReports.marketplace_audit_report;}
+   if(uploadStarted&&!imported&&window.wakeSuiteSessionReports){if(prior&&prior.reportDate===data.date)window.wakeSuiteSessionReports.marketplace_audit_report=prior;else delete window.wakeSuiteSessionReports.marketplace_audit_report;}
    if(imported)throw Error('Audit source imported, but cloud verification failed: '+error.message);
    throw error;
   }finally{dateControl.disabled=dateDisabled;if(upload)upload.disabled=uploadDisabled;updateReadiness();}

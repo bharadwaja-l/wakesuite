@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {eligibleInputs,planInputUpdates}=require('../js/modules/connections/input-plan.js');
+const {eligibleInputs,planInputUpdates,revenueSortRequests}=require('../js/modules/connections/input-plan.js');
 const groups={amazonRows:[
  {wfSku:'W1',asin:'A1',category:'Mattress',wfPrice:100,wfMrp:200,inventory:2},
  {wfSku:'W1',asin:'A1',category:'Mattress',wfPrice:100,wfMrp:200,inventory:2},
@@ -23,6 +23,24 @@ assert.throws(()=>planInputUpdates([header,['=FORMULA','A1','F1','W1',100,200]],
 assert.throws(()=>planInputUpdates([['wrong']],eligible.rows),/contract/);
 const packed=['Mattress','W6','market','A6',200,100,200,100,100,3];
 assert.equal(eligibleInputs({amazonRows:[packed]}).rows[0][3],'W6');
+
+// Revenue is deduplicated per ASIN within each WF SKU; missing revenue comes last.
+const ranked=eligibleInputs({amazonRows:[
+ {wfSku:'LOW',asin:'LOW-ASIN',wfPrice:10,wfMrp:20,inventory:1,asinRevenue:100,revenueAvailable:true},
+ {wfSku:'HIGH',asin:'HIGH-ASIN',wfPrice:10,wfMrp:20,inventory:1,asinRevenue:1000,revenueAvailable:true},
+ {wfSku:'HIGH',asin:'HIGH-ASIN',wfPrice:10,wfMrp:20,inventory:1,asinRevenue:1000,revenueAvailable:true},
+ {wfSku:'ZERO',asin:'ZERO-ASIN',wfPrice:10,wfMrp:20,inventory:1,asinRevenue:0,revenueAvailable:true}
+],flipkartRows:[{wfSku:'MISSING',fsn:'ONLY-FSN',wfPrice:10,wfMrp:20,inventory:1}]});
+assert.deepEqual(ranked.rows.map(r=>r[3]),['HIGH','LOW','ZERO','MISSING']);
+assert.deepEqual(ranked.revenues,[1000,100,0,null]);
+const revenuePlan=planInputUpdates([header,['','LOW-ASIN','','LOW',10,20,'low-output'],['','HIGH-ASIN','','HIGH',10,20,'high-output']],ranked.rows);
+const sortOps=revenueSortRequests(revenuePlan,ranked.rows,37,743318554);
+assert.equal(sortOps[2].sortRange.range.endColumnIndex,38);
+assert.equal(sortOps[2].sortRange.range.startRowIndex,1);
+assert.equal(sortOps[3].deleteDimension.range.startIndex,37);
+assert(sortOps[1].updateCells.rows[0].values[0].userEnteredValue.numberValue>sortOps[1].updateCells.rows[1].values[0].userEnteredValue.numberValue);
+console.log('PASS descending Amazon revenue, deduplicated ASIN totals, missing revenue last and whole-row sort with temporary column cleanup.');
+
 const code=fs.readFileSync(__dirname+'/../js/modules/connections/live-connections.js','utf8');new Function(code);
 const job=fs.readFileSync(__dirname+'/../scripts/eod/sync-inputs.cjs','utf8');new Function(job);
 assert(job.includes("billing.data.billingEnabled!==false"));

@@ -2,7 +2,7 @@
 const {GoogleAuth}=require('google-auth-library');
 const {initializeApp,cert}=require('firebase-admin/app');
 const {getFirestore,FieldPath}=require('firebase-admin/firestore');
-const {eligibleInputs,planInputUpdates}=require('../../js/modules/connections/input-plan.js');
+const {eligibleInputs,planInputUpdates,revenueSortRequests}=require('../../js/modules/connections/input-plan.js');
 const projectId='wakesuite-4daf9',sheetId='1KeVVOLASOsHO5Efgf4IVsNWDLD3X1SqsivExGbJ1Bms',tab='master_final_with_flipkart',tabId=743318554;
 const backupTab='_Wakesuite_Input_Backup';
 function unpack(packed){return Array.isArray(packed)?packed:Object.keys(packed||{}).sort().map(k=>packed[k]);}
@@ -35,23 +35,32 @@ async function main(){
  const values=(await sheets('/values/'+encodeURIComponent("'"+tab+"'!A1:AK"+sheet.gridProperties.rowCount)+'?valueRenderOption=FORMULA')).values||[];
  const eligible=eligibleInputs(groups),plan=planInputUpdates(values,eligible.rows);
  if(plan.requiredRows>50000)throw Error('Reviewed sheet cleanup is required; no inputs changed.');
- const backupRows=[['Source row','Category','ASIN','FSN','WF Item SKU','WF Price','WF MRP','Backup time'],...values.slice(1).map((r,i)=>[i+2,...Array.from({length:6},(_,j)=>r[j]??''),new Date().toISOString()]).filter(r=>r.slice(1,7).some(v=>v!==''))];
- const backup=metadata.sheets.find(s=>s.properties.title===backupTab)?.properties;
- if(!backup)await sheets(':batchUpdate','POST',{requests:[{addSheet:{properties:{title:backupTab,hidden:true,gridProperties:{rowCount:Math.max(1000,backupRows.length),columnCount:8}}}}]});
- else if(backupRows.length>backup.gridProperties.rowCount)await sheets(':batchUpdate','POST',{requests:[{appendDimension:{sheetId:backup.sheetId,dimension:'ROWS',length:backupRows.length-backup.gridProperties.rowCount}}]});
- await sheets('/values/'+encodeURIComponent("'"+backupTab+"'!A1:H"+backupRows.length)+'?valueInputOption=RAW','PUT',{values:backupRows});
- const backupRead=(await sheets('/values/'+encodeURIComponent("'"+backupTab+"'!A1:H"+backupRows.length)+'?valueRenderOption=UNFORMATTED_VALUE')).values||[];
- if(backupRows.some((r,i)=>r.some((v,j)=>String(backupRead[i]?.[j]??'')!==String(v))))throw Error('Input backup verification failed; no input write started.');
+ function columnLabel(n){let result='';for(;n>0;n=Math.floor((n-1)/26))result=String.fromCharCode(65+(n-1)%26)+result;return result;}
+ const backupColumns=sheet.gridProperties.columnCount+2,backupEnd=columnLabel(backupColumns),backupTime=new Date().toISOString();
+ const backupRows=[['Source row',...Array.from({length:sheet.gridProperties.columnCount},(_,j)=>values[0]?.[j]??''),'Backup time'],...values.slice(1).map((r,i)=>[i+2,...Array.from({length:sheet.gridProperties.columnCount},(_,j)=>r[j]??''),backupTime])];
+ const backup=metadata.sheets.find(s=>s.properties.title===backupTab)?.properties,requests=[];
+ if(!backup)requests.push({addSheet:{properties:{title:backupTab,hidden:true,gridProperties:{rowCount:Math.max(1000,backupRows.length),columnCount:backupColumns}}}});
+ else{
+  if(backupRows.length>backup.gridProperties.rowCount)requests.push({appendDimension:{sheetId:backup.sheetId,dimension:'ROWS',length:backupRows.length-backup.gridProperties.rowCount}});
+  if(backupColumns>backup.gridProperties.columnCount)requests.push({appendDimension:{sheetId:backup.sheetId,dimension:'COLUMNS',length:backupColumns-backup.gridProperties.columnCount}});
+ }
+ if(requests.length)await sheets(':batchUpdate','POST',{requests});
+ await sheets('/values/'+encodeURIComponent("'"+backupTab+"'!A1:"+backupEnd+backupRows.length)+'?valueInputOption=RAW','PUT',{values:backupRows});
+ const backupRead=(await sheets('/values/'+encodeURIComponent("'"+backupTab+"'!A1:"+backupEnd+backupRows.length)+'?valueRenderOption=UNFORMATTED_VALUE')).values||[];
+ if(backupRows.some((r,i)=>r.some((v,j)=>String(backupRead[i]?.[j]??'')!==String(v))))throw Error('Full-row backup verification failed; no input write started.');
  const fresh=(await source.ref.get()).data();
  if(fresh.status!=='completed'||fresh.fingerprint!==meta.fingerprint||fresh.revision!==meta.revision)throw Error('Snapshot changed; no input write started.');
  if(plan.requiredRows>sheet.gridProperties.rowCount)await sheets(':batchUpdate','POST',{requests:[{appendDimension:{sheetId:tabId,dimension:'ROWS',length:plan.requiredRows-sheet.gridProperties.rowCount}}]});
  for(let i=0;i<plan.updates.length;i+=400)await sheets('/values:batchUpdate','POST',{valueInputOption:'RAW',data:plan.updates.slice(i,i+400).map(u=>({range:"'"+tab+"'!A"+u.row+':F'+u.row,values:[u.values]}))});
  const after=(await sheets('/values/'+encodeURIComponent("'"+tab+"'!A1:F"+plan.requiredRows)+'?valueRenderOption=UNFORMATTED_VALUE')).values||[];
  if(plan.updates.some(u=>u.values.some((v,i)=>String(after[u.row-1]?.[i]??'')!==String(v))))throw Error('Input readback failed; restore the backup before retrying.');
+ await sheets(':batchUpdate','POST',{requests:revenueSortRequests(plan,eligible.rows,sheet.gridProperties.columnCount,tabId)});
+ const sorted=(await sheets('/values/'+encodeURIComponent("'"+tab+"'!A2:F"+(eligible.rows.length+1))+'?valueRenderOption=UNFORMATTED_VALUE')).values||[];
+ if(eligible.rows.some((r,i)=>r.some((v,j)=>String(sorted[i]?.[j]??'')!==String(v))))throw Error('Revenue sort verification failed. Check the full-row backup.');
  const receipt={status:'completed',mode:'github-actions',completedAt:new Date().toISOString(),sourceReportDate:source.id,rows:eligible.rows.length,skipped:eligible.skipped,schedule:'18:30 Asia/Kolkata (GitHub may delay)',zeroCostBillingCheck:'disabled'};
- const requests=(metadata.developerMetadata||[]).filter(m=>m.metadataKey==='wakesuite_eod_sync').map(m=>({deleteDeveloperMetadata:{dataFilter:{developerMetadataLookup:{metadataId:m.metadataId}}}}));
- requests.push({createDeveloperMetadata:{developerMetadata:{metadataKey:'wakesuite_eod_sync',metadataValue:JSON.stringify(receipt),visibility:'DOCUMENT',location:{spreadsheet:true}}}});
- await sheets(':batchUpdate','POST',{requests});
+ const receiptRequests=(metadata.developerMetadata||[]).filter(m=>m.metadataKey==='wakesuite_eod_sync').map(m=>({deleteDeveloperMetadata:{dataFilter:{developerMetadataLookup:{metadataId:m.metadataId}}}}));
+ receiptRequests.push({createDeveloperMetadata:{developerMetadata:{metadataKey:'wakesuite_eod_sync',metadataValue:JSON.stringify(receipt),visibility:'DOCUMENT',location:{spreadsheet:true}}}});
+ await sheets(':batchUpdate','POST',{requests:receiptRequests});
  console.log('Verified input sync: '+eligible.rows.length+' rows; source date '+source.id+'. No source rows or credentials are logged.');
 }
 if(require.main===module)main().catch(()=>{console.error('EOD sync failed. No credentials or business data were printed. Check setup permissions and input backup before retrying.');process.exitCode=1;});

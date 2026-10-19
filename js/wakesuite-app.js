@@ -3098,9 +3098,7 @@ async function uploadData(importRequest = null){
 
     }
 
-    window.wakeSuiteSessionReports[
-      selectedConfig.id
-    ] = {
+    const pendingReport = {
       reportDate,
       menu,
       reportType:folder,
@@ -3198,10 +3196,9 @@ async function uploadData(importRequest = null){
         metadata
       );
 
-    window.wakeSuiteSessionReports[
-      selectedConfig.id
-    ].uploadId =
-      uploadId;
+    if(!uploadId) throw new Error('Upload registration did not return a receipt.');
+    pendingReport.uploadId = uploadId;
+    window.wakeSuiteSessionReports[selectedConfig.id] = pendingReport;
 
     setUploadStatus(
       "Validation passed. " +
@@ -8318,10 +8315,10 @@ uploadData = async function(importRequest = null){
   const folder = importRequest?.folder || document.getElementById("folder")?.value;
   const config = getSelectedConfig(menu,folder);
   const result = await coreUploadData(importRequest);
-  if(date && config?.id && window.wakeSuiteSessionReports?.[config.id]?.reportDate === date){
+  if(result?.uploadId && date && config?.id && window.wakeSuiteSessionReports?.[config.id]?.reportDate === date){
     const sessionRecord = window.wakeSuiteSessionReports[config.id];
-    sessionRecord.fileName = sessionRecord.parsedFile?.fileName || "";
-    sessionRecord.fileSize = sessionRecord.parsedFile?.fileSize || 0;
+    sessionRecord.fileName = sessionRecord.parsedFile?.fileName || importRequest?.file?.name || sessionRecord.file?.name || "";
+    sessionRecord.fileSize = sessionRecord.parsedFile?.fileSize ?? importRequest?.file?.size ?? sessionRecord.file?.size ?? 0;
     sessionRecord.lastModified = importRequest?.file?.lastModified || document.getElementById("file")?.files?.[0]?.lastModified || 0;
     await persistCurrentUploadedReport(date,config.id);
     updateReadiness();
@@ -26830,7 +26827,7 @@ openWakeSuiteDb = function(){return new Promise((resolve,reject)=>{const request
 async function v8PersistUploadVersion(reportDate,configId,file,record){if(!file)return;const db=await openWakeSuiteDb(),versionId=`${reportDate}::${configId}::${Date.now()}::${Math.random().toString(36).slice(2,7)}`,dateConfig=`${reportDate}::${configId}`;const bytes=await file.arrayBuffer();await new Promise((resolve,reject)=>{const tx=db.transaction(["report_versions","raw_files"],"readwrite");tx.objectStore("report_versions").put({versionId,dateConfig,reportDate,configId,fileName:file.name,fileSize:file.size,lastModified:file.lastModified,createdAt:Date.now(),rowCount:record?.parsedFile?.rowCount||0,coverageFrom:record?.coverageFrom||null,coverageTo:record?.coverageTo||null,coverageDays:record?.coverageDays||null,status:"successful"});tx.objectStore("raw_files").put({versionId,dateConfig,reportDate,configId,fileName:file.name,mimeType:file.type||"",bytes});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});return versionId;}
 async function v8GetLatestRawFile(reportDate,configId){const db=await openWakeSuiteDb(),dateConfig=`${reportDate}::${configId}`;return new Promise((resolve,reject)=>{const tx=db.transaction(["report_versions","raw_files"],"readonly"),idx=tx.objectStore("report_versions").index("dateConfig"),q=idx.getAll(dateConfig);q.onsuccess=()=>{const versions=(q.result||[]).filter(v=>v.status==="successful").sort((a,b)=>b.createdAt-a.createdAt);if(!versions.length){resolve(null);return;}const r=tx.objectStore("raw_files").get(versions[0].versionId);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);};q.onerror=()=>reject(q.error);});}
 const v8BaseUploadData=uploadData;
-uploadData=async function(importRequest=null){const reportDate=importRequest?.reportDate||document.getElementById("reportDate")?.value;const menu=importRequest?.menu||document.getElementById("menu")?.value,folder=importRequest?.folder||document.getElementById("folder")?.value,file=importRequest?.file||document.getElementById("file")?.files?.[0];let config=null;try{config=getSelectedConfig(menu,folder);}catch(_e){}const result=await v8BaseUploadData(importRequest);if(reportDate&&config?.id&&file&&window.wakeSuiteSessionReports?.[config.id]?.reportDate===reportDate){try{const versionId=await v8PersistUploadVersion(reportDate,config.id,file,window.wakeSuiteSessionReports[config.id]);window.wakeSuiteSessionReports[config.id].versionId=versionId;showWakeSuiteToast("Upload cached locally for correction-file generation.","success");}catch(error){console.warn("Version persistence failed",error);}}return result;};
+uploadData=async function(importRequest=null){const reportDate=importRequest?.reportDate||document.getElementById("reportDate")?.value;const menu=importRequest?.menu||document.getElementById("menu")?.value,folder=importRequest?.folder||document.getElementById("folder")?.value,file=importRequest?.file||document.getElementById("file")?.files?.[0];let config=null;try{config=getSelectedConfig(menu,folder);}catch(_e){}const result=await v8BaseUploadData(importRequest);if(result?.uploadId&&reportDate&&config?.id&&file&&window.wakeSuiteSessionReports?.[config.id]?.reportDate===reportDate){try{const versionId=await v8PersistUploadVersion(reportDate,config.id,file,window.wakeSuiteSessionReports[config.id]);window.wakeSuiteSessionReports[config.id].versionId=versionId;showWakeSuiteToast("Upload cached locally for correction-file generation.","success");}catch(error){console.warn("Version persistence failed",error);}}return result;};
 
 /* ---------- Amazon min / max fields + corrected live classification ---------- */
 buildAmazonListingMap=function(rows){const map=new Map();(rows||[]).forEach(row=>{const azSku=normalizeKey(getRowValue(row,"seller-sku"));if(!azSku)return;map.set(azSku,{azSku,asin:normalizeKey(getRowValue(row,"asin1")),status:String(getRowValue(row,"status")||"").trim().toLowerCase(),azPrice:parseMoney(getRowValue(row,"price")),azMrp:parseMoney(getRowValue(row,"maximum-retail-price")),minAllowedPrice:parseMoney(getRowValue(row,"minimum-seller-allowed-price")),maxAllowedPrice:parseMoney(getRowValue(row,"maximum-seller-allowed-price")),quantity:parseNumber(getRowValue(row,"quantity"))});});return map;};
