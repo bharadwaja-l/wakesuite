@@ -1,0 +1,20 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const fb=fs.readFileSync(__dirname+'/../js/wakesuite-firebase.js','utf8');
+const core=fs.readFileSync(__dirname+'/../js/wakesuite-app.js','utf8');
+const audit=fs.readFileSync(__dirname+'/../js/modules/upload/live-audit.js','utf8');
+let written=null;
+const context={auth:{currentUser:{uid:'test-user',email:'test@example.invalid'}},db:{},window:{currentWakeSuiteAccess:{permissions:{upload:true}}},collection:()=> 'uploads',addDoc:async(_,data)=>{written=data;return {id:'receipt'};},serverTimestamp:()=>({serverTime:true})};
+vm.createContext(context);
+const start=fb.indexOf('window.saveUploadMetadata ='),end=fb.indexOf('/* ======================================================\n   HISTORICAL DAILY SNAPSHOTS',start);
+vm.runInContext(fb.slice(start,end),context);
+const cleanStart=fb.indexOf('function cleanForFirestore('),cleanEnd=fb.indexOf('/*',cleanStart);
+vm.runInContext(fb.slice(cleanStart,cleanEnd),context);
+(async()=>{
+ const id=await context.window.saveUploadMetadata({sheetName:undefined,fileName:'audit.csv',nested:{optional:undefined,price:0},flags:[undefined,false]});
+ assert.equal(id,'receipt');assert.equal(Object.hasOwn(written,'sheetName'),false);assert.equal(Object.hasOwn(written.nested,'optional'),false);assert.equal(written.nested.price,0);assert.equal(written.flags[0],null);assert.equal(written.flags[1],false);assert.equal(written.uploadedAt.serverTime,true);assert.equal(written.userId,'test-user');
+ await context.window.saveUploadMetadata({sheetName:'master_final_with_flipkart',headerRowNumber:1});assert.equal(written.sheetName,'master_final_with_flipkart');
+ assert(core.includes('sheetName:parsedFile.sheetName ?? null'));
+ assert(audit.includes('sheetName:tab,headerRowNumber:1'));
+ context.auth.currentUser=null;await assert.rejects(context.window.saveUploadMetadata({}),/signed in/);
+ console.log('PASS undefined upload metadata cleaned before addDoc; nested values safe; false/zero preserved; server timestamp retained; source sheet name supplied; login guard retained.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

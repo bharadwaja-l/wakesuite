@@ -3136,7 +3136,7 @@ async function uploadData(importRequest = null){
       fileSize:file.size,
       mimeType:file.type || "unknown",
       lastModified:file.lastModified,
-      sheetName:parsedFile.sheetName,
+      sheetName:parsedFile.sheetName ?? null,
       headerRowNumber:parsedFile.headerRowNumber || 1,
       rowCount:parsedFile.rowCount,
       headers:parsedFile.headers,
