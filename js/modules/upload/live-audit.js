@@ -68,7 +68,7 @@
    const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
    const csv=[data.headers,...data.rows.map(row=>data.headers.map(h=>row[h]))].map(row=>row.map(quote).join(',')).join('\r\n');
    const file=new File([csv],'URL_Scraping_Audit_'+data.date+'.csv',{type:'text/csv'});
-   const receipt=await window.uploadData({reportDate:data.date,menu:config.menu,folder:config.folder,file,parsedFile:{headers:data.headers,rows:data.rows,rowCount:data.rowCount},silent:true,deferProcessing:true});
+   const receipt=await window.uploadData({reportDate:data.date,menu:config.menu,folder:config.folder,file,parsedFile:{headers:data.headers,rows:data.rows,rowCount:data.rowCount,sheetName:tab,headerRowNumber:1},silent:true,deferProcessing:true});
    if(!receipt?.uploadId)throw Error('Audit upload did not return a receipt.');
    imported=true;await maybeAutoProcessCurrentDate();
    const meta=await window.getDailySnapshotMeta(data.date);

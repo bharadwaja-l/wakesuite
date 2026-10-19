@@ -1342,7 +1342,7 @@ async function(metadata){
         "uploads"
       ),
       {
-        ...metadata,
+        ...cleanForFirestore(metadata || {}),
         userId:
           user.uid,
         userEmail:
